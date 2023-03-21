@@ -23,3 +23,8 @@ export const Workflows = {
     return new Promise((resolve, reject) => {});
   },
 };
+export const DBServiceWorkflows = {
+  getUserDetail(email: string): Promise<string> {
+    return new Promise((resolve, reject) => {});
+  },
+};
