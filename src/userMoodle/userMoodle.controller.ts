@@ -1,6 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('/api/user/moodle')
+@ApiTags('User Moodle')
+@Controller('/api/user-moodle')
 export class UserController {
   // constructor(private readonly appService: AppService) {}
 
