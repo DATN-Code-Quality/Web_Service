@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { WorkflowClient } from '@temporalio/client';
 import { InjectTemporalClient } from 'nestjs-temporal';
+import { OperationResult } from 'src/common/operation-result';
 import { UserReqDto } from './req/user-req.dto';
 
 @Injectable()
@@ -20,5 +21,6 @@ export class UserService {
     // });
     // const result = await handle.result();
     // return (result.data as User).name;
+    return OperationResult.ok('Deleted Successfully');
   }
 }

@@ -3,13 +3,13 @@ import { OperationResult } from './operation-result';
 
 export class ServiceResponse<T = any> {
   @ApiProperty()
-  status: any;
+  error: number;
 
   @ApiProperty()
   data: T;
 
   constructor(props: ServiceResponse<T>) {
-    this.status = props.status;
+    this.error = props.error;
     this.data = props.data;
   }
 
@@ -24,7 +24,7 @@ export class ServiceResponse<T = any> {
 
     return new ServiceResponse({
       data: result.data!,
-      status: 'OK',
+      error: 0,
     });
   }
 
@@ -40,7 +40,7 @@ export class ServiceResponse<T = any> {
     }
     return new ServiceResponse({
       data: dataMapper(result.data),
-      status: 'OK',
+      error: ,
     });
   }
 }

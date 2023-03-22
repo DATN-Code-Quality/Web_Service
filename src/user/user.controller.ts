@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiTags } from '@nestjs/swagger';
+import { ServiceResponse } from 'src/common/service-response';
+import { UserReqDto } from './req/user-req.dto';
 
 @ApiTags('User')
 @Controller('/api/user')
@@ -9,6 +11,7 @@ export class UserController {
 
   @Post('/add-users')
   async addUsers(@Body() users: UserReqDto[]) {
-    // return await this.appService.getHello();
+    const result = await this.userService.addUsers(users);
+    return ServiceResponse.fromResult(result);
   }
 }
