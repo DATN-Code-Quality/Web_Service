@@ -40,7 +40,7 @@ export class ServiceResponse<T = any> {
     }
     return new ServiceResponse({
       data: dataMapper(result.data),
-      error: ,
+      error: 0,
     });
   }
 }

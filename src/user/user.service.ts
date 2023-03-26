@@ -21,6 +21,9 @@ export class UserService {
     // });
     // const result = await handle.result();
     // return (result.data as User).name;
-    return OperationResult.ok('Deleted Successfully');
+    return OperationResult.ok('Import Successfully');
+  }
+  async updateUser(user: UserReqDto, userId: string) {
+    return OperationResult.ok('Update Successfully');
   }
 }
