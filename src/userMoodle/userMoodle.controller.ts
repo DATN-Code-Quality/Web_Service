@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { WorkflowClient } from '@temporalio/client';
 import { InjectTemporalClient } from 'nestjs-temporal';
@@ -13,9 +13,9 @@ export class UserMoodleController {
   ) {}
 
   @Get('/get-user-by-email')
-  async getUserByEmail() {
+  async getUserByEmail(@Body() email: string[]) {
     const handle = await this.client.start(Workflows.GetUsersByEmail, {
-      args: [['vuagio.2402@gmail.com']],
+      args: [[...email]],
       workflowId: `workflow-${new Date().getTime()}`,
       taskQueue: MOODLE_TASK_QUEUE,
     });
