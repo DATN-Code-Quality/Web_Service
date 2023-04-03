@@ -8,7 +8,6 @@ import { DBServiceWorkflows, Workflows } from './temporal/workflows';
 @Injectable()
 export class AppService {
   constructor(
-    @InjectTemporalClient() private readonly client: WorkflowClient,
   ) {}
 
   // async getHello() {
@@ -22,13 +21,5 @@ export class AppService {
   //   return (result.data as User).name;
   // }
   async getHello() {
-    const handle = await this.client.start(DBServiceWorkflows.getUserDetail, {
-      args: ['email'],
-      workflowId: `workflow-${new Date().getTime()}`,
-      taskQueue: 'database-service-task-queue',
-    });
-    const result = await handle.result();
-
-    return result as string;
   }
 }

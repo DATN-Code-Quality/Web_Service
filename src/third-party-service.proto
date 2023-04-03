@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package third_party_service;
+
+message User {
+  string name = 1;
+  string email = 2;
+  string role = 3;
+  string userId = 4;
+  string moodleId = 5;
+  bool status = 6;
+}
+
+message GetUsersRequest {
+  repeated string emails = 1;
+}
+
+message UsersResponse {
+  int32 error = 1;
+  repeated User users = 2;
+}
+
+service UserService {
+  rpc GetUsersByEmails(GetUsersRequest) returns (UsersResponse);
+}
