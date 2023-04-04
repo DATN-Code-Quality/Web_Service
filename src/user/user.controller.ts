@@ -23,7 +23,7 @@ export class UserController {
     });
     const usersAdded = [] as UserReqDto[];
     for (let i = 0; i < hash.length; i++) {
-      usersAdded.push(await hash[0]);
+      usersAdded.push(await hash[i]);
     }
     const result = await this.userService.createMany(UserResDto,usersAdded);
     return result;
