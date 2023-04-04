@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiTags } from '@nestjs/swagger';
 import { UserReqDto } from './req/user-req.dto';
 import bcrypt from 'bcrypt';
 import {} from 'bcrypt';
+import { UserResDto } from './res/user-res.dto';
 const SALTROUNDS = 10;
 @ApiTags('User')
 @Controller('/api/user')
@@ -22,9 +23,9 @@ export class UserController {
     });
     const usersAdded = [] as UserReqDto[];
     for (let i = 0; i < hash.length; i++) {
-      usersAdded.push(await hash[0]);
+      usersAdded.push(await hash[i]);
     }
-    const result = await this.userService.addUsers(usersAdded);
+    const result = await this.userService.createMany(UserResDto,usersAdded);
     return result;
   }
 
@@ -34,13 +35,19 @@ export class UserController {
     @Body() userInfo: UserReqDto,
   ) {
     console.log('userId', userId);
-    const result = await this.userService.updateUser(userInfo, userId);
+    const result = await this.userService.update(userId, userInfo);
     return result;
   }
 
   @Delete('/delete-user/:userId')
   async deleteUser(@Param('userId') userId: string) {
-    const result = await this.userService.deleteUser(userId);
+    const result = await this.userService.remove(userId);
+    return result;
+  }
+
+  @Get('/get-all-user')
+  async getAllUsers() {
+    const result = await this.userService.findAll(UserResDto);
     return result;
   }
 }
