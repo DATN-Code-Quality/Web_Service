@@ -11,6 +11,17 @@ message User {
   bool status = 6;
 }
 
+message Course {    
+  string name = 1;
+  string moodleId =2;
+  string courseMoodleId =3 ;
+  string startAt =4;
+  string endAt = 5;
+  string detail = 6;
+  string  summary = 7;
+  string categoryId = 8;
+}
+
 message GetUsersRequest {
   repeated string emails = 1;
 }
@@ -20,6 +31,19 @@ message UsersResponse {
   repeated User users = 2;
 }
 
+message GetCourseOfUserRequest {
+  int32 userMoodleId = 1;
+}
+
+message CoursesResponse {
+  int32 error = 1;
+  repeated Course courses = 2;
+}
+
 service UserService {
   rpc GetUsersByEmails(GetUsersRequest) returns (UsersResponse);
+}
+
+service CourseService {
+  rpc GetUsersCourse(GetCourseOfUserRequest) returns (CoursesResponse);
 }

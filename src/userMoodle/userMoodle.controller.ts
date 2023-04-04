@@ -1,28 +1,52 @@
-import { Body, Controller, Get, Inject, OnModuleInit } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  OnModuleInit,
+  Query,
+} from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
-import { Observable } from 'rxjs';
-import { UserRequest } from 'src/gRPc/interfaces/UserRequest';
-interface UserService {
-  getUsersByEmails(emails: UserRequest): Observable<any>;
-}
+import { firstValueFrom } from 'rxjs';
+import { CourseService } from 'src/gRPc/services/course';
+import { UserService } from 'src/gRPc/services/user';
 
 @ApiTags('User Moodle')
 @Controller('/api/user-moodle')
 export class UserMoodleController implements OnModuleInit {
-  private clientService: UserService;
+  private userMoodleService: UserService;
+  private courseMoodleService: CourseService;
 
   constructor(
     @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
   ) {}
 
   onModuleInit() {
-    this.clientService = this.client.getService<UserService>('UserService');
+    this.userMoodleService = this.client.getService<UserService>('UserService');
+    this.courseMoodleService =
+      this.client.getService<CourseService>('CourseService');
   }
 
   @Get('/get-user-by-email')
   async getUserByEmail(@Body() emails: string[]) {
-    const result = this.clientService.getUsersByEmails({ emails });
+    const result = this.userMoodleService.getUsersByEmails({ emails });
+
+    return result;
+  }
+
+  @Get('/get-user-course')
+  async getUserCourse(@Query() query: string) {
+    // ban đầu nhờ client truyền id dùm, nhưng sau thì thông tin này phải lấy từ session
+    const result = await firstValueFrom(
+      this.courseMoodleService
+        .getUsersCourse({
+          userMoodleId: query['userMoodleId'],
+        })
+        .pipe(),
+    );
+
+    console.log({ result });
 
     return result;
   }

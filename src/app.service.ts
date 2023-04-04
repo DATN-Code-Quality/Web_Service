@@ -16,7 +16,7 @@ export class AppService {
   //     workflowId: `workflow-${new Date().getTime()}`,
   //     taskQueue: MOODLE_TASK_QUEUE,
   //   });
-  //   const result = await handle.result();
+  //   const result = await handle.result();`
 
   //   return (result.data as User).name;
   // }
