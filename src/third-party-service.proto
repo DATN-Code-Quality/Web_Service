@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/any.proto";
+
 package third_party_service;
 
 message User {
@@ -22,4 +24,65 @@ message UsersResponse {
 
 service UserService {
   rpc GetUsersByEmails(GetUsersRequest) returns (UsersResponse);
+}
+
+
+message TextRange {
+  int32 startLine = 1;
+  int32 endLine = 2;
+  int32 startOffset = 3;
+  int32 endOffset = 4;
+}
+
+message IssueDetail {
+  string key = 1;
+  string rule = 2;
+  string severity = 3;
+  string component = 4;
+  string project = 5;
+  int32 line = 6;
+  string hash = 7;
+  TextRange textRange = 8;
+  string status = 9;
+  string message = 10;
+  string effort = 11;
+  string debt = 12;
+  string creationDate = 13;
+  string updateDate = 14;
+  string type = 15;
+  string scope = 16;
+}
+
+message ComponentDetail {
+  string key = 1;
+  bool enabled = 2;
+  string qualifier = 3;
+  string name = 4;
+  string longName = 5;
+  string path = 6;
+}
+
+
+message Issue {
+  int32 total = 1;
+  int32 p = 2;
+  int32 ps = 3;
+  int32 effortTotal = 4;
+  repeated IssueDetail issues = 5;
+  repeated ComponentDetail components = 6;
+}
+
+message IssueRequest {
+  string key = 1;
+}
+
+message IssueResponse {
+  int32 error = 1;
+  Issue issues = 2;
+}
+
+
+
+service IssueService {
+  rpc getIssuesByKey(IssueRequest) returns (IssueResponse);
 }

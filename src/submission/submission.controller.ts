@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import bcrypt from 'bcrypt';
 import {} from 'bcrypt';
@@ -9,7 +17,6 @@ const SALTROUNDS = 10;
 @Controller('/api/submission')
 export class SubmissionController {
   constructor(private readonly submissionService: SubmissionService) {}
-
 
   @Get('/get-all-submission')
   async getAllSubmissions() {

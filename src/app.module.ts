@@ -20,13 +20,14 @@ import { AssignmentModule } from './assignment/assignment.module';
 import { SubmissionModule } from './submission/submission.module';
 import { ProjectModule } from './project/project.module';
 import { ResultModule } from './result/result.module';
+import { IssueModule } from './issue/issue.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: "localhost",
+      host: 'localhost',
       port: 3306,
       username: 'root',
       password: '04042001',
@@ -45,7 +46,7 @@ import { ResultModule } from './result/result.module';
       logging: 'all',
       synchronize: true,
     }),
-    UserModule, 
+    UserModule,
     CategoryModule,
     CourseModule,
     UserCourseModule,
@@ -53,7 +54,9 @@ import { ResultModule } from './result/result.module';
     SubmissionModule,
     ProjectModule,
     ResultModule,
-    UserMoodleModule],
+    UserMoodleModule,
+    IssueModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

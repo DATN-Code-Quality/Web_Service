@@ -2,7 +2,8 @@ import { Body, Controller, Get, Inject, OnModuleInit } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
-import { UserRequest } from 'src/gRPc/interfaces/UserRequest';
+import { UserRequest } from 'src/gRPc/interfaces/user/UserRequest';
+
 interface UserService {
   getUsersByEmails(emails: UserRequest): Observable<any>;
 }
