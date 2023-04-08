@@ -21,6 +21,7 @@ import { SubmissionModule } from './submission/submission.module';
 import { ProjectModule } from './project/project.module';
 import { ResultModule } from './result/result.module';
 import { IssueModule } from './issue/issue.module';
+import { SourceModule } from './source/source.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { IssueModule } from './issue/issue.module';
     ResultModule,
     UserMoodleModule,
     IssueModule,
+    SourceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
