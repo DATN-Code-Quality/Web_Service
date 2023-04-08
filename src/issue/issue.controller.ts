@@ -1,4 +1,14 @@
-import { Controller, Get, Inject, OnModuleInit, Param } from '@nestjs/common';
+import {
+  Controller,
+  DefaultValuePipe,
+  Get,
+  Inject,
+  OnModuleInit,
+  Param,
+  ParseBoolPipe,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { IssueService } from './issue.service';
@@ -16,9 +26,20 @@ export class IssueController implements OnModuleInit {
     this.clientService = this.client.getService<IssueService>('IssueService');
   }
 
-  @Get(':key')
-  async getIssueByEmail(@Param('key') key: string) {
-    const result = await this.clientService.getIssuesByKey({ key: key });
+  @Get(':submissionId')
+  async getIssueBySubmissionId(
+    @Param('submissionId') submissionId: string,
+    @Query('type', new DefaultValuePipe(null)) type: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(100), ParseIntPipe)
+    pageSize: number,
+  ) {
+    const result = await this.clientService.getIssuesBySubmissionId({
+      submissionId: submissionId,
+      page: page,
+      pageSize: pageSize,
+      type: type,
+    });
     return result;
   }
 }

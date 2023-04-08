@@ -1,3 +1,6 @@
 export interface IssueRequest {
-  key: string;
+  submissionId: string;
+  type: string;
+  page: number;
+  pageSize: number;
 }

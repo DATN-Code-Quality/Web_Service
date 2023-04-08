@@ -73,7 +73,10 @@ message Issue {
 }
 
 message IssueRequest {
-  string key = 1;
+  string submissionId = 1;
+  string type = 2;
+  int32 page = 3;
+  int32 pageSize = 4;
 }
 
 message IssueResponse {
@@ -83,7 +86,7 @@ message IssueResponse {
 
 
 service IssueService {
-  rpc getIssuesByKey(IssueRequest) returns (IssueResponse);
+  rpc getIssuesBySubmissionId(IssueRequest) returns (IssueResponse);
 }
 
 
