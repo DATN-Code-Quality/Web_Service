@@ -10,9 +10,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 @Injectable()
 export class UserService extends BaseService<UserReqDto, UserResDto> {
   constructor(
-    @InjectRepository(UserReqDto) private readonly userRepository: Repository<UserReqDto>,
-    // @Inject(UsersCoursesService) private readonly usersCoursesService: UsersCoursesService,
-  ) {
+    @InjectRepository(UserReqDto)
+    private readonly userRepository: Repository<UserReqDto>,
+  ) // @Inject(UsersCoursesService) private readonly usersCoursesService: UsersCoursesService,
+  {
     super(userRepository);
   }
 
@@ -20,7 +21,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     userId: string,
     password: string,
   ): Promise<OperationResult<UserReqDto>> {
-    var result: OperationResult<any>
+    var result: OperationResult<any>;
     await this.userRepository
       .createQueryBuilder('user')
       .where('user.userId = :userId and user.password = :password', {
@@ -29,13 +30,16 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       })
       .getOne()
       .then((savedDtos) => {
-        result = OperationResult.ok(plainToInstance(UserReqDto, savedDtos, { excludeExtraneousValues: true }))
-
+        result = OperationResult.ok(
+          plainToInstance(UserReqDto, savedDtos, {
+            excludeExtraneousValues: true,
+          }),
+        );
       })
       .catch((err) => {
-        result = OperationResult.error(err)
-      })
-    return result
+        result = OperationResult.error(err);
+      });
+    return result;
   }
 
   // async findUserByCourseId(courseId: string): Promise<OperationResult<Array<UserReqDto>>> {
@@ -43,7 +47,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
   //   if (userscourse.length == 0){
   //     return OperationResult.ok([]);
   //   }
-    
+
   //   const ids = userscourse.map((usercourse) => usercourse.userId)
 
   //   var result: OperationResult<Array<UserReqDto>>

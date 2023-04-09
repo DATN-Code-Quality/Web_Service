@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { UserCourseService } from './user-course.service';
 import { ApiTags } from '@nestjs/swagger';
 import bcrypt from 'bcrypt';

@@ -22,6 +22,11 @@ message Course {
   string categoryId = 8;
 }
 
+message Categories{
+  string name = 1;
+  int32 categoryMoodleId = 2;
+}
+
 message GetUsersRequest {
   repeated string emails = 1;
 }
@@ -35,15 +40,40 @@ message GetCourseOfUserRequest {
   int32 userMoodleId = 1;
 }
 
+message GetCourseOfCategoryRequest {
+  int32 categoryMoodleId = 1;
+}
+
+message GetCourseOfMoodleIdRequest {
+  int32 courseMoodleId = 1;
+}
+
 message CoursesResponse {
   int32 error = 1;
   repeated Course courses = 2;
 }
 
+message CategoriesResponse {
+  int32 error = 1;
+  repeated Categories categories = 2;
+}
+
+message Empty {}
+
 service UserService {
   rpc GetUsersByEmails(GetUsersRequest) returns (UsersResponse);
+  rpc GetAllUsers(Empty) returns (UsersResponse);
 }
 
 service CourseService {
   rpc GetUsersCourse(GetCourseOfUserRequest) returns (CoursesResponse);
+  rpc GetAllCourses(Empty) returns (CoursesResponse);
+  rpc GetCoursesByCategory(GetCourseOfCategoryRequest) returns (CoursesResponse);
+  rpc GetCoursesByMoodleId(GetCourseOfMoodleIdRequest) returns (CoursesResponse);
 }
+
+service CategoryService {
+  rpc GetAllCategories(Empty) returns (CategoriesResponse);
+}
+
+
