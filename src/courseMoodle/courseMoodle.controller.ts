@@ -53,7 +53,7 @@ export class CourseMoodleController implements OnModuleInit {
     return result;
   }
 
-  @Get('/get-courses-detail-by-moodle-id')
+  @Get('/get-courses-detail-by-course-moodle-id')
   async getCourseDetailByMoodleId(@Query() query: string) {
     const result = this.courseMoodleService.getCoursesByMoodleId({
       courseMoodleId: query['courseMoodleId'],
