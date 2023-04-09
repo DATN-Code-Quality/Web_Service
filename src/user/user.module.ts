@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserReqDto } from './req/user-req.dto';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserReqDto]),],
+  imports: [TypeOrmModule.forFeature([UserReqDto])],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

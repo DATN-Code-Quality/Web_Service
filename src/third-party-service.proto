@@ -22,9 +22,32 @@ message Course {
   string categoryId = 8;
 }
 
-message Categories{
+message Assignment {    
   string name = 1;
-  int32 categoryMoodleId = 2;
+  string dueDate =2;
+  bool status =3 ;
+  string courseId =4;
+  string description = 5;
+  string attachmentFileLink = 6;
+  string config = 7;
+  string assignmentMoodleId = 8;
+}
+
+message Submission {    
+  string assignmentId = 1;
+  string dueDlinkate =2;
+  string note =3 ;
+  string submitType =4;
+  string userId = 5;
+  string origin = 6;
+  string status = 7;
+  int32 grade = 8;
+  string submissionMoodleId=9;
+}
+
+message Categories{
+  string name =1;
+  int32 categoryMoodleId =2;
 }
 
 message GetUsersRequest {
@@ -40,6 +63,14 @@ message GetCourseOfUserRequest {
   int32 userMoodleId = 1;
 }
 
+message GetAssignmentsOfCourseRequest {
+  int32 courseMoodleId = 1;
+}
+
+message GetSubmissionsOfAssignmentMoodleIdRequest {
+  int32 assignmentMoodleId = 1;
+}
+
 message GetCourseOfCategoryRequest {
   int32 categoryMoodleId = 1;
 }
@@ -51,6 +82,16 @@ message GetCourseOfMoodleIdRequest {
 message CoursesResponse {
   int32 error = 1;
   repeated Course courses = 2;
+}
+
+message AssignmentsResponse {
+  int32 error = 1;
+  repeated Assignment assignments = 2;
+}
+
+message SubmissionsResponse {
+  int32 error = 1;
+  repeated Submission submissions = 2;
 }
 
 message CategoriesResponse {
@@ -74,6 +115,14 @@ service CourseService {
 
 service CategoryService {
   rpc GetAllCategories(Empty) returns (CategoriesResponse);
+}
+
+service AssignmentService{
+  rpc GetAllAssignmentsByCourseId(GetAssignmentsOfCourseRequest) returns (AssignmentsResponse);
+}
+
+service SubmissionService{
+  rpc GetSubmissionsByAssignmentId(GetSubmissionsOfAssignmentMoodleIdRequest) returns (SubmissionsResponse);
 }
 
 

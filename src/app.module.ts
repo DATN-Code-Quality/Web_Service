@@ -24,6 +24,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { CourseMoodleModule } from './courseMoodle/courseMoodle.module';
 import { SubmissionMoodleModule } from './submissionMoodle/submissionMoodle.module';
+import { AssignmentMoodleModule } from './assignmentMoodle/assignmentMoodle.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { SubmissionMoodleModule } from './submissionMoodle/submissionMoodle.modu
     UserMoodleModule,
     CourseMoodleModule,
     SubmissionMoodleModule,
+    AssignmentMoodleModule,
     {
       ...ClientsModule.register([
         {
