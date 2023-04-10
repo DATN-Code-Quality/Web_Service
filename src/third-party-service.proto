@@ -35,7 +35,7 @@ message Assignment {
 
 message Submission {    
   string assignmentId = 1;
-  string dueDlinkate =2;
+  string link =2;
   string note =3 ;
   string submitType =4;
   string userId = 5;
