@@ -31,7 +31,12 @@ export class UserMoodleController implements OnModuleInit {
   @Get('/get-user-by-email')
   async getUserByEmail(@Body() emails: string[]) {
     const result = this.userMoodleService.getUsersByEmails({ emails });
+    return result;
+  }
 
+  @Get('/get-all-users')
+  async getAllUsers() {
+    const result = this.userMoodleService.getAllUsers({});
     return result;
   }
 
@@ -45,9 +50,6 @@ export class UserMoodleController implements OnModuleInit {
         })
         .pipe(),
     );
-
-    console.log({ result });
-
     return result;
   }
 }

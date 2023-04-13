@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiTags } from '@nestjs/swagger';
 import { UserReqDto } from './req/user-req.dto';
@@ -25,7 +33,7 @@ export class UserController {
     for (let i = 0; i < hash.length; i++) {
       usersAdded.push(await hash[i]);
     }
-    const result = await this.userService.createMany(UserResDto,usersAdded);
+    const result = await this.userService.createMany(UserResDto, usersAdded);
     return result;
   }
 
@@ -34,7 +42,6 @@ export class UserController {
     @Param('userId') userId: string,
     @Body() userInfo: UserReqDto,
   ) {
-    console.log('userId', userId);
     const result = await this.userService.update(userId, userInfo);
     return result;
   }

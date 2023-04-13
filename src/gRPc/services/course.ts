@@ -1,6 +1,23 @@
 import { Observable } from 'rxjs';
-import { CoursesResponce, GetCourseOfUserRequest } from '../interfaces/Course';
+import {
+  CoursesResponce,
+  GetCourseOfCategoryRequest,
+  GetCourseOfMoodleIdRequest,
+  GetCourseOfUserRequest,
+} from '../interfaces/Course';
 
 export interface CourseService {
-  getUsersCourse(userMoodleId: GetCourseOfUserRequest): Observable<CoursesResponce>;
+  getUsersCourse(
+    userMoodleId: GetCourseOfUserRequest,
+  ): Observable<CoursesResponce>;
+
+  getAllCourses({}): Observable<CoursesResponce>;
+
+  getCoursesByCategory(
+    categoryMoodleId: GetCourseOfCategoryRequest,
+  ): Observable<CoursesResponce>;
+
+  getCoursesByMoodleId(
+    courseMoodleId: GetCourseOfMoodleIdRequest,
+  ): Observable<CoursesResponce>;
 }

@@ -1,7 +1,7 @@
-import { Controller, Get } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
-import { AssignmentService } from "./assignment.service";
-import { AssignmentResDto } from "./res/assignment-res.dto";
+import { Controller, Get } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { AssignmentService } from './assignment.service';
+import { AssignmentResDto } from './res/assignment-res.dto';
 
 @ApiTags('Assignment')
 @Controller('/api/assignment')
@@ -12,5 +12,4 @@ export class AssignmentController {
     const result = await this.assignmentService.findAll(AssignmentResDto);
     return result;
   }
-
 }

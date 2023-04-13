@@ -22,6 +22,9 @@ import { ProjectModule } from './project/project.module';
 import { ResultModule } from './result/result.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
+import { CourseMoodleModule } from './courseMoodle/courseMoodle.module';
+import { SubmissionMoodleModule } from './submissionMoodle/submissionMoodle.module';
+import { AssignmentMoodleModule } from './assignmentMoodle/assignmentMoodle.module';
 
 @Module({
   imports: [
@@ -29,9 +32,9 @@ import { join } from 'path';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
-      port: 3306,
+      port: 3308,
       username: 'root',
-      password: '04042001',
+      password: 'root',
       database: 'sonarqube',
       entities: [
         UserReqDto,
@@ -56,6 +59,9 @@ import { join } from 'path';
     ProjectModule,
     ResultModule,
     UserMoodleModule,
+    CourseMoodleModule,
+    SubmissionMoodleModule,
+    AssignmentMoodleModule,
     {
       ...ClientsModule.register([
         {

@@ -17,3 +17,11 @@ export interface CoursesResponce {
   error: number;
   courses: Course[];
 }
+
+export interface GetCourseOfCategoryRequest {
+  categoryMoodleId: string;
+}
+
+export interface GetCourseOfMoodleIdRequest {
+  courseMoodleId: string;
+}

@@ -7,8 +7,7 @@ import { DBServiceWorkflows, Workflows } from './temporal/workflows';
 
 @Injectable()
 export class AppService {
-  constructor(
-  ) {}
+  constructor() {}
 
   // async getHello() {
   //   const handle = await this.client.start(Workflows.UserInfoWorkflow, {
@@ -20,6 +19,5 @@ export class AppService {
 
   //   return (result.data as User).name;
   // }
-  async getHello() {
-  }
+  async getHello() {}
 }
