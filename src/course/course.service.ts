@@ -10,27 +10,35 @@ import { CourseReqDto } from './req/course-req.dto';
 @Injectable()
 export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
   constructor(
-    @InjectRepository(CourseReqDto) private readonly courseRepository: Repository<CourseReqDto>,
-    // @Inject(UsersCoursesService) private readonly usersCoursesService: UsersCoursesService,
+    @InjectRepository(CourseReqDto)
+    private readonly courseRepository: Repository<CourseReqDto>, // @Inject(UsersCoursesService) private readonly usersCoursesService: UsersCoursesService,
   ) {
     super(courseRepository);
   }
 
-  async findCoursesByCategoryId(categoryId: string): Promise<OperationResult<Array<CourseResDto>>> {
-    var result: OperationResult<Array<CourseResDto>>
+  async findCoursesByCategoryId(
+    categoryId: string,
+  ): Promise<OperationResult<Array<CourseResDto>>> {
+    let result: OperationResult<Array<CourseResDto>>;
 
-    await this.courseRepository.createQueryBuilder("course")
-      .where("course.categoryId = :categoryId and course.deletedAt is null", { categoryId: categoryId })
+    await this.courseRepository
+      .createQueryBuilder('course')
+      .where('course.categoryId = :categoryId and course.deletedAt is null', {
+        categoryId: categoryId,
+      })
       .getMany()
       .then((courses) => {
-        result = OperationResult.ok(plainToInstance(CourseResDto, courses, { excludeExtraneousValues: true }))
+        result = OperationResult.ok(
+          plainToInstance(CourseResDto, courses, {
+            excludeExtraneousValues: true,
+          }),
+        );
       })
       .catch((err) => {
-        result = OperationResult.error(err)
-      })
-    return result
+        result = OperationResult.error(err);
+      });
+    return result;
   }
-
 
   // async findCoursesByUserId(userId: string): Promise<OperationResult<Array<CourseDto>>> {
   //   const usercourses = await this.usersCoursesService.findUserCoursesByUserId(userId)
