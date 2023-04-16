@@ -20,10 +20,10 @@ export class UserReqDto extends BaseEntity {
   @Column('varchar', { name: 'email', length: 50, unique: true })
   email: string;
 
-  // @ApiProperty()
-  // @IsString()
-  // @Column('varchar', { name: 'userId', length: 20, unique: true })
-  // userId: string;
+  @ApiProperty()
+  @IsString()
+  @Column('varchar', { name: 'userId', length: 20, unique: true })
+  userId: string;
 
   @ApiProperty()
   @IsString()

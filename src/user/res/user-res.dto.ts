@@ -28,10 +28,10 @@ export class UserResDto extends BaseDto {
   @Expose()
   email: string;
 
-  // @ApiProperty()
-  // @IsString()
-  // @Expose()
-  // userId: string;
+  @ApiProperty()
+  @IsString()
+  @Expose()
+  userId: string;
 
   @ApiProperty()
   @IsString()
