@@ -1,12 +1,13 @@
 import { Observable } from 'rxjs';
-import { UserRequest } from '../interfaces/User';
 import {
+  AssignmentsCronjobRequest,
   AssignmentsResponce,
   GetAssignmentsOfCourseRequest,
 } from '../interfaces/Assignment';
 
-export interface AssignmentService {
+export interface GAssignmentService {
   getAllAssignmentsByCourseId(
     courseMoodleId: GetAssignmentsOfCourseRequest,
   ): Observable<AssignmentsResponce>;
+  addAssignmentCronjob(data: AssignmentsCronjobRequest): Observable<{}>;
 }

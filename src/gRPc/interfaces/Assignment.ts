@@ -17,3 +17,13 @@ export interface AssignmentsResponce {
   error: number;
   assignments: Assignment[];
 }
+
+export interface AssignmentCronjobRequest {
+  id: string;
+  assignmentMoodleId: string;
+  dueDate: string;
+}
+
+export interface AssignmentsCronjobRequest {
+  assignments: AssignmentCronjobRequest[];
+}

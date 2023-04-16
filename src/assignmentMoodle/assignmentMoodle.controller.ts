@@ -1,17 +1,15 @@
 import {
-  Body,
   Controller,
   Get,
   Inject,
   OnModuleInit,
-  Query,
+  Query
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
-import { query } from 'express';
 import { firstValueFrom } from 'rxjs';
 import { ServiceResponse } from 'src/common/service-response';
-import { AssignmentService } from 'src/gRPc/services/assignment';
+import { GAssignmentService } from 'src/gRPc/services/assignment';
 import { CourseService } from 'src/gRPc/services/course';
 import { UserService } from 'src/gRPc/services/user';
 
@@ -20,7 +18,7 @@ import { UserService } from 'src/gRPc/services/user';
 export class AssignmentMoodleController implements OnModuleInit {
   private userMoodleService: UserService;
   private courseMoodleService: CourseService;
-  private assignmentService: AssignmentService;
+  private assignmentService: GAssignmentService;
 
   constructor(
     @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
@@ -31,7 +29,7 @@ export class AssignmentMoodleController implements OnModuleInit {
     this.courseMoodleService =
       this.client.getService<CourseService>('CourseService');
     this.assignmentService =
-      this.client.getService<AssignmentService>('AssignmentService');
+      this.client.getService<GAssignmentService>('AssignmentService');
   }
 
   @Get('/get-assignments-by-course-id')

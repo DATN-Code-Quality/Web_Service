@@ -102,6 +102,16 @@ message CategoriesResponse {
   repeated Categories categories = 2;
 }
 
+message AssignmentCronjobRequest {
+  string id = 1;
+  string assignmentMoodleId = 2;
+  string dueDate = 3;
+}
+
+message AssignmentsCronjobRequest {
+  repeated AssignmentCronjobRequest assignments = 1;
+}
+
 message Empty {}
 
 service UserService {
@@ -122,6 +132,7 @@ service CategoryService {
 
 service AssignmentService{
   rpc GetAllAssignmentsByCourseId(GetAssignmentsOfCourseRequest) returns (AssignmentsResponse);
+  rpc AddAssignmentCronjob(AssignmentsCronjobRequest) returns (Empty);
 }
 
 service SubmissionService{
