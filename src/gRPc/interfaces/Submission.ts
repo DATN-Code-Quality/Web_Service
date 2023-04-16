@@ -3,6 +3,7 @@ export interface Submission {
   link: string;
   note: string | null;
   submitType: string;
+  timemodified: string;
   userId: string;
   origin: string;
   status: string;

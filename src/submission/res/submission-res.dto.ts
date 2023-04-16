@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsDate, IsString } from 'class-validator';
 import { BaseEntity } from 'src/common/base.entity';
 import { BaseDto } from 'src/common/base.dto';
 import { Expose } from 'class-transformer';
@@ -32,6 +32,11 @@ export class SubmissionResDto extends BaseDto {
   @IsString()
   @Expose()
   submitType: string;
+
+  @ApiProperty()
+  @IsDate()
+  @Column('datetime', { name: 'timemodified' })
+  timemodified: Date;
 
   @ApiProperty()
   @IsString()

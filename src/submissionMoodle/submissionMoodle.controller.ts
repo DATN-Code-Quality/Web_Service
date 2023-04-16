@@ -9,6 +9,7 @@ import {
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
+import { ServiceResponse } from 'src/common/service-response';
 import { CourseService } from 'src/gRPc/services/course';
 import { SubmissionService } from 'src/gRPc/services/submission';
 import { UserService } from 'src/gRPc/services/user';
@@ -34,9 +35,25 @@ export class SubmissionMoodleController implements OnModuleInit {
 
   @Get('/get-submissions-by-assignment-id')
   async getSubmissionsByAssignmentId(@Query() query: string) {
-    const result = this.submissionService.getSubmissionsByAssignmentId({
-      assignmentMoodleId: query['assignmentMoodleId'],
-    });
+    const response$ = this.submissionService
+      .getSubmissionsByAssignmentId({
+        assignmentMoodleId: query['assignmentMoodleId'],
+      })
+      .pipe();
+    const resultDTO = await firstValueFrom(response$);
+    console.log(resultDTO);
+    const submissions = resultDTO.submissions.map((submission) => ({
+      ...submission,
+      timemodified: new Date((submission.timemodified, 10) * 1000),
+    }));
+    const newResultDTO = {
+      ...resultDTO,
+      submissions,
+    };
+    const result = ServiceResponse.resultFromServiceResponse(
+      newResultDTO,
+      'submissions',
+    );
     return result;
   }
 }
