@@ -9,6 +9,7 @@ import {
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
+import { ServiceResponse } from 'src/common/service-response';
 import { CourseService } from 'src/gRPc/services/course';
 // import { UserService } from 'src/gRPc/services/user';
 import { Observable } from 'rxjs';
@@ -39,7 +40,12 @@ export class UserMoodleController implements OnModuleInit {
 
   @Get('/get-all-users')
   async getAllUsers() {
-    const result = this.userMoodleService.getAllUsers();
+    const response$ = this.userMoodleService.getAllUsers({}).pipe();
+    const resultDTO = await firstValueFrom(response$);
+    const result = ServiceResponse.resultFromServiceResponse(
+      resultDTO,
+      'users',
+    );
     return result;
   }
 
