@@ -13,7 +13,7 @@ import { UserReqDto } from './req/user-req.dto';
 import bcrypt from 'bcrypt';
 import {} from 'bcrypt';
 import { UserResDto } from './res/user-res.dto';
-const SALTROUNDS = 10;
+export const SALTROUNDS = 10;
 @ApiTags('User')
 @Controller('/api/user')
 export class UserController {
@@ -21,19 +21,7 @@ export class UserController {
 
   @Post('/add-users')
   async addUsers(@Body() users: UserReqDto[]) {
-    const salt = await bcrypt.genSalt(SALTROUNDS);
-    const hash = users.map(async (user) => {
-      const hashedPassword = await bcrypt.hash(user.password, salt);
-      return {
-        ...user,
-        password: hashedPassword,
-      };
-    });
-    const usersAdded = [] as UserReqDto[];
-    for (let i = 0; i < hash.length; i++) {
-      usersAdded.push(await hash[i]);
-    }
-    const result = await this.userService.createMany(UserResDto, usersAdded);
+    const result = await this.userService.addUsers(users);
     return result;
   }
 

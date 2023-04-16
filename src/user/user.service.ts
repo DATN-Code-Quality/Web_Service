@@ -6,14 +6,15 @@ import { OperationResult } from 'src/common/operation-result';
 import { Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
+import bcrypt from 'bcrypt';
+import { SALTROUNDS } from './user.controller';
 
 @Injectable()
 export class UserService extends BaseService<UserReqDto, UserResDto> {
   constructor(
     @InjectRepository(UserReqDto)
-    private readonly userRepository: Repository<UserReqDto>,
-  ) // @Inject(UsersCoursesService) private readonly usersCoursesService: UsersCoursesService,
-  {
+    private readonly userRepository: Repository<UserReqDto>, // @Inject(UsersCoursesService) private readonly usersCoursesService: UsersCoursesService,
+  ) {
     super(userRepository);
   }
 
@@ -39,6 +40,23 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       .catch((err) => {
         result = OperationResult.error(err);
       });
+    return result;
+  }
+
+  async addUsers(users: UserReqDto[]): Promise<OperationResult<UserReqDto>> {
+    const salt = await bcrypt.genSalt(SALTROUNDS);
+    const hash = users.map(async (user) => {
+      const hashedPassword = await bcrypt.hash(user.password || '1234', salt);
+      return {
+        ...user,
+        password: hashedPassword,
+      };
+    });
+    const usersAdded = [] as UserReqDto[];
+    for (let i = 0; i < hash.length; i++) {
+      usersAdded.push(await hash[i]);
+    }
+    const result = await this.createMany(UserResDto, usersAdded);
     return result;
   }
 
