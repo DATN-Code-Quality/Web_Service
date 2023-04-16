@@ -15,10 +15,19 @@ export class AssignmentController {
   }
 
   @Post('/add-assignments')
-  async addSubmissions(@Body() assignments: AssignmentReqDto[]) {
+  async addAssignments(@Body() assignments: AssignmentReqDto[]) {
     const result = await this.assignmentService.createMany(
       AssignmentReqDto,
       assignments,
+    );
+    return result;
+  }
+
+  @Post('/create-submission')
+  async addAssignment(@Body() assignment: AssignmentReqDto) {
+    const result = await this.assignmentService.create(
+      AssignmentReqDto,
+      assignment,
     );
     return result;
   }

@@ -20,7 +20,7 @@ export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Post('/add-courses')
-  async addSubmissions(@Body() courses: CourseReqDto[]) {
+  async addCourses(@Body() courses: CourseReqDto[]) {
     const result = await this.courseService.createMany(CourseResDto, courses);
     return result;
   }
