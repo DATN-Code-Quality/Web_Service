@@ -25,6 +25,8 @@ import { join } from 'path';
 import { CourseMoodleModule } from './courseMoodle/courseMoodle.module';
 import { SubmissionMoodleModule } from './submissionMoodle/submissionMoodle.module';
 import { AssignmentMoodleModule } from './assignmentMoodle/assignmentMoodle.module';
+import { IssueModule } from './issue/issue.module';
+import { SourceModule } from './source/source.module';
 
 @Module({
   imports: [
@@ -32,7 +34,7 @@ import { AssignmentMoodleModule } from './assignmentMoodle/assignmentMoodle.modu
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
-      port: 3308,
+      port: 3306,
       username: 'root',
       password: 'root',
       database: 'sonarqube',
@@ -77,6 +79,8 @@ import { AssignmentMoodleModule } from './assignmentMoodle/assignmentMoodle.modu
       ]),
       global: true,
     },
+    IssueModule,
+    SourceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -10,7 +10,10 @@ import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
 import { CourseService } from 'src/gRPc/services/course';
-import { UserService } from 'src/gRPc/services/user';
+// import { UserService } from 'src/gRPc/services/user';
+import { Observable } from 'rxjs';
+import { UserRequest } from 'src/gRPc/interfaces/user/UserRequest';
+import { UserService } from './userMoodle.service';
 
 @ApiTags('User Moodle')
 @Controller('/api/user-moodle')
@@ -36,7 +39,7 @@ export class UserMoodleController implements OnModuleInit {
 
   @Get('/get-all-users')
   async getAllUsers() {
-    const result = this.userMoodleService.getAllUsers({});
+    const result = this.userMoodleService.getAllUsers();
     return result;
   }
 
