@@ -36,7 +36,7 @@ import { SourceModule } from './source/source.module';
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: 'root',
+      password: 'Aa123456',
       database: 'sonarqube',
       entities: [
         UserReqDto,
