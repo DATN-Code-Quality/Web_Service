@@ -40,11 +40,12 @@ message Submission {
   string link =2;
   string note =3 ;
   string submitType =4;
-  string userId = 5;
-  string origin = 6;
-  string status = 7;
-  int32 grade = 8;
-  string submissionMoodleId=9;
+  string timemodified=5;
+  string userId = 6;
+  string origin = 7;
+  string status = 8;
+  int32 grade = 9;
+  string submissionMoodleId=10;
 }
 
 message Categories{

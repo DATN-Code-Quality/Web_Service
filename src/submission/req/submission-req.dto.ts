@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsDate,
+  IsNumber,
+  IsOptional,
+  IsString,
+  isDate,
+} from 'class-validator';
 import { BaseEntity } from 'src/common/base.entity';
 import { Column, Entity } from 'typeorm';
 
@@ -24,6 +30,11 @@ export class SubmissionReqDto extends BaseEntity {
   @IsString()
   @Column('varchar', { name: 'submitType', length: 255 })
   submitType: string;
+
+  @ApiProperty()
+  @IsDate()
+  @Column('datetime', { name: 'timemodified' })
+  timemodified: Date;
 
   @ApiProperty()
   @IsString()
