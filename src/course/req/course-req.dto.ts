@@ -23,12 +23,12 @@ export class CourseReqDto extends BaseEntity {
   @ApiProperty()
   @IsString()
   @Column('date', { name: 'startAt' })
-  startAt: string;
+  startAt: Date;
 
   @ApiProperty()
   @IsString()
   @Column('date', { name: 'endAt' })
-  endAt: string;
+  endAt: Date;
 
   @ApiProperty()
   @IsString()

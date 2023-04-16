@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { OperationResult } from './operation-result';
+import { OperationResult, ResultStatus } from './operation-result';
 
 export class ServiceResponse<T = any> {
   @ApiProperty()
@@ -42,5 +42,12 @@ export class ServiceResponse<T = any> {
       data: dataMapper(result.data),
       error: 0,
     });
+  }
+
+  static resultFromServiceResponse<T>(response: any, dataField: string) {
+    if (response.error !== 0) {
+      throw OperationResult.error(new Error(response.message));
+    }
+    return new OperationResult<T>(ResultStatus.OK, response[dataField]);
   }
 }

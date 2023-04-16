@@ -10,6 +10,7 @@ import {
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
+import { ServiceResponse } from 'src/common/service-response';
 import { CategoryService } from 'src/gRPc/services/category';
 import { CourseService } from 'src/gRPc/services/course';
 import { UserService } from 'src/gRPc/services/user';
@@ -35,7 +36,12 @@ export class CourseMoodleController implements OnModuleInit {
 
   @Get('/get-all-courses')
   async getAllCourses() {
-    const result = this.courseMoodleService.getAllCourses({});
+    const response$ = this.courseMoodleService.getAllCourses({}).pipe();
+    const resultDTO = await firstValueFrom(response$);
+    const result = ServiceResponse.resultFromServiceResponse(
+      resultDTO,
+      'courses',
+    );
     return result;
   }
 

@@ -31,12 +31,12 @@ export class CourseResDto extends BaseDto {
   @ApiProperty()
   @IsString()
   @Expose()
-  startAt: string;
+  startAt: Date;
 
   @ApiProperty()
   @IsString()
   @Expose()
-  endAt: string;
+  endAt: Date;
 
   @ApiProperty()
   @IsString()
