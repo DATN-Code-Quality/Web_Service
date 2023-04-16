@@ -44,7 +44,7 @@ export class SubmissionMoodleController implements OnModuleInit {
     console.log(resultDTO);
     const submissions = resultDTO.submissions.map((submission) => ({
       ...submission,
-      timemodified: new Date((submission.timemodified, 10) * 1000),
+      timemodified: new Date(parseInt(submission.timemodified, 10) * 1000),
     }));
     const newResultDTO = {
       ...resultDTO,
