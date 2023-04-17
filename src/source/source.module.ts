@@ -13,6 +13,9 @@ import { SourceController } from './source.controller';
           url: 'localhost:5001',
           package: 'third_party_service',
           protoPath: join(__dirname, '../third-party-service.proto'),
+          keepalive: {
+            keepaliveTimeoutMs: 60000,
+          },
         },
       },
     ]),
