@@ -52,9 +52,7 @@ export class AssignmentController implements OnModuleInit {
       (assignment) => ({
         id: assignment.id,
         assignmentMoodleId: assignment.assignmentMoodleId,
-
-        //chỗ này update sang milliseconds giúp em với
-        dueDate: assignment.dueDate,
+        dueDate: new Date(assignment.dueDate).getTime(),
       }),
     );
 
