@@ -58,6 +58,6 @@ export class SubmissionReqDto extends BaseEntity {
 
   @ApiProperty()
   @IsString()
-  @Column('varchar', { name: 'userId', length: 10 })
+  @Column('varchar', { name: 'submissionMoodleId', length: 10 })
   submissionMoodleId: string;
 }
