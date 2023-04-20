@@ -9,10 +9,7 @@ import {
 } from '@nestjs/common';
 import { UserCourseService } from './user-course.service';
 import { ApiTags } from '@nestjs/swagger';
-import bcrypt from 'bcrypt';
-import {} from 'bcrypt';
 import { UserCourseResDto } from './res/user-course-res.dto';
-const SALTROUNDS = 10;
 @ApiTags('UserCourse')
 @Controller('/api/user-course')
 export class UserCourseController {

@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
-import { UserRequest } from '../interfaces/User';
+import { UserRequest, UserResponse } from '../interfaces/User';
 
-export interface UserService {
-  getUsersByEmails(emails: UserRequest): Observable<any>;
-  getAllUsers({}): Observable<any>;
+export interface GUserService {
+  getUsersByEmails(emails: UserRequest): Observable<UserResponse>;
+  getAllUsers({}): Observable<UserResponse>;
 }

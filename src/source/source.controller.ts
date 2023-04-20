@@ -13,7 +13,8 @@ export class SourceController implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    this.clientService = this.client.getService<SourceService>('SourceService');
+    this.clientService =
+      this.client.getService<SourceService>('GSourceService');
   }
 
   @Get(':key')

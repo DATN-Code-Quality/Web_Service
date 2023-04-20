@@ -1,23 +1,13 @@
-import {
-  Controller,
-  Get,
-  Inject,
-  OnModuleInit,
-  Query
-} from '@nestjs/common';
+import { Controller, Get, Inject, OnModuleInit, Query } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
 import { ServiceResponse } from 'src/common/service-response';
 import { GAssignmentService } from 'src/gRPc/services/assignment';
-import { CourseService } from 'src/gRPc/services/course';
-import { UserService } from 'src/gRPc/services/user';
 
 @ApiTags('Assignment Moodle')
 @Controller('/api/assignment-moodle')
 export class AssignmentMoodleController implements OnModuleInit {
-  private userMoodleService: UserService;
-  private courseMoodleService: CourseService;
   private assignmentService: GAssignmentService;
 
   constructor(
@@ -25,11 +15,8 @@ export class AssignmentMoodleController implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    this.userMoodleService = this.client.getService<UserService>('UserService');
-    this.courseMoodleService =
-      this.client.getService<CourseService>('CourseService');
     this.assignmentService =
-      this.client.getService<GAssignmentService>('AssignmentService');
+      this.client.getService<GAssignmentService>('GAssignmentService');
   }
 
   @Get('/get-assignments-by-course-id')
@@ -40,8 +27,16 @@ export class AssignmentMoodleController implements OnModuleInit {
       })
       .pipe();
     const resultDTO = await firstValueFrom(response$);
+    const assignments = resultDTO.data.map((assignment) => ({
+      ...assignment,
+      dueDate: new Date(parseInt(assignment.dueDate, 10) * 1000),
+    }));
+    const newResultDTO = {
+      ...resultDTO,
+      assignments,
+    };
     const result = ServiceResponse.resultFromServiceResponse(
-      resultDTO,
+      newResultDTO,
       'assignments',
     );
     return result;

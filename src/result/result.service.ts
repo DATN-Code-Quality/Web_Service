@@ -8,25 +8,35 @@ import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
-export class ResultService extends BaseService<ResultReqDto, ResultResDto>{
+export class ResultService extends BaseService<ResultReqDto, ResultResDto> {
   constructor(
-    @InjectRepository(ResultReqDto) private readonly resultRepository: Repository<ResultReqDto>
+    @InjectRepository(ResultReqDto)
+    private readonly resultRepository: Repository<ResultReqDto>,
   ) {
-    super(resultRepository)
+    super(resultRepository);
   }
 
-  async findResultsByProjectId(projectId: string): Promise<OperationResult<Array<ResultResDto>>> {
-    var result: OperationResult<Array<ResultResDto>>
+  async findResultsByProjectId(
+    projectId: string,
+  ): Promise<OperationResult<Array<ResultResDto>>> {
+    let result: OperationResult<Array<ResultResDto>>;
 
-    await this.resultRepository.createQueryBuilder("result")
-      .where("result.projectId = :projectId and result.deletedAt is null", { projectId: projectId })
+    await this.resultRepository
+      .createQueryBuilder('result')
+      .where('result.projectId = :projectId and result.deletedAt is null', {
+        projectId: projectId,
+      })
       .getMany()
       .then((results) => {
-        result = OperationResult.ok(plainToInstance(ResultResDto, results, { excludeExtraneousValues: true }))
+        result = OperationResult.ok(
+          plainToInstance(ResultResDto, results, {
+            excludeExtraneousValues: true,
+          }),
+        );
       })
       .catch((err) => {
-        result = OperationResult.error(err)
-      })
-    return result
+        result = OperationResult.error(err);
+      });
+    return result;
   }
 }

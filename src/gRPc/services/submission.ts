@@ -4,7 +4,7 @@ import {
   SubmissionResponce,
 } from '../interfaces/Submission';
 
-export interface SubmissionService {
+export interface GSubmissionService {
   getSubmissionsByAssignmentId(
     assignmentMoodleId: GetSubmissionsOfAssignmentMoodleIdRequest,
   ): Observable<SubmissionResponce>;

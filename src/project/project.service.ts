@@ -10,38 +10,58 @@ import { ProjectResDto } from './res/project-res.dto';
 @Injectable()
 export class ProjectService extends BaseService<ProjectReqDto, ProjectResDto> {
   constructor(
-    @InjectRepository(ProjectReqDto) private readonly projectRepository: Repository<ProjectReqDto>,
+    @InjectRepository(ProjectReqDto)
+    private readonly projectRepository: Repository<ProjectReqDto>,
   ) {
     super(projectRepository);
   }
 
-  async findProjectsByUserId(userId: string): Promise<OperationResult<Array<ProjectResDto>>> {
-    var result: OperationResult<Array<ProjectResDto>>
+  async findProjectsByUserId(
+    userId: string,
+  ): Promise<OperationResult<Array<ProjectResDto>>> {
+    let result: OperationResult<Array<ProjectResDto>>;
 
-    await this.projectRepository.createQueryBuilder("project")
-      .where("project.userId = :userId and project.deletedAt is null", { userId: userId })
+    await this.projectRepository
+      .createQueryBuilder('project')
+      .where('project.userId = :userId and project.deletedAt is null', {
+        userId: userId,
+      })
       .getMany()
       .then((projects) => {
-        result = OperationResult.ok(plainToInstance(ProjectResDto, projects, { excludeExtraneousValues: true }))
+        result = OperationResult.ok(
+          plainToInstance(ProjectResDto, projects, {
+            excludeExtraneousValues: true,
+          }),
+        );
       })
       .catch((err) => {
-        result = OperationResult.error(err)
-      })
-    return result
+        result = OperationResult.error(err);
+      });
+    return result;
   }
 
-  async findProjectsByUserIdAndSubmissionIdIsNull(userId: string): Promise<OperationResult<Array<ProjectResDto>>> {
-    var result: OperationResult<Array<ProjectResDto>>
+  async findProjectsByUserIdAndSubmissionIdIsNull(
+    userId: string,
+  ): Promise<OperationResult<Array<ProjectResDto>>> {
+    let result: OperationResult<Array<ProjectResDto>>;
 
-    await this.projectRepository.createQueryBuilder("project")
-      .where("project.userId = :userId and project.submissionId is null and project.deletedAt is null", { userId: userId })
+    await this.projectRepository
+      .createQueryBuilder('project')
+      .where(
+        'project.userId = :userId and project.submissionId is null and project.deletedAt is null',
+        { userId: userId },
+      )
       .getMany()
       .then((projects) => {
-        result = OperationResult.ok(plainToInstance(ProjectResDto, projects, { excludeExtraneousValues: true }))
+        result = OperationResult.ok(
+          plainToInstance(ProjectResDto, projects, {
+            excludeExtraneousValues: true,
+          }),
+        );
       })
       .catch((err) => {
-        result = OperationResult.error(err)
-      })
-    return result
+        result = OperationResult.error(err);
+      });
+    return result;
   }
 }

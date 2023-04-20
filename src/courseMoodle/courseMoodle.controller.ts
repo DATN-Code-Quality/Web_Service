@@ -11,35 +11,41 @@ import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
 import { ServiceResponse } from 'src/common/service-response';
-import { CategoryService } from 'src/gRPc/services/category';
-import { CourseService } from 'src/gRPc/services/course';
-import { UserService } from 'src/gRPc/services/user';
+import { GCategoryService } from 'src/gRPc/services/category';
+import { GCourseService } from 'src/gRPc/services/course';
 
 @ApiTags('Courses Moodle')
 @Controller('/api/course-moodle')
 export class CourseMoodleController implements OnModuleInit {
-  private userMoodleService: UserService;
-  private courseMoodleService: CourseService;
-  private categoryMoodleService: CategoryService;
+  private courseMoodleService: GCourseService;
+  private categoryMoodleService: GCategoryService;
 
   constructor(
     @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
   ) {}
 
   onModuleInit() {
-    this.userMoodleService = this.client.getService<UserService>('UserService');
     this.courseMoodleService =
-      this.client.getService<CourseService>('CourseService');
+      this.client.getService<GCourseService>('GCourseService');
     this.categoryMoodleService =
-      this.client.getService<CategoryService>('CategoryService');
+      this.client.getService<GCategoryService>('GCategoryService');
   }
 
   @Get('/get-all-courses')
   async getAllCourses() {
     const response$ = this.courseMoodleService.getAllCourses({}).pipe();
     const resultDTO = await firstValueFrom(response$);
+    const courses = resultDTO.data.map((course) => ({
+      ...course,
+      startAt: new Date(parseInt(course.startAt, 10) * 1000),
+      endAt: new Date(parseInt(course.endAt, 10) * 1000),
+    }));
+    const newResultDTO = {
+      ...resultDTO,
+      courses,
+    };
     const result = ServiceResponse.resultFromServiceResponse(
-      resultDTO,
+      newResultDTO,
       'courses',
     );
     return result;
@@ -47,23 +53,60 @@ export class CourseMoodleController implements OnModuleInit {
 
   @Get('/get-all-categories')
   async getAllCategories() {
-    const result = this.categoryMoodleService.getAllCategories({});
+    const response$ = this.categoryMoodleService.getAllCategories({}).pipe();
+    const resultDTO = await firstValueFrom(response$);
+    const result = ServiceResponse.resultFromServiceResponse(
+      resultDTO,
+      'categories',
+    );
     return result;
   }
 
   @Get('/get-courses-by-category')
   async getCoursesByCategory(@Query() query: string) {
-    const result = this.courseMoodleService.getCoursesByCategory({
-      categoryMoodleId: query['categoryMoodleId'],
-    });
+    const response$ = this.courseMoodleService
+      .getCoursesByCategory({
+        categoryMoodleId: query['categoryMoodleId'],
+      })
+      .pipe();
+    const resultDTO = await firstValueFrom(response$);
+    const courses = resultDTO.data.map((course) => ({
+      ...course,
+      startAt: new Date(parseInt(course.startAt, 10) * 1000),
+      endAt: new Date(parseInt(course.endAt, 10) * 1000),
+    }));
+    const newResultDTO = {
+      ...resultDTO,
+      courses,
+    };
+    const result = ServiceResponse.resultFromServiceResponse(
+      newResultDTO,
+      'courses',
+    );
     return result;
   }
 
   @Get('/get-courses-detail-by-course-moodle-id')
   async getCourseDetailByMoodleId(@Query() query: string) {
-    const result = this.courseMoodleService.getCoursesByMoodleId({
-      courseMoodleId: query['courseMoodleId'],
-    });
+    const response$ = this.courseMoodleService
+      .getCoursesByMoodleId({
+        courseMoodleId: query['courseMoodleId'],
+      })
+      .pipe();
+    const resultDTO = await firstValueFrom(response$);
+    const courses = resultDTO.data.map((course) => ({
+      ...course,
+      startAt: new Date(parseInt(course.startAt, 10) * 1000),
+      endAt: new Date(parseInt(course.endAt, 10) * 1000),
+    }));
+    const newResultDTO = {
+      ...resultDTO,
+      courses,
+    };
+    const result = ServiceResponse.resultFromServiceResponse(
+      newResultDTO,
+      'courses',
+    );
     return result;
   }
 }

@@ -23,7 +23,7 @@ export class IssueController implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    this.clientService = this.client.getService<IssueService>('IssueService');
+    this.clientService = this.client.getService<IssueService>('GIssueService');
   }
 
   @Get(':submissionId')

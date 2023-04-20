@@ -1,8 +1,9 @@
 syntax = "proto3";
 
+package third_party_service;
 import "google/protobuf/any.proto";
 
-package third_party_service;
+message Empty {}
 
 message User {
   string name = 1;
@@ -16,19 +17,19 @@ message User {
 message Course {    
   string name = 1;
   string moodleId =2;
-  string courseMoodleId =3 ;
+  int32 courseMoodleId =3 ;
   string startAt =4;
   string endAt = 5;
   string detail = 6;
-  string  summary = 7;
+  string summary = 7;
   string categoryId = 8;
 }
 
 message Assignment {    
   string name = 1;
-  string dueDate =2;
-  bool status =3 ;
-  string courseId =4;
+  string dueDate = 2;
+  bool status = 3 ;
+  string courseId = 4;
   string description = 5;
   string attachmentFileLink = 6;
   string config = 7;
@@ -48,18 +49,14 @@ message Submission {
   string submissionMoodleId=10;
 }
 
-message Categories{
-  string name =1;
-  int32 categoryMoodleId =2;
-}
-
 message GetUsersRequest {
   repeated string emails = 1;
 }
 
 message UsersResponse {
   int32 error = 1;
-  repeated User users = 2;
+  repeated User data = 2;
+  string message = 3;
 }
 
 message GetCourseOfUserRequest {
@@ -84,62 +81,41 @@ message GetCourseOfMoodleIdRequest {
 
 message CoursesResponse {
   int32 error = 1;
-  repeated Course courses = 2;
+  repeated Course data = 2;
+  string message = 3;
 }
 
 message AssignmentsResponse {
   int32 error = 1;
-  repeated Assignment assignments = 2;
+  repeated Assignment data = 2;
+  string message = 3;
 }
 
 message SubmissionsResponse {
   int32 error = 1;
-  repeated Submission submissions = 2;
+  repeated Submission data = 2;
+  string message = 3;
+}
+
+message Categories{
+  string name = 1;
+  int32 categoryMoodleId = 2;
 }
 
 message CategoriesResponse {
   int32 error = 1;
-  repeated Categories categories = 2;
+  repeated Categories data = 2;
 }
 
 message AssignmentCronjobRequest {
   string id = 1;
-  string assignmentMoodleId = 2;
+  int32 assignmentMoodleId = 2;
   string dueDate = 3;
 }
 
 message AssignmentsCronjobRequest {
   repeated AssignmentCronjobRequest assignments = 1;
 }
-
-message Empty {}
-
-service UserService {
-  rpc GetUsersByEmails(GetUsersRequest) returns (UsersResponse);
-  rpc GetAllUsers(Empty) returns (UsersResponse);
-}
-
-service CourseService {
-  rpc GetUsersCourse(GetCourseOfUserRequest) returns (CoursesResponse);
-  rpc GetAllCourses(Empty) returns (CoursesResponse);
-  rpc GetCoursesByCategory(GetCourseOfCategoryRequest) returns (CoursesResponse);
-  rpc GetCoursesByMoodleId(GetCourseOfMoodleIdRequest) returns (CoursesResponse);
-}
-
-service CategoryService {
-  rpc GetAllCategories(Empty) returns (CategoriesResponse);
-}
-
-service AssignmentService{
-  rpc GetAllAssignmentsByCourseId(GetAssignmentsOfCourseRequest) returns (AssignmentsResponse);
-  rpc AddAssignmentCronjob(AssignmentsCronjobRequest) returns (Empty);
-}
-
-service SubmissionService{
-  rpc GetSubmissionsByAssignmentId(GetSubmissionsOfAssignmentMoodleIdRequest) returns (SubmissionsResponse);
-}
-
-
 
 message TextRange {
   int32 startLine = 1;
@@ -176,7 +152,6 @@ message ComponentDetail {
   string path = 6;
 }
 
-
 message Issue {
   int32 total = 1;
   int32 p = 2;
@@ -198,12 +173,6 @@ message IssueResponse {
   Issue issues = 2;
 }
 
-
-service IssueService {
-  rpc getIssuesBySubmissionId(IssueRequest) returns (IssueResponse);
-}
-
-
 message Source {
   int32 line = 1;
   string code = 2;
@@ -218,7 +187,34 @@ message SourceResponse {
   repeated Source sources = 2;
 }
 
+service GIssueService {
+  rpc getIssuesBySubmissionId(IssueRequest) returns (IssueResponse);
+}
 
-service SourceService {
+service GSourceService {
   rpc getSourcesByKey(SourceRequest) returns (SourceResponse);
+}
+service GCategoryService {
+  rpc GetAllCategories(Empty) returns (CategoriesResponse);
+}
+
+service GAssignmentService {
+  rpc GetAllAssignmentsByCourseId(GetAssignmentsOfCourseRequest) returns (AssignmentsResponse);
+  rpc AddAssignmentCronjob(AssignmentsCronjobRequest) returns (Empty);
+}
+
+service GSubmissionService {
+  rpc GetSubmissionsByAssignmentId(GetSubmissionsOfAssignmentMoodleIdRequest) returns (SubmissionsResponse);
+}
+
+service GUserService {
+  rpc GetUsersByEmails(GetUsersRequest) returns (UsersResponse);
+  rpc GetAllUsers(Empty) returns (UsersResponse);
+}
+
+service GCourseService {
+  rpc GetAllCourses(Empty) returns (CoursesResponse);
+  rpc GetUsersCourse(GetCourseOfUserRequest) returns (CoursesResponse);
+  rpc GetCoursesByCategory(GetCourseOfCategoryRequest) returns (CoursesResponse);
+  rpc GetCoursesByMoodleId(GetCourseOfMoodleIdRequest) returns (CoursesResponse);
 }

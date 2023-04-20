@@ -8,6 +8,9 @@ import {
   Param,
   Post,
   Query,
+  UsePipes,
+  UseFilters,
+  ParseArrayPipe,
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
@@ -17,6 +20,9 @@ import { GAssignmentService } from 'src/gRPc/services/assignment';
 import { AssignmentService } from './assignment.service';
 import { AssignmentReqDto } from './req/assignment-req.dto';
 import { AssignmentResDto } from './res/assignment-res.dto';
+import { ServiceResponse } from 'src/common/service-response';
+import { ValidationPipe } from 'src/common/validation.pipe';
+import { ValidationErrorFilter } from 'src/common/validate-exception.filter';
 
 @ApiTags('Assignment')
 @Controller('/api/assignment')
@@ -30,17 +36,20 @@ export class AssignmentController implements OnModuleInit {
 
   onModuleInit() {
     this.gAssignmentService =
-      this.client.getService<GAssignmentService>('AssignmentService');
+      this.client.getService<GAssignmentService>('GAssignmentService');
   }
 
-  @Get('/get-all-assignment')
+  @Get('/assignments')
   async getAllCategorys() {
     const result = await this.assignmentService.findAll(AssignmentResDto);
     return result;
   }
 
-  @Post('/add-assignments')
-  async addAssignments(@Body() assignments: AssignmentReqDto[]) {
+  @Post('/assignments')
+  async addAssignments(
+    @Body(new ParseArrayPipe({ items: AssignmentReqDto }))
+    assignments: AssignmentReqDto[],
+  ) {
     const result = await this.assignmentService.createMany(
       AssignmentReqDto,
       assignments,
@@ -69,7 +78,9 @@ export class AssignmentController implements OnModuleInit {
     return result;
   }
 
-  @Post('/create-submission')
+  @Post('')
+  @UsePipes(new ValidationPipe())
+  @UseFilters(new ValidationErrorFilter())
   async addAssignment(@Body() assignment: AssignmentReqDto) {
     const result = await this.assignmentService.create(
       AssignmentReqDto,
@@ -78,7 +89,7 @@ export class AssignmentController implements OnModuleInit {
     return result;
   }
 
-  @Get('/get-assignment/:assignmentId')
+  @Get('/:assignmentId')
   async getAssignmentById(@Param('assignmentId') assignmentId: string) {
     const result = await this.assignmentService.findOne(
       AssignmentResDto,
@@ -87,10 +98,34 @@ export class AssignmentController implements OnModuleInit {
     return result;
   }
 
-  @Get('/get-assignments')
+  @Get('')
   async getAssignmentsByCourseId(@Query() query: string) {
     const result = await this.assignmentService.findAssignmentsByCourseId(
       query['courseId'],
+    );
+    return result;
+  }
+
+  //Moodle:
+  @Get('/sync-assignments-by-course-id')
+  async getMoodleAssignmentsByCourseId(@Query() query: string) {
+    const response$ = this.gAssignmentService
+      .getAllAssignmentsByCourseId({
+        courseMoodleId: query['courseMoodleId'],
+      })
+      .pipe();
+    const resultDTO = await firstValueFrom(response$);
+    const data = resultDTO.data.map((assignment) => ({
+      ...assignment,
+      dueDate: new Date(parseInt(assignment.dueDate, 10) * 1000),
+    }));
+    const newResultDTO = {
+      ...resultDTO,
+      data,
+    };
+    const result = ServiceResponse.resultFromServiceResponse(
+      newResultDTO,
+      'data',
     );
     return result;
   }

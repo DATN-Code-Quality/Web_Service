@@ -5,5 +5,5 @@ export interface Category {
 
 export interface CategoryResponce {
   error: number;
-  courses: Category[];
+  data: Category[];
 }

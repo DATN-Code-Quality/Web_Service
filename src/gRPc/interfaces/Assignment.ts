@@ -1,6 +1,16 @@
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsNumber,
+  IsString,
+  Min,
+  MinLength,
+  ValidateNested,
+} from 'class-validator';
+
 export interface Assignment {
   name: string;
-  dueDate: Date;
+  dueDate: string;
   status: boolean;
   courseId: string;
   description: string | null;
@@ -9,21 +19,34 @@ export interface Assignment {
   assignmentMoodleId: string;
 }
 
-export interface GetAssignmentsOfCourseRequest {
-  courseMoodleId: string;
+export class GetAssignmentsOfCourseRequest {
+  @IsNumber()
+  @Min(1)
+  courseMoodleId: number;
 }
 
 export interface AssignmentsResponce {
   error: number;
-  assignments: Assignment[];
+  data: Assignment[];
 }
 
-export interface AssignmentCronjobRequest {
+export class AssignmentCronjobRequest {
+  @IsString()
+  @MinLength(1)
   id: string;
-  assignmentMoodleId: string;
+
+  @IsNumber()
+  @Min(1)
+  assignmentMoodleId: number;
+
+  @IsString()
+  @MinLength(1)
   dueDate: string;
 }
 
-export interface AssignmentsCronjobRequest {
+export class AssignmentsCronjobRequest {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AssignmentCronjobRequest)
   assignments: AssignmentCronjobRequest[];
 }

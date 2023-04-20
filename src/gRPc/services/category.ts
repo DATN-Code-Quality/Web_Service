@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import { CategoryResponce } from '../interfaces/Category';
 
-export interface CategoryService {
+export interface GCategoryService {
   getAllCategories({}): Observable<CategoryResponce>;
 }

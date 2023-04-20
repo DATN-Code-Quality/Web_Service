@@ -1,3 +1,5 @@
+import { IsNumber, Min } from 'class-validator';
+
 export interface Course {
   name: string;
   moodleId: string;
@@ -9,19 +11,25 @@ export interface Course {
   categoryId: string;
 }
 
-export interface GetCourseOfUserRequest {
-  userMoodleId: string;
+export class GetCourseOfUserRequest {
+  @IsNumber()
+  @Min(1)
+  userMoodleId: number;
 }
 
 export interface CoursesResponce {
   error: number;
-  courses: Course[];
+  data: Course[];
 }
 
-export interface GetCourseOfCategoryRequest {
-  categoryMoodleId: string;
+export class GetCourseOfCategoryRequest {
+  @IsNumber()
+  @Min(1)
+  categoryMoodleId: number;
 }
 
-export interface GetCourseOfMoodleIdRequest {
-  courseMoodleId: string;
+export class GetCourseOfMoodleIdRequest {
+  @IsNumber()
+  @Min(1)
+  courseMoodleId: number;
 }

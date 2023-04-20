@@ -5,7 +5,7 @@ import { ResultController } from './result.controller';
 import { ResultService } from './result.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ResultReqDto]),],
+  imports: [TypeOrmModule.forFeature([ResultReqDto])],
   controllers: [ResultController],
   providers: [ResultService],
   exports: [ResultService],

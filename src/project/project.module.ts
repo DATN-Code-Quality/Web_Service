@@ -5,7 +5,7 @@ import { ProjectService } from './project.service';
 import { ProjectReqDto } from './req/project-req.dto';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ProjectReqDto]),],
+  imports: [TypeOrmModule.forFeature([ProjectReqDto])],
   controllers: [ProjectController],
   providers: [ProjectService],
   exports: [ProjectService],

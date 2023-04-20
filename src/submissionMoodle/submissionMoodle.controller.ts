@@ -10,27 +10,20 @@ import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
 import { ServiceResponse } from 'src/common/service-response';
-import { CourseService } from 'src/gRPc/services/course';
-import { SubmissionService } from 'src/gRPc/services/submission';
-import { UserService } from 'src/gRPc/services/user';
+import { GSubmissionService } from 'src/gRPc/services/submission';
 
 @ApiTags('Submission Moodle')
 @Controller('/api/submission-moodle')
 export class SubmissionMoodleController implements OnModuleInit {
-  private userMoodleService: UserService;
-  private courseMoodleService: CourseService;
-  private submissionService: SubmissionService;
+  private submissionService: GSubmissionService;
 
   constructor(
     @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
   ) {}
 
   onModuleInit() {
-    this.userMoodleService = this.client.getService<UserService>('UserService');
-    this.courseMoodleService =
-      this.client.getService<CourseService>('CourseService');
     this.submissionService =
-      this.client.getService<SubmissionService>('SubmissionService');
+      this.client.getService<GSubmissionService>('GSubmissionService');
   }
 
   @Get('/get-submissions-by-assignment-id')
@@ -41,8 +34,7 @@ export class SubmissionMoodleController implements OnModuleInit {
       })
       .pipe();
     const resultDTO = await firstValueFrom(response$);
-    console.log(resultDTO);
-    const submissions = resultDTO.submissions.map((submission) => ({
+    const submissions = resultDTO.data.map((submission) => ({
       ...submission,
       timemodified: new Date(parseInt(submission.timemodified, 10) * 1000),
     }));

@@ -5,7 +5,7 @@ import { SubmissionController } from './submission.controller';
 import { SubmissionService } from './submission.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SubmissionReqDto]),],
+  imports: [TypeOrmModule.forFeature([SubmissionReqDto])],
   controllers: [SubmissionController],
   providers: [SubmissionService],
   exports: [SubmissionService],

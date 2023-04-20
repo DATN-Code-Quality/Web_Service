@@ -13,6 +13,6 @@ export interface UserRequest {
 }
 
 export interface UserResponse {
-  users: User[];
+  data: User[];
   error: number;
 }

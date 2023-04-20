@@ -5,7 +5,7 @@ import { CourseService } from './course.service';
 import { CourseReqDto } from './req/course-req.dto';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CourseReqDto]),],
+  imports: [TypeOrmModule.forFeature([CourseReqDto])],
   controllers: [CourseController],
   providers: [CourseService],
   exports: [CourseService],

@@ -22,7 +22,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     userId: string,
     password: string,
   ): Promise<OperationResult<UserReqDto>> {
-    var result: OperationResult<any>;
+    let result: OperationResult<any>;
     await this.userRepository
       .createQueryBuilder('user')
       .where('user.userId = :userId and user.password = :password', {

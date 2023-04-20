@@ -8,9 +8,13 @@ import { CategoryReqDto } from './req/category-req.dto';
 import { CategoryResDto } from './res/category-res.dto';
 
 @Injectable()
-export class CategoryService extends BaseService<CategoryReqDto, CategoryResDto> {
+export class CategoryService extends BaseService<
+  CategoryReqDto,
+  CategoryResDto
+> {
   constructor(
-    @InjectRepository(CategoryReqDto) private readonly categoryRepository: Repository<CategoryReqDto>,
+    @InjectRepository(CategoryReqDto)
+    private readonly categoryRepository: Repository<CategoryReqDto>,
   ) {
     super(categoryRepository);
   }

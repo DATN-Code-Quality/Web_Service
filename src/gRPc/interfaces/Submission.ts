@@ -1,3 +1,5 @@
+import { IsNumber, Min } from 'class-validator';
+
 export interface Submission {
   assignmentId: string;
   link: string;
@@ -13,9 +15,11 @@ export interface Submission {
 
 export interface SubmissionResponce {
   error: number;
-  submissions: Submission[];
+  data: Submission[];
 }
 
-export interface GetSubmissionsOfAssignmentMoodleIdRequest {
-  assignmentMoodleId: string;
+export class GetSubmissionsOfAssignmentMoodleIdRequest {
+  @IsNumber()
+  @Min(1)
+  assignmentMoodleId: number;
 }

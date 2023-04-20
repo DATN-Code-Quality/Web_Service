@@ -6,7 +6,7 @@ import {
   GetCourseOfUserRequest,
 } from '../interfaces/Course';
 
-export interface CourseService {
+export interface GCourseService {
   getUsersCourse(
     userMoodleId: GetCourseOfUserRequest,
   ): Observable<CoursesResponce>;
