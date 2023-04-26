@@ -1,6 +1,7 @@
 import { Issue } from './Issue';
 
 export interface IssueResponse {
-  issues: Issue;
+  data: Issue;
   error: number;
+  message: string;
 }

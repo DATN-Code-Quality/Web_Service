@@ -30,6 +30,10 @@ export class IssueController implements OnModuleInit {
   async getIssueBySubmissionId(
     @Param('submissionId') submissionId: string,
     @Query('type', new DefaultValuePipe(null)) type: string,
+    @Query('severity', new DefaultValuePipe(null)) severity: string,
+    @Query('rule', new DefaultValuePipe(null)) rule: string,
+    @Query('file', new DefaultValuePipe(null)) file: string,
+
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('pageSize', new DefaultValuePipe(100), ParseIntPipe)
     pageSize: number,
@@ -39,6 +43,9 @@ export class IssueController implements OnModuleInit {
       page: page,
       pageSize: pageSize,
       type: type,
+      severity: severity,
+      rule: rule,
+      file: file,
     });
     return result;
   }

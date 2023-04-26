@@ -27,6 +27,7 @@ import { SubmissionMoodleModule } from './submissionMoodle/submissionMoodle.modu
 import { AssignmentMoodleModule } from './assignmentMoodle/assignmentMoodle.module';
 import { IssueModule } from './issue/issue.module';
 import { SourceModule } from './source/source.module';
+import { RuleModule } from './rule/rule.module';
 
 @Module({
   imports: [
@@ -34,9 +35,9 @@ import { SourceModule } from './source/source.module';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
-      port: 3308,
+      port: 3306,
       username: 'root',
-      password: 'root',
+      password: '04042001',
       database: 'sonarqube',
       entities: [
         UserReqDto,
@@ -81,6 +82,7 @@ import { SourceModule } from './source/source.module';
     },
     IssueModule,
     SourceModule,
+    RuleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

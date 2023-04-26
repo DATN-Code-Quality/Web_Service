@@ -1,6 +1,7 @@
 import { Source } from './Source';
 
 export interface SourceResponse {
-  sources: Source[];
+  data: Source[];
   error: number;
+  message: string;
 }

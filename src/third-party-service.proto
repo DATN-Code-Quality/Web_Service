@@ -152,6 +152,14 @@ message ComponentDetail {
   string path = 6;
 }
 
+message RuleOverview {
+  string key = 1;
+  string lang = 2;
+  string langName = 3;
+  string name = 4;
+  string status = 5;
+}
+
 message Issue {
   int32 total = 1;
   int32 p = 2;
@@ -159,18 +167,24 @@ message Issue {
   int32 effortTotal = 4;
   repeated IssueDetail issues = 5;
   repeated ComponentDetail components = 6;
+  repeated RuleOverview rules = 7;
+
 }
 
 message IssueRequest {
   string submissionId = 1;
   string type = 2;
-  int32 page = 3;
-  int32 pageSize = 4;
+  string severity = 3;
+  string rule = 4;
+  string file = 5;
+  int32 page = 6;
+  int32 pageSize = 7;
 }
 
 message IssueResponse {
   int32 error = 1;
-  Issue issues = 2;
+  Issue data = 2;
+  string message = 3;
 }
 
 message Source {
@@ -184,7 +198,35 @@ message SourceRequest {
 
 message SourceResponse {
   int32 error = 1;
-  repeated Source sources = 2;
+  repeated Source data = 2;
+  string message = 3;
+
+}
+
+message RuleDetail{
+  string key = 1;
+  string repo = 2;
+  string lang = 3;
+  string langName = 4;
+  string name = 5;
+  string type = 6;
+  string severity = 7;
+  string debtRemFnOffset = 8;
+  string htmlDesc = 9;
+  string mdDesc = 10;
+  string status = 11;
+  string scope = 12;
+  string createdAt = 13;
+}
+
+message RuleRequest {
+  string key = 1;
+}
+
+message RuleResponse {
+  int32 error = 1;
+  RuleDetail data = 2;
+  string message = 3;
 }
 
 service GIssueService {
@@ -194,6 +236,13 @@ service GIssueService {
 service GSourceService {
   rpc getSourcesByKey(SourceRequest) returns (SourceResponse);
 }
+
+service GRuleService {
+  rpc getRuleDetailByKey(RuleRequest) returns (RuleResponse);
+}
+
+
+
 service GCategoryService {
   rpc GetAllCategories(Empty) returns (CategoriesResponse);
 }
