@@ -23,6 +23,8 @@ import { AssignmentResDto } from './res/assignment-res.dto';
 import { ServiceResponse } from 'src/common/service-response';
 import { ValidationPipe } from 'src/common/validation.pipe';
 import { ValidationErrorFilter } from 'src/common/validate-exception.filter';
+import { Roles, SubRoles } from 'src/auth/auth.decorator';
+import { Role, SubRole } from 'src/auth/auth.const';
 
 @ApiTags('Assignment')
 @Controller('/api/assignment')
@@ -40,11 +42,12 @@ export class AssignmentController implements OnModuleInit {
   }
 
   @Get('/assignments')
-  async getAllCategorys() {
+  async getAllAssignments() {
     const result = await this.assignmentService.findAll(AssignmentResDto);
     return result;
   }
 
+  @SubRoles(SubRole.TEACHER)
   @Post('/assignments')
   async addAssignments(
     @Body(new ParseArrayPipe({ items: AssignmentReqDto }))
@@ -78,6 +81,7 @@ export class AssignmentController implements OnModuleInit {
     return result;
   }
 
+  @SubRoles(SubRole.TEACHER)
   @Post('')
   @UsePipes(new ValidationPipe())
   @UseFilters(new ValidationErrorFilter())
@@ -89,6 +93,7 @@ export class AssignmentController implements OnModuleInit {
     return result;
   }
 
+  @Roles(Role.USER)
   @Get('/:assignmentId')
   async getAssignmentById(@Param('assignmentId') assignmentId: string) {
     const result = await this.assignmentService.findOne(
@@ -98,6 +103,7 @@ export class AssignmentController implements OnModuleInit {
     return result;
   }
 
+  @Roles(Role.USER)
   @Get('')
   async getAssignmentsByCourseId(@Query() query: string) {
     const result = await this.assignmentService.findAssignmentsByCourseId(
@@ -107,6 +113,7 @@ export class AssignmentController implements OnModuleInit {
   }
 
   //Moodle:
+  @SubRoles(SubRole.TEACHER)
   @Get('/sync-assignments-by-course-id')
   async getMoodleAssignmentsByCourseId(@Query() query: string) {
     const response$ = this.gAssignmentService

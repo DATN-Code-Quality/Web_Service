@@ -10,6 +10,8 @@ import {
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
+import { SubRole } from 'src/auth/auth.const';
+import { SubRoles } from 'src/auth/auth.decorator';
 import { ServiceResponse } from 'src/common/service-response';
 import { GCategoryService } from 'src/gRPc/services/category';
 import { GCourseService } from 'src/gRPc/services/course';
@@ -31,6 +33,7 @@ export class CourseMoodleController implements OnModuleInit {
       this.client.getService<GCategoryService>('GCategoryService');
   }
 
+  @SubRoles(SubRole.TEACHER)
   @Get('/get-all-courses')
   async getAllCourses() {
     const response$ = this.courseMoodleService.getAllCourses({}).pipe();
@@ -51,6 +54,7 @@ export class CourseMoodleController implements OnModuleInit {
     return result;
   }
 
+  @SubRoles(SubRole.TEACHER)
   @Get('/get-all-categories')
   async getAllCategories() {
     const response$ = this.categoryMoodleService.getAllCategories({}).pipe();
@@ -62,6 +66,7 @@ export class CourseMoodleController implements OnModuleInit {
     return result;
   }
 
+  @SubRoles(SubRole.TEACHER)
   @Get('/get-courses-by-category')
   async getCoursesByCategory(@Query() query: string) {
     const response$ = this.courseMoodleService
@@ -86,6 +91,7 @@ export class CourseMoodleController implements OnModuleInit {
     return result;
   }
 
+  @SubRoles(SubRole.TEACHER)
   @Get('/get-courses-detail-by-course-moodle-id')
   async getCourseDetailByMoodleId(@Query() query: string) {
     const response$ = this.courseMoodleService

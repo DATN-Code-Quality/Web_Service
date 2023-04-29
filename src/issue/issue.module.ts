@@ -2,6 +2,11 @@ import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { IssueController } from './issue.controller';
+import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from 'src/auth/guard/roles.guard';
+import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
+import { UserCourseModule } from 'src/user-course/user-course.module';
+import { SubRolesGuard } from 'src/auth/guard/sub-roles.guard';
 
 @Module({
   imports: [
@@ -19,9 +24,23 @@ import { IssueController } from './issue.controller';
         },
       },
     ]),
+    UserCourseModule,
   ],
   controllers: [IssueController],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: SubRolesGuard,
+    },
+  ],
   exports: [],
 })
 export class IssueModule {}

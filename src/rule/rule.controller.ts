@@ -12,6 +12,8 @@ import {
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { RuleService } from './rule.service';
+import { Roles } from 'src/auth/auth.decorator';
+import { Role } from 'src/auth/auth.const';
 
 @ApiTags('Rule Sonarqube')
 @Controller('/api/sonarqube/rule')
@@ -26,6 +28,7 @@ export class RuleController implements OnModuleInit {
     this.clientService = this.client.getService<RuleService>('GRuleService');
   }
 
+  @Roles(Role.USER)
   @Get(':key')
   async getIssueBySubmissionId(@Param('key') key: string) {
     const result = await this.clientService.getRuleDetailByKey({

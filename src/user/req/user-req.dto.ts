@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 import { BaseEntity } from 'src/common/base.entity';
 import { Column, Entity } from 'typeorm';
 
@@ -37,7 +37,7 @@ export class UserReqDto extends BaseEntity {
   password: string;
 
   @ApiProperty()
-  @IsString()
+  @IsBoolean()
   @Column('tinyint', { name: 'status', width: 1 })
   status: boolean;
 }

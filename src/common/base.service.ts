@@ -34,8 +34,8 @@ export class BaseService<Entity extends BaseEntity, Dto> {
       .save(createDtos as DeepPartial<Entity>[])
       .then((savedDtos) => {
         result = OperationResult.ok(
-          // plainToInstance(cls, savedDtos, { excludeExtraneousValues: true }),
-          savedDtos,
+          plainToInstance(cls, savedDtos, { excludeExtraneousValues: true }),
+          // savedDtos,
         );
       })
       .catch((err) => {

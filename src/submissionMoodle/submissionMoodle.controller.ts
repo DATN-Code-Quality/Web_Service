@@ -9,6 +9,8 @@ import {
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
+import { Role } from 'src/auth/auth.const';
+import { Roles } from 'src/auth/auth.decorator';
 import { ServiceResponse } from 'src/common/service-response';
 import { GSubmissionService } from 'src/gRPc/services/submission';
 
@@ -26,6 +28,7 @@ export class SubmissionMoodleController implements OnModuleInit {
       this.client.getService<GSubmissionService>('GSubmissionService');
   }
 
+  @Roles(Role.USER)
   @Get('/get-submissions-by-assignment-id')
   async getSubmissionsByAssignmentId(@Query() query: string) {
     const response$ = this.submissionService

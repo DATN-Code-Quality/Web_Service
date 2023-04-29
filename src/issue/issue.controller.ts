@@ -12,6 +12,8 @@ import {
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { IssueService } from './issue.service';
+import { Public, Roles, SubRoles } from 'src/auth/auth.decorator';
+import { Role, SubRole } from 'src/auth/auth.const';
 
 @ApiTags('Issue Sonarqube')
 @Controller('/api/sonarqube/issue')
@@ -26,6 +28,8 @@ export class IssueController implements OnModuleInit {
     this.clientService = this.client.getService<IssueService>('GIssueService');
   }
 
+  @Roles(Role.USER)
+  @SubRoles(SubRole.STUDENT)
   @Get(':submissionId')
   async getIssueBySubmissionId(
     @Param('submissionId') submissionId: string,

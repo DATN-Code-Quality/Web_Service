@@ -2,6 +2,8 @@ import { Controller, Get, Inject, OnModuleInit, Query } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
+import { SubRole } from 'src/auth/auth.const';
+import { SubRoles } from 'src/auth/auth.decorator';
 import { ServiceResponse } from 'src/common/service-response';
 import { GAssignmentService } from 'src/gRPc/services/assignment';
 
@@ -19,6 +21,7 @@ export class AssignmentMoodleController implements OnModuleInit {
       this.client.getService<GAssignmentService>('GAssignmentService');
   }
 
+  @SubRoles(SubRole.TEACHER)
   @Get('/get-assignments-by-course-id')
   async getUserByEmail(@Query() query: string) {
     const response$ = this.assignmentService

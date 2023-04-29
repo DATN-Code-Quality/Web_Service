@@ -20,6 +20,8 @@ import { GCourseService } from 'src/gRPc/services/course';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { ServiceResponse } from 'src/common/service-response';
+import { Roles } from 'src/auth/auth.decorator';
+import { Role } from 'src/auth/auth.const';
 export const SALTROUNDS = 10;
 @ApiTags('User')
 @Controller('/api/user')
@@ -38,6 +40,7 @@ export class UserController implements OnModuleInit {
       this.client.getService<GCourseService>('GCourseService');
   }
 
+  @Roles(Role.ADMIN)
   @Post('/users')
   async addUsers(
     @Body(new ParseArrayPipe({ items: UserReqDto })) users: UserReqDto[],
@@ -46,6 +49,7 @@ export class UserController implements OnModuleInit {
     return result;
   }
 
+  // @Roles(Role.ADMIN)
   @Put('/:userId')
   async updateUser(
     @Param('userId') userId: string,
@@ -55,12 +59,14 @@ export class UserController implements OnModuleInit {
     return result;
   }
 
+  @Roles(Role.ADMIN)
   @Delete('/:userId')
   async deleteUser(@Param('userId') userId: string) {
     const result = await this.userService.remove(userId);
     return result;
   }
 
+  @Roles(Role.ADMIN)
   @Get('/users')
   async getAllUsers() {
     const result = await this.userService.findAll(UserResDto);
@@ -69,6 +75,7 @@ export class UserController implements OnModuleInit {
 
   //Moodle:
 
+  @Roles(Role.ADMIN)
   @Get('/sync-users-by-email')
   async getUserByEmail(@Body() emails: string[]) {
     const response$ = this.gUserMoodleService.getUsersByEmails({ emails });
@@ -77,6 +84,7 @@ export class UserController implements OnModuleInit {
     return result;
   }
 
+  @Roles(Role.ADMIN)
   @Get('/sync-users')
   async getAllMoodleUsers() {
     const response$ = this.gUserMoodleService.getAllUsers({}).pipe();
@@ -85,6 +93,7 @@ export class UserController implements OnModuleInit {
     return result;
   }
 
+  @Roles(Role.ADMIN)
   @Get('/sync-users')
   async getUserCourse(@Query() query: string) {
     // ban đầu nhờ client truyền id dùm, nhưng sau thì thông tin này phải lấy từ session

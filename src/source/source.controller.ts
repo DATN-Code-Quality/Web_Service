@@ -2,6 +2,8 @@ import { Controller, Get, Inject, OnModuleInit, Param } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { SourceService } from './source.service';
+import { Roles } from 'src/auth/auth.decorator';
+import { Role } from 'src/auth/auth.const';
 
 @ApiTags('Source Sonarqube')
 @Controller('/api/sonarqube/source')
@@ -17,6 +19,7 @@ export class SourceController implements OnModuleInit {
       this.client.getService<SourceService>('GSourceService');
   }
 
+  @Roles(Role.USER)
   @Get(':key')
   async getSourceByEmail(@Param('key') key: string) {
     const result = await this.clientService.getSourcesByKey({ key: key });

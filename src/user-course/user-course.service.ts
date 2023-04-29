@@ -49,4 +49,21 @@ export class UserCourseService extends BaseService<
       excludeExtraneousValues: true,
     });
   }
+
+  async findUserCoursesByCourseIdAndUserId(
+    courseId: string,
+    userId: string,
+  ): Promise<UserCourseResDto> {
+    const courses = await this.usercourseRepository
+      .createQueryBuilder('user_course')
+      .where(
+        'user_course.courseId = :courseId and user_course.userId = :userId and user_course.deletedAt is null',
+        { courseId: courseId, userId: userId },
+      )
+      .getOne();
+
+    return plainToInstance(UserCourseResDto, courses, {
+      excludeExtraneousValues: true,
+    });
+  }
 }

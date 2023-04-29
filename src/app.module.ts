@@ -28,6 +28,7 @@ import { AssignmentMoodleModule } from './assignmentMoodle/assignmentMoodle.modu
 import { IssueModule } from './issue/issue.module';
 import { SourceModule } from './source/source.module';
 import { RuleModule } from './rule/rule.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -83,6 +84,7 @@ import { RuleModule } from './rule/rule.module';
     IssueModule,
     SourceModule,
     RuleModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

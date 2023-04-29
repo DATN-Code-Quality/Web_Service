@@ -19,6 +19,8 @@ import { ClientGrpc } from '@nestjs/microservices';
 import { GSubmissionService } from 'src/gRPc/services/submission';
 import { firstValueFrom } from 'rxjs';
 import { ServiceResponse } from 'src/common/service-response';
+import { Roles, SubRoles } from 'src/auth/auth.decorator';
+import { Role, SubRole } from 'src/auth/auth.const';
 @ApiTags('Submission')
 @Controller('/api/submission')
 export class SubmissionController implements OnModuleInit {
@@ -32,6 +34,7 @@ export class SubmissionController implements OnModuleInit {
       this.client.getService<GSubmissionService>('GSubmissionService');
   }
 
+  @SubRoles(SubRole.STUDENT)
   @Post('/submissions')
   async addSubmissions(
     @Body(new ParseArrayPipe({ items: SubmissionReqDto }))
@@ -44,12 +47,14 @@ export class SubmissionController implements OnModuleInit {
     return result;
   }
 
+  @Roles(Role.USER)
   @Get('/submissions')
   async getAllSubmissions() {
     const result = await this.submissionService.findAll(SubmissionResDto);
     return result;
   }
 
+  @Roles(Role.USER)
   @Get('/:submissionId')
   async getSubmissionById(@Param('submissionId') submissionId: string) {
     const result = await this.submissionService.findOne(
@@ -59,6 +64,7 @@ export class SubmissionController implements OnModuleInit {
     return result;
   }
 
+  @Roles(Role.USER)
   @Get('')
   async getSubmissionsById(@Query() query: string) {
     if (query['userId']) {
@@ -75,6 +81,7 @@ export class SubmissionController implements OnModuleInit {
   }
 
   //Moodle:
+  @SubRoles(SubRole.TEACHER)
   @Get('/sync-submissions-by-assignment-id')
   async getSubmissionsByAssignmentId(@Query() query: string) {
     const response$ = this.gSubmissionService

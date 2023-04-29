@@ -21,29 +21,46 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
   async findUserByUsernameAndPassword(
     userId: string,
     password: string,
-  ): Promise<OperationResult<UserReqDto>> {
-    let result: OperationResult<any>;
-    await this.userRepository
+  ): Promise<OperationResult<UserResDto | any>> {
+    // let result: OperationResult<any>;
+    return await this.userRepository
       .createQueryBuilder('user')
-      .where('user.userId = :userId and user.password = :password', {
+      // .where('user.userId = :userId and user.password = :password', {
+      //   userId: userId,
+      //   password: password,
+      // })
+      .where('user.userId = :userId', {
         userId: userId,
-        password: password,
       })
       .getOne()
       .then((savedDtos) => {
-        result = OperationResult.ok(
-          plainToInstance(UserReqDto, savedDtos, {
-            excludeExtraneousValues: true,
-          }),
-        );
+        if (savedDtos) {
+          return bcrypt
+            .compare(password, savedDtos.password)
+            .then((isValid) => {
+              if (isValid) {
+                return OperationResult.ok(
+                  plainToInstance(UserResDto, savedDtos, {
+                    excludeExtraneousValues: true,
+                  }),
+                );
+              } else {
+                return OperationResult.error(Error('Invalid password'));
+              }
+            })
+            .catch((err) => {
+              return OperationResult.error(err);
+            });
+        } else {
+          return OperationResult.error(Error('InValid username'));
+        }
       })
       .catch((err) => {
-        result = OperationResult.error(err);
+        return OperationResult.error(err);
       });
-    return result;
   }
 
-  async addUsers(users: UserReqDto[]): Promise<OperationResult<UserReqDto>> {
+  async addUsers(users: UserReqDto[]): Promise<OperationResult<UserResDto>> {
     const salt = await bcrypt.genSalt(SALTROUNDS);
     const hash = users.map(async (user) => {
       const hashedPassword = await bcrypt.hash(user.password || '1234', salt);

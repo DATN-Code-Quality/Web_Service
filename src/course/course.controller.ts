@@ -20,6 +20,8 @@ import { GCourseService } from 'src/gRPc/services/course';
 import { GCategoryService } from 'src/gRPc/services/category';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
+import { Roles, SubRoles } from 'src/auth/auth.decorator';
+import { Role, SubRole } from 'src/auth/auth.const';
 @ApiTags('Course')
 @Controller('/api/course')
 export class CourseController implements OnModuleInit {
@@ -36,6 +38,7 @@ export class CourseController implements OnModuleInit {
       this.client.getService<GCategoryService>('GCategoryService');
   }
 
+  @Roles(Role.ADMIN)
   @Post('/courses')
   async addCourses(
     @Body(new ParseArrayPipe({ items: CourseReqDto }))
@@ -45,6 +48,7 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
+  @Roles(Role.ADMIN, Role.USER)
   @Get('/courses')
   async getAllCourses() {
     const result = await this.courseService.findAll(CourseResDto);
@@ -52,7 +56,7 @@ export class CourseController implements OnModuleInit {
   }
 
   //Moodle:
-
+  @SubRoles(SubRole.TEACHER)
   @Get('/sync-courses')
   async getAllMoodleCourses() {
     const response$ = this.gCourseMoodleService.getAllCourses({}).pipe();
@@ -73,6 +77,7 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
+  @SubRoles(SubRole.TEACHER)
   @Get('/sync-categories')
   async getAllCategories() {
     const response$ = this.gCategoryMoodleService.getAllCategories({}).pipe();
@@ -81,6 +86,7 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
+  @SubRoles(SubRole.TEACHER)
   @Get('/sync-courses-by-category')
   async getCoursesByCategory(@Query() query: string) {
     const response$ = this.gCourseMoodleService
@@ -105,6 +111,7 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
+  @SubRoles(SubRole.TEACHER)
   @Get('/sync-courses-detail-by-course-moodle-id')
   async getCourseDetailByMoodleId(@Query() query: string) {
     const response$ = this.gCourseMoodleService
@@ -129,6 +136,7 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
+  @Roles(Role.ADMIN, Role.USER)
   @Get('/:courseId')
   async getCourseById(@Param('courseId') courseId: string) {
     const result = await this.courseService.findOne(CourseResDto, courseId);
