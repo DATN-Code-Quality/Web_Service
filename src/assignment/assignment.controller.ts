@@ -93,7 +93,7 @@ export class AssignmentController implements OnModuleInit {
     return result;
   }
 
-  @Roles(Role.USER)
+  @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
   @Get('/:assignmentId')
   async getAssignmentById(@Param('assignmentId') assignmentId: string) {
     const result = await this.assignmentService.findOne(
@@ -103,7 +103,7 @@ export class AssignmentController implements OnModuleInit {
     return result;
   }
 
-  @Roles(Role.USER)
+  @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
   @Get('')
   async getAssignmentsByCourseId(@Query() query: string) {
     const result = await this.assignmentService.findAssignmentsByCourseId(

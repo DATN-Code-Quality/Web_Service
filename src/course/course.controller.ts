@@ -48,7 +48,7 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
-  @Roles(Role.ADMIN, Role.USER)
+  @Roles(Role.ADMIN)
   @Get('/courses')
   async getAllCourses() {
     const result = await this.courseService.findAll(CourseResDto);

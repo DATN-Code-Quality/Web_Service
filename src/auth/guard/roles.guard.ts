@@ -24,9 +24,6 @@ export class RolesGuard implements CanActivate {
       context.getArgByIndex(0),
     );
     const payload = this.jwtService.verify(token);
-    console.log(requiredRoles.some((role) => payload.user.role === role));
-    console.log(requiredRoles);
-    console.log(payload.user.role);
 
     return requiredRoles.some((role) => payload.user.role === role);
   }

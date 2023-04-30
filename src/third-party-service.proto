@@ -229,6 +229,40 @@ message RuleResponse {
   string message = 3;
 }
 
+message History {
+  string date = 1;
+  string value = 2;
+}
+
+message Measure {
+  string metric = 1;
+  repeated History history = 2;
+}
+
+message Paging {
+  int32  pageIndex = 1;
+  int32  pageSize = 2;
+  int32  total = 3;
+}
+
+message Result {
+  Paging paging = 1;
+  repeated Measure measures = 2;
+}
+
+message ResultRequest {
+  string submissionId = 1;
+  int32 page = 2;
+  int32 pageSize = 3;
+}
+
+message ResultResponse {
+  int32 error = 1;
+  Result data = 2;
+  string message = 3;
+
+}
+
 service GIssueService {
   rpc getIssuesBySubmissionId(IssueRequest) returns (IssueResponse);
 }
@@ -241,6 +275,9 @@ service GRuleService {
   rpc getRuleDetailByKey(RuleRequest) returns (RuleResponse);
 }
 
+service GResultService {
+  rpc getResultsBySubmissionId(ResultRequest) returns (ResultResponse);
+}
 
 
 service GCategoryService {

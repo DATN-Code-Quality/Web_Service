@@ -47,12 +47,12 @@ export class SubmissionController implements OnModuleInit {
     return result;
   }
 
-  @Roles(Role.USER)
-  @Get('/submissions')
-  async getAllSubmissions() {
-    const result = await this.submissionService.findAll(SubmissionResDto);
-    return result;
-  }
+  // @Roles(Role.USER)
+  // @Get('/submissions')
+  // async getAllSubmissions() {
+  //   const result = await this.submissionService.findAll(SubmissionResDto);
+  //   return result;
+  // }
 
   @Roles(Role.USER)
   @Get('/:submissionId')
