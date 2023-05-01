@@ -56,7 +56,7 @@ export class CourseController implements OnModuleInit {
   }
 
   //Moodle:
-  @SubRoles(SubRole.TEACHER)
+  @Roles(Role.ADMIN)
   @Get('/sync-courses')
   async getAllMoodleCourses() {
     const response$ = this.gCourseMoodleService.getAllCourses({}).pipe();
@@ -77,7 +77,7 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
-  @SubRoles(SubRole.TEACHER)
+  @Roles(Role.ADMIN)
   @Get('/sync-categories')
   async getAllCategories() {
     const response$ = this.gCategoryMoodleService.getAllCategories({}).pipe();
@@ -86,7 +86,7 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
-  @SubRoles(SubRole.TEACHER)
+  @Roles(Role.ADMIN)
   @Get('/sync-courses-by-category')
   async getCoursesByCategory(@Query() query: string) {
     const response$ = this.gCourseMoodleService
@@ -111,7 +111,7 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
-  @SubRoles(SubRole.TEACHER)
+  @Roles(Role.ADMIN)
   @Get('/sync-courses-detail-by-course-moodle-id')
   async getCourseDetailByMoodleId(@Query() query: string) {
     const response$ = this.gCourseMoodleService

@@ -41,11 +41,11 @@ export class AssignmentController implements OnModuleInit {
       this.client.getService<GAssignmentService>('GAssignmentService');
   }
 
-  @Get('/assignments')
-  async getAllAssignments() {
-    const result = await this.assignmentService.findAll(AssignmentResDto);
-    return result;
-  }
+  // @Get('/assignments')
+  // async getAllAssignments() {
+  //   const result = await this.assignmentService.findAll(AssignmentResDto);
+  //   return result;
+  // }
 
   @SubRoles(SubRole.TEACHER)
   @Post('/assignments')

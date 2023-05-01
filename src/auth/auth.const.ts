@@ -6,7 +6,7 @@ export const jwtConstants = {
 };
 export enum Role {
   USER = 'user',
-  ADMIN = 'admin',
+  ADMIN = 'admin', //Giáo  vụ
   SUPERADMIN = 'superadmin',
 }
 

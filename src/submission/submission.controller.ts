@@ -64,7 +64,7 @@ export class SubmissionController implements OnModuleInit {
     return result;
   }
 
-  @Roles(Role.USER)
+  @SubRoles(SubRole.STUDENT, SubRole.TEACHER)
   @Get('')
   async getSubmissionsById(@Query() query: string) {
     if (query['userId']) {
