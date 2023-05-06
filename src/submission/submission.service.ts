@@ -6,6 +6,8 @@ import { Repository } from 'typeorm';
 import { SubmissionReqDto } from './req/submission-req.dto';
 import { SubmissionResDto } from './res/submission-res.dto';
 import { OperationResult } from 'src/common/operation-result';
+import { Role, SubRole } from 'src/auth/auth.const';
+import { UserResDto } from 'src/user/res/user-res.dto';
 
 @Injectable()
 export class SubmissionService extends BaseService<
@@ -21,50 +23,68 @@ export class SubmissionService extends BaseService<
 
   async findSubmissionsByAssigmentId(
     assignmentId: string,
-  ): Promise<OperationResult<Array<SubmissionResDto>>> {
-    let result: OperationResult<Array<SubmissionResDto>>;
-    await this.submissionRepository
-      .createQueryBuilder('submission')
-      .where(
-        'submission.assignmentId = :assignmentId and submission.deletedAt is null',
-        { assignmentId: assignmentId },
-      )
-      .getMany()
+  ): Promise<OperationResult<any>> {
+    return await this.submissionRepository
+      .find({
+        where: {
+          assignmentId: assignmentId,
+        },
+        relations: {
+          user: true,
+        },
+      })
       .then((submissions) => {
-        result = OperationResult.ok(
-          plainToInstance(SubmissionResDto, submissions, {
-            excludeExtraneousValues: true,
-          }),
-        );
+        for (let i = 0; i < submissions.length; i++) {
+          submissions[i].user = plainToInstance(
+            UserResDto,
+            submissions[i].user,
+            {
+              excludeExtraneousValues: true,
+            },
+          );
+        }
+        return OperationResult.ok({
+          submissions: submissions,
+          role: SubRole.STUDENT,
+        });
       })
       .catch((err) => {
-        result = OperationResult.error(err);
+        return OperationResult.error(err);
       });
-    return result;
   }
 
   async findSubmissionsByAssigmentIdAndUserId(
     assignmentId: string,
     userId: string,
-  ): Promise<OperationResult<Array<SubmissionResDto>>> {
-    let result: OperationResult<Array<SubmissionResDto>>;
-    await this.submissionRepository
-      .createQueryBuilder('submission')
-      .where(
-        'submission.assignmentId = :assignmentId and submission.userId = :userId and submission.deletedAt is null',
-        { assignmentId: assignmentId, userId: userId },
-      )
-      .getMany()
+  ): Promise<OperationResult<any>> {
+    return await this.submissionRepository
+      .find({
+        where: {
+          assignmentId: assignmentId,
+          userId: userId,
+        },
+        relations: {
+          user: true,
+        },
+      })
       .then((submissions) => {
-        result = OperationResult.ok(
-          plainToInstance(SubmissionResDto, submissions, {
-            excludeExtraneousValues: true,
-          }),
-        );
+        for (let i = 0; i < submissions.length; i++) {
+          submissions[i].user = plainToInstance(
+            UserResDto,
+            submissions[i].user,
+            {
+              excludeExtraneousValues: true,
+            },
+          );
+        }
+
+        return OperationResult.ok({
+          submissions: submissions,
+          role: SubRole.STUDENT,
+        });
       })
       .catch((err) => {
-        result = OperationResult.error(err);
+        return OperationResult.error(err);
       });
-    return result;
   }
 }

@@ -5,6 +5,9 @@ import { BaseService } from 'src/common/base.service';
 import { Repository } from 'typeorm';
 import { UserCourseReqDto } from './req/user-course-req.dto';
 import { UserCourseResDto } from './res/user-course-res.dto';
+import { UserResDto } from 'src/user/res/user-res.dto';
+import { CourseResDto } from 'src/course/res/course-res.dto';
+import { OperationResult } from 'src/common/operation-result';
 
 @Injectable()
 export class UserCourseService extends BaseService<
@@ -33,21 +36,54 @@ export class UserCourseService extends BaseService<
     });
   }
 
-  async findUserCoursesByCourseId(
+  async findUsersByCourseId(
     courseId: string,
-  ): Promise<Array<UserCourseResDto>> {
-    const courses = await this.usercourseRepository
-      .createQueryBuilder('user_course')
-      .where(
-        'user_course.courseId = :courseId and user_course.deletedAt is null',
-        { courseId: courseId },
-      )
-      .getMany();
-    console.log(courses);
-
-    return plainToInstance(UserCourseResDto, courses, {
-      excludeExtraneousValues: true,
+  ): Promise<OperationResult<Array<UserResDto>>> {
+    const usercourses = await this.usercourseRepository.find({
+      where: {
+        courseId: courseId,
+      },
+      relations: {
+        user: true,
+      },
     });
+
+    const users = [] as UserResDto[];
+
+    usercourses.forEach((usercourse) => {
+      users.push(
+        plainToInstance(UserResDto, usercourse.user, {
+          excludeExtraneousValues: true,
+        }),
+      );
+    });
+
+    return OperationResult.ok(users);
+  }
+
+  async findCoursesByUserId(
+    userId: string,
+  ): Promise<OperationResult<Array<CourseResDto>>> {
+    const usercourses = await this.usercourseRepository.find({
+      where: {
+        userId: userId,
+      },
+      relations: {
+        course: true,
+      },
+    });
+
+    const courses = [] as CourseResDto[];
+
+    usercourses.forEach((usercourse) => {
+      courses.push(
+        plainToInstance(CourseResDto, usercourse.course, {
+          excludeExtraneousValues: true,
+        }),
+      );
+    });
+
+    return OperationResult.ok(courses);
   }
 
   async findUserCoursesByCourseIdAndUserId(
@@ -65,5 +101,26 @@ export class UserCourseService extends BaseService<
     return plainToInstance(UserCourseResDto, courses, {
       excludeExtraneousValues: true,
     });
+  }
+
+  async addUsersIntoCourse(
+    courseId: string,
+    studentRoleIds: string[],
+    teacherRoleIds: string[],
+  ): Promise<OperationResult<UserCourseResDto>> {
+    const usercourse = [] as UserCourseReqDto[];
+    if (studentRoleIds) {
+      studentRoleIds.forEach((studentId) => {
+        usercourse.push(UserCourseReqDto.Student(courseId, studentId));
+      });
+    }
+
+    if (teacherRoleIds) {
+      teacherRoleIds.forEach((teacherId) => {
+        usercourse.push(UserCourseReqDto.Teacher(courseId, teacherId));
+      });
+    }
+
+    return await this.createMany(UserCourseResDto, usercourse);
   }
 }

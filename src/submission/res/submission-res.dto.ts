@@ -11,6 +11,7 @@ import { IsDate, IsString } from 'class-validator';
 import { BaseEntity } from 'src/common/base.entity';
 import { BaseDto } from 'src/common/base.dto';
 import { Expose } from 'class-transformer';
+import { UserResDto } from 'src/user/res/user-res.dto';
 
 export class SubmissionResDto extends BaseDto {
   @ApiProperty()
@@ -62,4 +63,7 @@ export class SubmissionResDto extends BaseDto {
   @IsString()
   @Expose()
   submissionMoodleId: string;
+
+  @Expose()
+  user: UserResDto;
 }

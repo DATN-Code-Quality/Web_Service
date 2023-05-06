@@ -28,7 +28,8 @@ export class IssueController implements OnModuleInit {
     this.clientService = this.client.getService<IssueService>('GIssueService');
   }
 
-  @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
+  // @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
+  @Roles(Role.USER)
   @Get(':submissionId')
   async getIssueBySubmissionId(
     @Param('submissionId') submissionId: string,

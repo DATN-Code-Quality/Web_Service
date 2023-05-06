@@ -39,7 +39,7 @@ export class CourseController implements OnModuleInit {
   }
 
   @Roles(Role.ADMIN)
-  @Post('/courses')
+  @Post('/')
   async addCourses(
     @Body(new ParseArrayPipe({ items: CourseReqDto }))
     courses: CourseReqDto[],

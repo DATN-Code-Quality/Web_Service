@@ -27,7 +27,7 @@ export class CategoryController {
   }
 
   @Roles(Role.ADMIN)
-  @Post('/categories')
+  @Post('/')
   async addCategories(
     @Body(new ParseArrayPipe({ items: CategoryReqDto }))
     categories: CategoryReqDto[],

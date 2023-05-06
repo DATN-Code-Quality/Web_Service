@@ -30,17 +30,21 @@ export class SubRolesGuard implements CanActivate {
     const payload = this.jwtService.verify(token);
 
     if (requiredSubRoles) {
-      const courseId = context.getArgByIndex(0).headers.courseid;
+      const courseId = context.getArgByIndex(0).param('courseId');
       return await this.userCourseService
         .findUserCoursesByCourseIdAndUserId(courseId, payload.user.id)
         .then((userCourse) => {
-          if (userCourse == null) {
+          if (userCourse === null) {
             return false;
           } else {
+            context.getArgByIndex(0).headers['role'] = userCourse.role;
+            context.getArgByIndex(0).headers['userId'] = payload.user.id;
+
             return requiredSubRoles.some((role) => userCourse.role === role);
           }
         })
         .catch((e) => {
+          console.log(e);
           return false;
         });
     }

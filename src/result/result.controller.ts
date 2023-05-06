@@ -41,7 +41,8 @@ export class ResultController implements OnModuleInit {
   // }
 
   // @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
-  @Public()
+  // @Public()
+  @Roles(Role.USER)
   @Get(':submissionId')
   async getIssueBySubmissionId(
     @Param('submissionId') submissionId: string,

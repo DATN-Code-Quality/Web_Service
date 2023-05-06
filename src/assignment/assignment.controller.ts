@@ -11,6 +11,8 @@ import {
   UsePipes,
   UseFilters,
   ParseArrayPipe,
+  Request,
+  Response,
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
@@ -23,8 +25,9 @@ import { AssignmentResDto } from './res/assignment-res.dto';
 import { ServiceResponse } from 'src/common/service-response';
 import { ValidationPipe } from 'src/common/validation.pipe';
 import { ValidationErrorFilter } from 'src/common/validate-exception.filter';
-import { Roles, SubRoles } from 'src/auth/auth.decorator';
+import { Public, Roles, SubRoles } from 'src/auth/auth.decorator';
 import { Role, SubRole } from 'src/auth/auth.const';
+import { OperationResult } from 'src/common/operation-result';
 
 @ApiTags('Assignment')
 @Controller('/api/assignment')
@@ -48,11 +51,17 @@ export class AssignmentController implements OnModuleInit {
   // }
 
   @SubRoles(SubRole.TEACHER)
-  @Post('/assignments')
+  @Post(':courseId/assignments')
   async addAssignments(
     @Body(new ParseArrayPipe({ items: AssignmentReqDto }))
     assignments: AssignmentReqDto[],
+    @Param('courseId') courseId: string,
   ) {
+    assignments.forEach((assignment) => {
+      if (assignment.courseId !== courseId) {
+        return OperationResult.error(new Error('courseId invalid'));
+      }
+    });
     const result = await this.assignmentService.createMany(
       AssignmentReqDto,
       assignments,
@@ -82,10 +91,16 @@ export class AssignmentController implements OnModuleInit {
   }
 
   @SubRoles(SubRole.TEACHER)
-  @Post('')
+  @Post(':courseId')
   @UsePipes(new ValidationPipe())
   @UseFilters(new ValidationErrorFilter())
-  async addAssignment(@Body() assignment: AssignmentReqDto) {
+  async addAssignment(
+    @Body() assignment: AssignmentReqDto,
+    @Param('courseId') courseId: string,
+  ) {
+    if (assignment.courseId !== courseId) {
+      return OperationResult.error(new Error('courseId invalid'));
+    }
     const result = await this.assignmentService.create(
       AssignmentReqDto,
       assignment,
@@ -94,8 +109,11 @@ export class AssignmentController implements OnModuleInit {
   }
 
   @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
-  @Get('/:assignmentId')
-  async getAssignmentById(@Param('assignmentId') assignmentId: string) {
+  @Get(':courseId/:assignmentId')
+  async getAssignmentById(
+    @Param('assignmentId') assignmentId: string,
+    @Request() req,
+  ) {
     const result = await this.assignmentService.findOne(
       AssignmentResDto,
       assignmentId,
@@ -104,17 +122,18 @@ export class AssignmentController implements OnModuleInit {
   }
 
   @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
-  @Get('')
-  async getAssignmentsByCourseId(@Query() query: string) {
+  @Get(':courseId')
+  async getAssignmentsByCourseId(@Param('courseId') courseId: string) {
     const result = await this.assignmentService.findAssignmentsByCourseId(
-      query['courseId'],
+      // query['courseId'],
+      courseId,
     );
     return result;
   }
 
   //Moodle:
   @SubRoles(SubRole.TEACHER)
-  @Get('/sync-assignments-by-course-id')
+  @Get(':courseId/sync-assignments-by-course-id')
   async getMoodleAssignmentsByCourseId(@Query() query: string) {
     const response$ = this.gAssignmentService
       .getAllAssignmentsByCourseId({

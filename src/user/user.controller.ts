@@ -10,6 +10,7 @@ import {
   OnModuleInit,
   Query,
   ParseArrayPipe,
+  Request,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiTags } from '@nestjs/swagger';
@@ -20,7 +21,7 @@ import { GCourseService } from 'src/gRPc/services/course';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { ServiceResponse } from 'src/common/service-response';
-import { Roles } from 'src/auth/auth.decorator';
+import { Public, Roles } from 'src/auth/auth.decorator';
 import { Role } from 'src/auth/auth.const';
 export const SALTROUNDS = 10;
 @ApiTags('User')
@@ -41,11 +42,21 @@ export class UserController implements OnModuleInit {
   }
 
   @Roles(Role.SUPERADMIN, Role.ADMIN)
-  @Post('/users')
+  @Post('/')
   async addUsers(
     @Body(new ParseArrayPipe({ items: UserReqDto })) users: UserReqDto[],
   ) {
     const result = await this.userService.addUsers(users);
+    return result;
+  }
+
+  @Roles(Role.USER)
+  @Put('/')
+  async updateUserByUser(@Request() req, @Body() userInfo: UserReqDto) {
+    const result = await this.userService.updateUser(
+      req.headers.userId,
+      userInfo,
+    );
     return result;
   }
 
@@ -55,7 +66,7 @@ export class UserController implements OnModuleInit {
     @Param('userId') userId: string,
     @Body() userInfo: UserReqDto,
   ) {
-    const result = await this.userService.update(userId, userInfo);
+    const result = await this.userService.updateUser(userId, userInfo);
     return result;
   }
 

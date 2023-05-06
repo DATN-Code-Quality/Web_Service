@@ -7,7 +7,9 @@ import {
   isDate,
 } from 'class-validator';
 import { BaseEntity } from 'src/common/base.entity';
-import { Column, Entity } from 'typeorm';
+import { UserReqDto } from 'src/user/req/user-req.dto';
+import { UserResDto } from 'src/user/res/user-res.dto';
+import { Column, Entity, ManyToOne } from 'typeorm';
 
 @Entity('submission', { schema: 'sonarqube' })
 export class SubmissionReqDto extends BaseEntity {
@@ -60,4 +62,9 @@ export class SubmissionReqDto extends BaseEntity {
   @IsString()
   @Column('varchar', { name: 'submissionMoodleId', length: 10 })
   submissionMoodleId: string;
+
+  @ManyToOne(() => UserReqDto, (user) => user.userCourses, {
+    eager: true,
+  })
+  user: UserResDto;
 }

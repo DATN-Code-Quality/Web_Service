@@ -11,6 +11,7 @@ import { IsString } from 'class-validator';
 import { BaseEntity } from 'src/common/base.entity';
 import { BaseDto } from 'src/common/base.dto';
 import { Expose } from 'class-transformer';
+import { UserCourseReqDto } from 'src/user-course/req/user-course-req.dto';
 
 export class CourseResDto extends BaseDto {
   @ApiProperty()
@@ -52,4 +53,8 @@ export class CourseResDto extends BaseDto {
   @IsString()
   @Expose()
   categoryId: string;
+
+  @Expose()
+  @OneToMany(() => UserCourseReqDto, (userCourse) => userCourse.user)
+  userCourses: UserCourseReqDto[];
 }

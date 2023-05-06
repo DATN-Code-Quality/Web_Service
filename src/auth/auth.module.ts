@@ -17,7 +17,7 @@ import { UserCourseModule } from 'src/user-course/user-course.module';
       global: true,
       secret: jwtConstants.secret,
       signOptions: {
-        expiresIn: '1h',
+        expiresIn: '1d',
       },
     }),
   ],

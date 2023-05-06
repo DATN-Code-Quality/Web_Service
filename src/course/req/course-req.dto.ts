@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 import { BaseEntity } from 'src/common/base.entity';
-import { Column, Entity } from 'typeorm';
+import { UserCourseReqDto } from 'src/user-course/req/user-course-req.dto';
+import { Column, Entity, OneToMany } from 'typeorm';
 
 @Entity('course', { schema: 'sonarqube' })
 export class CourseReqDto extends BaseEntity {
@@ -44,4 +45,7 @@ export class CourseReqDto extends BaseEntity {
   @IsString()
   @Column('varchar', { name: 'categoryId', length: 255 })
   categoryId: string;
+
+  @OneToMany(() => UserCourseReqDto, (userCourse) => userCourse.user)
+  userCourses: UserCourseReqDto[];
 }

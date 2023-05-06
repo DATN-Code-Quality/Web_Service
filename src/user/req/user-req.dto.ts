@@ -1,7 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsOptional, IsString } from 'class-validator';
 import { BaseEntity } from 'src/common/base.entity';
-import { Column, Entity } from 'typeorm';
+import { SubmissionReqDto } from 'src/submission/req/submission-req.dto';
+import { SubmissionResDto } from 'src/submission/res/submission-res.dto';
+import { UserCourseReqDto } from 'src/user-course/req/user-course-req.dto';
+import { Column, Entity, OneToMany } from 'typeorm';
 
 @Entity('user', { schema: 'sonarqube' })
 export class UserReqDto extends BaseEntity {
@@ -40,4 +43,13 @@ export class UserReqDto extends BaseEntity {
   @IsBoolean()
   @Column('tinyint', { name: 'status', width: 1 })
   status: boolean;
+
+  // @OneToMany(() => Project, (project) => project.user)
+  // projects: Project[];
+
+  @OneToMany(() => SubmissionReqDto, (submission) => submission.user)
+  submissions: SubmissionReqDto[];
+
+  @OneToMany(() => UserCourseReqDto, (userCourse) => userCourse.user)
+  userCourses: UserCourseReqDto[];
 }

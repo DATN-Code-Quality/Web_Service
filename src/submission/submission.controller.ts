@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  Request,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { SubmissionResDto } from './res/submission-res.dto';
@@ -21,6 +22,7 @@ import { firstValueFrom } from 'rxjs';
 import { ServiceResponse } from 'src/common/service-response';
 import { Roles, SubRoles } from 'src/auth/auth.decorator';
 import { Role, SubRole } from 'src/auth/auth.const';
+import { OperationResult } from 'src/common/operation-result';
 @ApiTags('Submission')
 @Controller('/api/submission')
 export class SubmissionController implements OnModuleInit {
@@ -35,11 +37,20 @@ export class SubmissionController implements OnModuleInit {
   }
 
   @SubRoles(SubRole.STUDENT)
-  @Post('/submissions')
+  @Post('/:courseId/:assignmentId')
   async addSubmissions(
+    @Param('assignmentId') assignmentId: string,
     @Body(new ParseArrayPipe({ items: SubmissionReqDto }))
     submissions: SubmissionReqDto[],
   ) {
+    submissions.forEach((submission) => {
+      if (submission.assignmentId !== assignmentId) {
+        return OperationResult.error(
+          new Error('assignmentId in submissions invalid'),
+        );
+      }
+    });
+
     const result = await this.submissionService.createMany(
       SubmissionResDto,
       submissions,
@@ -54,8 +65,8 @@ export class SubmissionController implements OnModuleInit {
   //   return result;
   // }
 
-  @Roles(Role.USER)
-  @Get('/:submissionId')
+  @SubRoles(SubRole.STUDENT, SubRole.TEACHER)
+  @Get('/:courseId/:assignmentId/:submissionId')
   async getSubmissionById(@Param('submissionId') submissionId: string) {
     const result = await this.submissionService.findOne(
       SubmissionResDto,
@@ -65,25 +76,34 @@ export class SubmissionController implements OnModuleInit {
   }
 
   @SubRoles(SubRole.STUDENT, SubRole.TEACHER)
-  @Get('')
-  async getSubmissionsById(@Query() query: string) {
-    if (query['userId']) {
-      return await this.submissionService.findSubmissionsByAssigmentIdAndUserId(
-        query['assignmentId'],
-        query['userId'],
+  @Get('/:courseId/:assignmentId')
+  async getSubmissionsByAssignmentId(
+    // @Param('submissionId') submissionId: string,
+    @Param('assignmentId') assignmentId: string,
+    @Request() req,
+  ) {
+    const role = req.headers['role'];
+    if (role === SubRole.TEACHER) {
+      const result = await this.submissionService.findSubmissionsByAssigmentId(
+        assignmentId,
       );
+      return result;
+    } else {
+      const userId = req.headers['userId'];
+      const result =
+        await this.submissionService.findSubmissionsByAssigmentIdAndUserId(
+          assignmentId,
+          userId,
+        );
+
+      return result;
     }
-    console.log(query['assignmentId'], query['userId']);
-    const result = await this.submissionService.findSubmissionsByAssigmentId(
-      query['assignmentId'],
-    );
-    return result;
   }
 
   //Moodle:
   @SubRoles(SubRole.TEACHER)
   @Get('/sync-submissions-by-assignment-id')
-  async getSubmissionsByAssignmentId(@Query() query: string) {
+  async syncSubmissionsByAssignmentId(@Query() query: string) {
     const response$ = this.gSubmissionService
       .getSubmissionsByAssignmentId({
         assignmentMoodleId: query['assignmentMoodleId'],

@@ -6,6 +6,7 @@ import { UserCourseService } from './user-course.service';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
+import { SubRolesGuard } from 'src/auth/guard/sub-roles.guard';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserCourseReqDto])],
@@ -19,6 +20,10 @@ import { RolesGuard } from 'src/auth/guard/roles.guard';
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: SubRolesGuard,
     },
   ],
   exports: [UserCourseService],
