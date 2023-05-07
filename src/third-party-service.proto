@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package third_party_service;
 import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
 
 message Empty {}
 
@@ -47,6 +48,23 @@ message Submission {
   string status = 8;
   int32 grade = 9;
   string submissionMoodleId=10;
+}
+
+message ScanSubmissionRequest {    
+  string id = 1;
+  string assignmentId = 2;
+  string link = 3;
+  string note = 4;
+  string submitType = 5;
+  string timemodified = 6;
+  string userId = 7;
+  string origin = 8;
+  string status = 9;
+  int32 grade = 10;
+  string submissionMoodleId = 11;
+  string createdAt = 12;
+  string updatedAt = 13;
+  string deletedAt = 14;
 }
 
 message GetUsersRequest {
@@ -291,6 +309,7 @@ service GAssignmentService {
 
 service GSubmissionService {
   rpc GetSubmissionsByAssignmentId(GetSubmissionsOfAssignmentMoodleIdRequest) returns (SubmissionsResponse);
+  rpc ScanSubmission(ScanSubmissionRequest) returns (Empty);
 }
 
 service GUserService {

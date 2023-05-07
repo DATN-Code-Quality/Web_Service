@@ -11,6 +11,9 @@ import {
   Put,
   Query,
   Request,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { SubmissionResDto } from './res/submission-res.dto';
@@ -23,6 +26,14 @@ import { ServiceResponse } from 'src/common/service-response';
 import { Roles, SubRoles } from 'src/auth/auth.decorator';
 import { Role, SubRole } from 'src/auth/auth.const';
 import { OperationResult } from 'src/common/operation-result';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as fs from 'fs';
+import { plainToClass, plainToInstance } from 'class-transformer';
+import {
+  ScanSubmissionRequest,
+  converSubmissionReqDtoTooScanSubmissionRequest,
+} from 'src/gRPc/interfaces/Submission';
 @ApiTags('Submission')
 @Controller('/api/submission')
 export class SubmissionController implements OnModuleInit {
@@ -37,24 +48,47 @@ export class SubmissionController implements OnModuleInit {
   }
 
   @SubRoles(SubRole.STUDENT)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: function (req, file, cb) {
+          const courseId = req.params['courseId'];
+          const assignmentId = req.params['assignmentId'];
+          const userId = req.headers['userId'];
+          const path = `D:/source/${courseId}/${assignmentId}/${userId}`;
+          req.body['link'] = `${path}/${file.originalname}`;
+          if (!fs.existsSync(path)) {
+            fs.mkdirSync(path, { recursive: true });
+          }
+          cb(null, path);
+        },
+        filename: function (req, file, cb) {
+          cb(null, file.originalname);
+        },
+      }),
+    }),
+  )
   @Post('/:courseId/:assignmentId')
   async addSubmissions(
+    @UploadedFile() file: Express.Multer.File,
     @Param('assignmentId') assignmentId: string,
-    @Body(new ParseArrayPipe({ items: SubmissionReqDto }))
-    submissions: SubmissionReqDto[],
+    @Body() submission: SubmissionReqDto,
+    @Request() req,
   ) {
-    submissions.forEach((submission) => {
-      if (submission.assignmentId !== assignmentId) {
-        return OperationResult.error(
-          new Error('assignmentId in submissions invalid'),
-        );
-      }
-    });
+    if (submission.assignmentId !== assignmentId) {
+      return OperationResult.error(
+        new Error('assignmentId in submissions invalid'),
+      );
+    }
+    submission.userId = req.headers['userId'];
 
-    const result = await this.submissionService.createMany(
+    const result = await this.submissionService.create(
       SubmissionResDto,
-      submissions,
+      submission,
     );
+
+    const a = converSubmissionReqDtoTooScanSubmissionRequest(submission);
+    firstValueFrom(this.gSubmissionService.scanSubmission(a).pipe());
     return result;
   }
 

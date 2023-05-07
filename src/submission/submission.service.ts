@@ -45,7 +45,7 @@ export class SubmissionService extends BaseService<
         }
         return OperationResult.ok({
           submissions: submissions,
-          role: SubRole.STUDENT,
+          role: SubRole.TEACHER,
         });
       })
       .catch((err) => {
