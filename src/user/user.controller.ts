@@ -60,6 +60,26 @@ export class UserController implements OnModuleInit {
     return result;
   }
 
+  @Put('/change-password')
+  async changePassword(@Body() data, @Request() req) {
+    const userId = req.headers['userId'];
+    return this.userService.changePassword(userId, data['password']);
+  }
+
+  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Put('/change-status')
+  async changeStatus(@Body() data) {
+    const ids = data['ids'];
+    const status = data['status'];
+    return this.userService.changeStatus(ids, status);
+  }
+
+  @Put('/active-account')
+  async activeAccount(@Request() req) {
+    const userId = req.headers['userId'];
+    return this.userService.activeAccount(userId);
+  }
+
   @Roles(Role.SUPERADMIN, Role.ADMIN, Role.USER)
   @Put('/:userId')
   async updateUser(

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { UserReqDto } from './req/user-req.dto';
+import { STATUS, UserReqDto } from './req/user-req.dto';
 import { BaseService } from 'src/common/base.service';
 import { UserResDto } from './res/user-res.dto';
 import { OperationResult } from 'src/common/operation-result';
@@ -39,6 +39,16 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
             .compare(password, savedDtos.password)
             .then((isValid) => {
               if (isValid) {
+                if (savedDtos.status === STATUS.BLOCK) {
+                  return OperationResult.error(
+                    Error('Account has been blocked'),
+                  );
+                }
+                if (savedDtos.status === STATUS.INACTIVE) {
+                  return OperationResult.error(
+                    Error('Account has not been actived'),
+                  );
+                }
                 return OperationResult.ok(
                   plainToInstance(UserResDto, savedDtos, {
                     excludeExtraneousValues: true,
@@ -115,4 +125,52 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
   // async addUsers(users: UserReqDto[]) {}
   // async updateUser(user: UserReqDto, userId: string) {}
   // async deleteUser(userId: string) {}
+
+  async changePassword(userId: string, password: string) {
+    const salt = await bcrypt.genSalt(SALTROUNDS);
+    const hashedPassword = await bcrypt.hash(password || '1234', salt);
+    return await this.userRepository
+      .update(userId, { password: hashedPassword })
+      .then((result) => {
+        console.log(result);
+        return OperationResult.ok('Update successfully');
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
+  }
+
+  async changeStatus(ids: string[], status: STATUS) {
+    if (status < 0 || status > 2) {
+      return OperationResult.error(new Error('Status is not valid'));
+    }
+
+    return await this.userRepository
+      .createQueryBuilder()
+      .update(UserReqDto)
+      .set({ status: status })
+      .where('user.id IN (:...ids) and user.deletedAt is null', { ids: ids })
+      .execute()
+      .then(() => {
+        return OperationResult.ok('Update status successfully');
+      })
+      .catch((e) => {
+        return OperationResult.error(e);
+      });
+  }
+
+  async activeAccount(userId: string) {
+    return await this.userRepository
+      .createQueryBuilder()
+      .update(UserReqDto)
+      .set({ status: STATUS.ACTIVE })
+      .where('user.id = :id and user.deletedAt is null', { id: userId })
+      .execute()
+      .then(() => {
+        return OperationResult.ok('Active account successfully');
+      })
+      .catch((e) => {
+        return OperationResult.error(e);
+      });
+  }
 }

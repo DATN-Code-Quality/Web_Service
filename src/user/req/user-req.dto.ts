@@ -6,6 +6,12 @@ import { SubmissionResDto } from 'src/submission/res/submission-res.dto';
 import { UserCourseReqDto } from 'src/user-course/req/user-course-req.dto';
 import { Column, Entity, OneToMany } from 'typeorm';
 
+export enum STATUS {
+  INACTIVE = 0,
+  ACTIVE = 1,
+  BLOCK = 2,
+}
+
 @Entity('user', { schema: 'sonarqube' })
 export class UserReqDto extends BaseEntity {
   @ApiProperty()
@@ -42,7 +48,7 @@ export class UserReqDto extends BaseEntity {
   @ApiProperty()
   @IsBoolean()
   @Column('tinyint', { name: 'status', width: 1 })
-  status: boolean;
+  status: STATUS;
 
   // @OneToMany(() => Project, (project) => project.user)
   // projects: Project[];
