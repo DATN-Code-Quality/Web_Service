@@ -87,4 +87,49 @@ export class SubmissionService extends BaseService<
         return OperationResult.error(err);
       });
   }
+
+  async removeSubmission(submissionId: string) {
+    return this.remove(submissionId);
+  }
+
+  async upserSubmission(submission: SubmissionResDto) {
+    return await this.submissionRepository
+      .createQueryBuilder('submission')
+      .withDeleted()
+      .where(
+        'submission.assignmentId = :assignmentId and submission.userId = :userId',
+        {
+          assignmentId: submission.assignmentId,
+          userId: submission.userId,
+        },
+      )
+      .getOne()
+      .then(async (savedSubmission) => {
+        if (savedSubmission) {
+          submission.deletedAt = null;
+          await this.submissionRepository.update(
+            savedSubmission.id,
+            submission,
+          );
+          savedSubmission = await this.submissionRepository.findOneBy({
+            id: submission.id,
+          });
+        } else {
+          savedSubmission = await this.submissionRepository.save(submission);
+        }
+
+        return OperationResult.ok(savedSubmission);
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
+
+    // await this.submissionRepository.upsert(submission, {
+    //   conflictPaths: {
+    //     assignmentId: true,
+    //     userId: true,
+    //   },
+
+    // });
+  }
 }

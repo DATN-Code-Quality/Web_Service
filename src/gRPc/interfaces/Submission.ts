@@ -41,24 +41,3 @@ export interface ScanSubmissionRequest {
   updatedAt: Date;
   deletedAt: Date;
 }
-
-export function converSubmissionReqDtoTooScanSubmissionRequest(
-  submission: SubmissionReqDto,
-): ScanSubmissionRequest {
-  return {
-    id: submission.id,
-    assignmentId: submission.assignmentId,
-    link: submission.link,
-    note: submission.note,
-    submitType: submission.submitType,
-    timemodified: submission.timemodified,
-    userId: submission.userId,
-    origin: submission.origin,
-    status: submission.status,
-    grade: submission.grade,
-    submissionMoodleId: submission.submissionMoodleId,
-    createdAt: submission.createdAt,
-    updatedAt: submission.updatedAt,
-    deletedAt: submission.deletedAt,
-  };
-}

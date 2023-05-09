@@ -30,10 +30,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as fs from 'fs';
 import { plainToClass, plainToInstance } from 'class-transformer';
-import {
-  ScanSubmissionRequest,
-  converSubmissionReqDtoTooScanSubmissionRequest,
-} from 'src/gRPc/interfaces/Submission';
+import { ScanSubmissionRequest } from 'src/gRPc/interfaces/Submission';
 @ApiTags('Submission')
 @Controller('/api/submission')
 export class SubmissionController implements OnModuleInit {
@@ -69,35 +66,103 @@ export class SubmissionController implements OnModuleInit {
     }),
   )
   @Post('/:courseId/:assignmentId')
-  async addSubmissions(
+  async addSubmission(
     @UploadedFile() file: Express.Multer.File,
     @Param('assignmentId') assignmentId: string,
     @Body() submission: SubmissionReqDto,
     @Request() req,
   ) {
-    if (submission.assignmentId !== assignmentId) {
-      return OperationResult.error(
-        new Error('assignmentId in submissions invalid'),
-      );
-    }
+    submission.assignmentId = assignmentId;
     submission.userId = req.headers['userId'];
 
-    const result = await this.submissionService.create(
-      SubmissionResDto,
-      submission,
-    );
+    // const result = await this.submissionService.create(
+    //   SubmissionResDto,
+    //   submission,
+    // );
 
-    const a = converSubmissionReqDtoTooScanSubmissionRequest(submission);
-    firstValueFrom(this.gSubmissionService.scanSubmission(a).pipe());
+    const result = await this.submissionService.upserSubmission(submission);
+
+    firstValueFrom(this.gSubmissionService.scanSubmission(submission).pipe());
     return result;
   }
 
-  // @Roles(Role.USER)
-  // @Get('/submissions')
-  // async getAllSubmissions() {
-  //   const result = await this.submissionService.findAll(SubmissionResDto);
+  // @SubRoles(SubRole.STUDENT)
+  // @UseInterceptors(
+  //   FileInterceptor('file', {
+  //     storage: diskStorage({
+  //       destination: function (req, file, cb) {
+  //         const courseId = req.params['courseId'];
+  //         const assignmentId = req.params['assignmentId'];
+  //         const userId = req.headers['userId'];
+  //         const path = `D:/source/${courseId}/${assignmentId}/${userId}`;
+  //         req.body['link'] = `${path}/${file.originalname}`;
+  //         console.log(req.body);
+  //         if (!fs.existsSync(path)) {
+  //           fs.mkdirSync(path, { recursive: true });
+  //         }
+  //         cb(null, path);
+  //       },
+  //       filename: function (req, file, cb) {
+  //         cb(null, file.originalname);
+  //       },
+  //     }),
+  //   }),
+  // )
+  // @Put('/:courseId/:assignmentId/:submissionId')
+  // async updateSubmissions(
+  //   @UploadedFile() file: Express.Multer.File,
+  //   @Param('assignmentId') assignmentId: string,
+  //   @Param('submissionId') submissionId: string,
+
+  //   @Body() submission: SubmissionReqDto,
+  //   @Request() req,
+  // ) {
+  //   console.log(submission);
+
+  //   if (submission.assignmentId !== assignmentId) {
+  //     return OperationResult.error(
+  //       new Error('assignmentId in submissions invalid'),
+  //     );
+  //   }
+  //   // if (submission.id !== submissionId) {
+  //   //   return OperationResult.error(
+  //   //     new Error('submissionId in submissions invalid'),
+  //   //   );
+  //   // }
+
+  //   submission.userId = req.headers['userId'];
+  //   console.log(submission);
+
+  //   const result = await this.submissionService.update(
+  //     submission.id,
+  //     submission,
+  //   );
+
+  //   if (submission.link) {
+  //     const updatedSubmission = await this.submissionService.findOne(
+  //       SubmissionResDto,
+  //       submission.id,
+  //     );
+  //     if (updatedSubmission.status == 0) {
+  //       firstValueFrom(
+  //         this.gSubmissionService.scanSubmission(updatedSubmission.data).pipe(),
+  //       );
+  //     }
+  //   }
+
   //   return result;
   // }
+
+  @SubRoles(SubRole.STUDENT)
+  @Delete('/:courseId/:assignmentId/:submissionId')
+  async deleteSubmissions(
+    @Param('assignmentId') assignmentId: string,
+    @Param('submissionId') submissionId: string,
+  ) {
+    const result = await this.submissionService.removeSubmission(submissionId);
+
+    return result;
+  }
 
   @SubRoles(SubRole.STUDENT, SubRole.TEACHER)
   @Get('/:courseId/:assignmentId/:submissionId')

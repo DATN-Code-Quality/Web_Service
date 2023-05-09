@@ -64,7 +64,7 @@ export class SubmissionReqDto extends BaseEntity {
   submissionMoodleId: string;
 
   @ManyToOne(() => UserReqDto, (user) => user.userCourses, {
-    eager: true,
+    // eager: true,
   })
   user: UserResDto;
 }
