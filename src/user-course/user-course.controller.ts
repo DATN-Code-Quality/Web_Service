@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Request,
   Post,
   Put,
 } from '@nestjs/common';
@@ -24,18 +25,26 @@ export class UserCourseController {
   //   const result = await this.userCourseService.findAll(UserCourseResDto);
   //   return result;
   // }
-  @Roles(Role.ADMIN, Role.USER)
-  @SubRoles(SubRole.STUDENT, SubRole.TEACHER)
+  // @Roles(Role.ADMIN, Role.USER)
+  @SubRoles(SubRole.STUDENT, SubRole.TEACHER, SubRole.ADMIN)
   @Get('/:courseId/users')
   async getAllUsersByCourseId(@Param('courseId') courseId: string) {
     const result = await this.userCourseService.findUsersByCourseId(courseId);
     return result;
   }
 
-  @Roles(Role.ADMIN, Role.USER)
-  @SubRoles(SubRole.STUDENT, SubRole.TEACHER)
+  // @Roles(Role.ADMIN, Role.USER)
+  @Roles(Role.ADMIN)
   @Get('/:userId/courses')
   async getAllCoursesByUserId(@Param('userId') userId: string) {
+    const result = await this.userCourseService.findCoursesByUserId(userId);
+    return result;
+  }
+
+  @Roles(Role.USER)
+  @Get('/courses-of-user')
+  async getAllCoursesOfUser(@Request() req) {
+    const userId = req.headers['userId'];
     const result = await this.userCourseService.findCoursesByUserId(userId);
     return result;
   }

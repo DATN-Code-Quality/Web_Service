@@ -92,7 +92,7 @@ export class SubmissionService extends BaseService<
     return this.remove(submissionId);
   }
 
-  async upserSubmission(submission: SubmissionResDto) {
+  async upsertSubmission(submission: SubmissionResDto) {
     return await this.submissionRepository
       .createQueryBuilder('submission')
       .withDeleted()

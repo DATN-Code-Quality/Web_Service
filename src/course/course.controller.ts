@@ -49,7 +49,7 @@ export class CourseController implements OnModuleInit {
   }
 
   @Roles(Role.ADMIN)
-  @Get('/courses')
+  @Get('/all-courses')
   async getAllCourses() {
     const result = await this.courseService.findAll(CourseResDto);
     return result;
@@ -136,7 +136,8 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
-  @Roles(Role.ADMIN, Role.USER)
+  // @Roles(Role.ADMIN, Role.USER)
+  @SubRoles(SubRole.ADMIN, SubRole.STUDENT, SubRole.TEACHER)
   @Get('/:courseId')
   async getCourseById(@Param('courseId') courseId: string) {
     const result = await this.courseService.findOne(CourseResDto, courseId);

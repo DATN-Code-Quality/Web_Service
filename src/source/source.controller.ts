@@ -21,7 +21,7 @@ export class SourceController implements OnModuleInit {
 
   @Roles(Role.USER)
   @Get(':key')
-  async getSourceByEmail(@Param('key') key: string) {
+  async getSourceByKey(@Param('key') key: string) {
     const result = await this.clientService.getSourcesByKey({ key: key });
     return result;
   }

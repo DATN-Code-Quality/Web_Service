@@ -58,12 +58,10 @@ export class AssignmentController implements OnModuleInit {
     @Param('courseId') courseId: string,
   ) {
     assignments.forEach((assignment) => {
-      if (assignment.courseId !== courseId) {
-        return OperationResult.error(new Error('courseId invalid'));
-      }
+      assignment.courseId = courseId;
     });
     const result = await this.assignmentService.createMany(
-      AssignmentReqDto,
+      AssignmentResDto,
       assignments,
     );
 
@@ -98,35 +96,13 @@ export class AssignmentController implements OnModuleInit {
     @Body() assignment: AssignmentReqDto,
     @Param('courseId') courseId: string,
   ) {
-    if (assignment.courseId !== courseId) {
-      return OperationResult.error(new Error('courseId invalid'));
-    }
+    assignment.courseId = courseId;
+    // if (assignment.courseId !== courseId) {
+    //   return OperationResult.error(new Error('courseId invalid'));
+    // }
     const result = await this.assignmentService.create(
       AssignmentReqDto,
       assignment,
-    );
-    return result;
-  }
-
-  @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
-  @Get(':courseId/:assignmentId')
-  async getAssignmentById(
-    @Param('assignmentId') assignmentId: string,
-    @Request() req,
-  ) {
-    const result = await this.assignmentService.findOne(
-      AssignmentResDto,
-      assignmentId,
-    );
-    return result;
-  }
-
-  @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
-  @Get(':courseId')
-  async getAssignmentsByCourseId(@Param('courseId') courseId: string) {
-    const result = await this.assignmentService.findAssignmentsByCourseId(
-      // query['courseId'],
-      courseId,
     );
     return result;
   }
@@ -152,6 +128,29 @@ export class AssignmentController implements OnModuleInit {
     const result = ServiceResponse.resultFromServiceResponse(
       newResultDTO,
       'data',
+    );
+    return result;
+  }
+
+  @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
+  @Get(':courseId/:assignmentId')
+  async getAssignmentById(
+    @Param('assignmentId') assignmentId: string,
+    @Request() req,
+  ) {
+    const result = await this.assignmentService.findOne(
+      AssignmentResDto,
+      assignmentId,
+    );
+    return result;
+  }
+
+  @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
+  @Get(':courseId')
+  async getAssignmentsByCourseId(@Param('courseId') courseId: string) {
+    const result = await this.assignmentService.findAssignmentsByCourseId(
+      // query['courseId'],
+      courseId,
     );
     return result;
   }

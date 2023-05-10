@@ -80,78 +80,11 @@ export class SubmissionController implements OnModuleInit {
     //   submission,
     // );
 
-    const result = await this.submissionService.upserSubmission(submission);
+    const result = await this.submissionService.upsertSubmission(submission);
 
     firstValueFrom(this.gSubmissionService.scanSubmission(submission).pipe());
     return result;
   }
-
-  // @SubRoles(SubRole.STUDENT)
-  // @UseInterceptors(
-  //   FileInterceptor('file', {
-  //     storage: diskStorage({
-  //       destination: function (req, file, cb) {
-  //         const courseId = req.params['courseId'];
-  //         const assignmentId = req.params['assignmentId'];
-  //         const userId = req.headers['userId'];
-  //         const path = `D:/source/${courseId}/${assignmentId}/${userId}`;
-  //         req.body['link'] = `${path}/${file.originalname}`;
-  //         console.log(req.body);
-  //         if (!fs.existsSync(path)) {
-  //           fs.mkdirSync(path, { recursive: true });
-  //         }
-  //         cb(null, path);
-  //       },
-  //       filename: function (req, file, cb) {
-  //         cb(null, file.originalname);
-  //       },
-  //     }),
-  //   }),
-  // )
-  // @Put('/:courseId/:assignmentId/:submissionId')
-  // async updateSubmissions(
-  //   @UploadedFile() file: Express.Multer.File,
-  //   @Param('assignmentId') assignmentId: string,
-  //   @Param('submissionId') submissionId: string,
-
-  //   @Body() submission: SubmissionReqDto,
-  //   @Request() req,
-  // ) {
-  //   console.log(submission);
-
-  //   if (submission.assignmentId !== assignmentId) {
-  //     return OperationResult.error(
-  //       new Error('assignmentId in submissions invalid'),
-  //     );
-  //   }
-  //   // if (submission.id !== submissionId) {
-  //   //   return OperationResult.error(
-  //   //     new Error('submissionId in submissions invalid'),
-  //   //   );
-  //   // }
-
-  //   submission.userId = req.headers['userId'];
-  //   console.log(submission);
-
-  //   const result = await this.submissionService.update(
-  //     submission.id,
-  //     submission,
-  //   );
-
-  //   if (submission.link) {
-  //     const updatedSubmission = await this.submissionService.findOne(
-  //       SubmissionResDto,
-  //       submission.id,
-  //     );
-  //     if (updatedSubmission.status == 0) {
-  //       firstValueFrom(
-  //         this.gSubmissionService.scanSubmission(updatedSubmission.data).pipe(),
-  //       );
-  //     }
-  //   }
-
-  //   return result;
-  // }
 
   @SubRoles(SubRole.STUDENT)
   @Delete('/:courseId/:assignmentId/:submissionId')
@@ -182,6 +115,7 @@ export class SubmissionController implements OnModuleInit {
     @Request() req,
   ) {
     const role = req.headers['role'];
+    console.log(req.headers);
     if (role === SubRole.TEACHER) {
       const result = await this.submissionService.findSubmissionsByAssigmentId(
         assignmentId,
