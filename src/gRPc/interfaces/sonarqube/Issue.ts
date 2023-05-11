@@ -47,3 +47,18 @@ export interface TextRange {
 
 // export interface FacetsDetail {
 // }
+export interface IssueRequest {
+  submissionId: string;
+  type: string;
+  severity: string;
+  rule: string;
+  file: string;
+  page: number;
+  pageSize: number;
+}
+
+export interface IssueResponse {
+  data: Issue;
+  error: number;
+  message: string;
+}

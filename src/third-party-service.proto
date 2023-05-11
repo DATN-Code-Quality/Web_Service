@@ -281,20 +281,13 @@ message ResultResponse {
 
 }
 
-service GIssueService {
-  rpc getIssuesBySubmissionId(IssueRequest) returns (IssueResponse);
-}
 
-service GSourceService {
-  rpc getSourcesByKey(SourceRequest) returns (SourceResponse);
-}
 
-service GRuleService {
+service GSonarqubeService{
   rpc getRuleDetailByKey(RuleRequest) returns (RuleResponse);
-}
-
-service GResultService {
   rpc getResultsBySubmissionId(ResultRequest) returns (ResultResponse);
+  rpc getSourcesByKey(SourceRequest) returns (SourceResponse);
+  rpc getIssuesBySubmissionId(IssueRequest) returns (IssueResponse);
 }
 
 

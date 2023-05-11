@@ -17,26 +17,22 @@ import { UserCourseReqDto } from './user-course/req/user-course-req.dto';
 import { AssignmentReqDto } from './assignment/req/assignment-req.dto';
 import { SubmissionReqDto } from './submission/req/submission-req.dto';
 import { ProjectReqDto } from './project/req/project-req.dto';
-import { ResultReqDto } from './result/req/result-req.dto';
 import { CategoryModule } from './category/category.module';
 import { CourseModule } from './course/course.module';
 import { UserCourseModule } from './user-course/user-course.module';
 import { AssignmentModule } from './assignment/assignment.module';
 import { SubmissionModule } from './submission/submission.module';
 import { ProjectModule } from './project/project.module';
-import { ResultModule } from './result/result.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { CourseMoodleModule } from './courseMoodle/courseMoodle.module';
 import { SubmissionMoodleModule } from './submissionMoodle/submissionMoodle.module';
 import { AssignmentMoodleModule } from './assignmentMoodle/assignmentMoodle.module';
-import { IssueModule } from './issue/issue.module';
-import { SourceModule } from './source/source.module';
-import { RuleModule } from './rule/rule.module';
 import { AuthModule } from './auth/auth.module';
 import { AssignmentMiddleware } from './middleware/assignment.middleware';
 import { SubmissionMiddleware } from './middleware/submission.middleware';
 import { UserMiddleware } from './middleware/user.middleware';
+import { SonarqubeModule } from './sonarqube/sonarqube.module';
 
 @Module({
   imports: [
@@ -56,7 +52,6 @@ import { UserMiddleware } from './middleware/user.middleware';
         AssignmentReqDto,
         SubmissionReqDto,
         ProjectReqDto,
-        ResultReqDto,
       ],
 
       logging: 'all',
@@ -69,7 +64,7 @@ import { UserMiddleware } from './middleware/user.middleware';
     AssignmentModule,
     SubmissionModule,
     ProjectModule,
-    ResultModule,
+    // ResultModule,
     UserMoodleModule,
     CourseMoodleModule,
     SubmissionMoodleModule,
@@ -89,9 +84,10 @@ import { UserMiddleware } from './middleware/user.middleware';
       ]),
       global: true,
     },
-    IssueModule,
-    SourceModule,
-    RuleModule,
+    // IssueModule,
+    // SourceModule,
+    // RuleModule,
+    SonarqubeModule,
     AuthModule,
   ],
   controllers: [AppController],

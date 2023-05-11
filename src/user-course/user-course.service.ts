@@ -108,19 +108,33 @@ export class UserCourseService extends BaseService<
     studentRoleIds: string[],
     teacherRoleIds: string[],
   ): Promise<OperationResult<UserCourseResDto>> {
-    const usercourse = [] as UserCourseReqDto[];
+    let usercourses = [] as UserCourseReqDto[];
+
     if (studentRoleIds) {
       studentRoleIds.forEach((studentId) => {
-        usercourse.push(UserCourseReqDto.Student(courseId, studentId));
+        usercourses.push(UserCourseReqDto.Student(courseId, studentId));
       });
     }
 
     if (teacherRoleIds) {
       teacherRoleIds.forEach((teacherId) => {
-        usercourse.push(UserCourseReqDto.Teacher(courseId, teacherId));
+        usercourses.push(UserCourseReqDto.Teacher(courseId, teacherId));
       });
     }
 
-    return await this.createMany(UserCourseResDto, usercourse);
+    const savedUsers = await this.findUsersByCourseId(courseId);
+    if (savedUsers.isOk()) {
+      usercourses = usercourses.filter((usercourse) => {
+        const isExist = savedUsers.data.some(
+          (savedUser) => savedUser.id === usercourse.userId,
+        );
+        return isExist == false ? usercourse : null;
+      });
+    }
+    console.log(savedUsers.data);
+
+    console.log(usercourses);
+
+    return await this.createMany(UserCourseResDto, usercourses);
   }
 }

@@ -23,3 +23,13 @@ export interface RuleDetail {
   scope: string;
   createdAt: Date;
 }
+
+export interface RuleRequest {
+  key: string;
+}
+
+export interface RuleResponse {
+  data: RuleDetail;
+  error: number;
+  message: string;
+}
