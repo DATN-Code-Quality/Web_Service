@@ -38,10 +38,17 @@ export class UserCourseService extends BaseService<
 
   async findUsersByCourseId(
     courseId: string,
-  ): Promise<OperationResult<Array<UserResDto>>> {
+    role: string,
+  ): Promise<OperationResult<Array<UserCourseResDto>>> {
     const usercourses = await this.usercourseRepository.find({
+      order: {
+        user: {
+          userId: 'ASC',
+        },
+      },
       where: {
         courseId: courseId,
+        role: role,
       },
       relations: {
         user: true,
@@ -50,15 +57,21 @@ export class UserCourseService extends BaseService<
 
     const users = [] as UserResDto[];
 
-    usercourses.forEach((usercourse) => {
-      users.push(
-        plainToInstance(UserResDto, usercourse.user, {
-          excludeExtraneousValues: true,
-        }),
-      );
-    });
+    for (let i = 0; i < usercourses.length; i++) {
+      usercourses[i].user = plainToInstance(UserResDto, usercourses[i].user, {
+        excludeExtraneousValues: true,
+      });
+    }
 
-    return OperationResult.ok(users);
+    // usercourses.forEach((usercourse) => {
+    //   users.push(
+    //     plainToInstance(UserResDto, usercourse.user, {
+    //       excludeExtraneousValues: true,
+    //     }),
+    //   );
+    // });
+
+    return OperationResult.ok(usercourses);
   }
 
   async findCoursesByUserId(
@@ -122,7 +135,7 @@ export class UserCourseService extends BaseService<
       });
     }
 
-    const savedUsers = await this.findUsersByCourseId(courseId);
+    const savedUsers = await this.findUsersByCourseId(courseId, null);
     if (savedUsers.isOk()) {
       usercourses = usercourses.filter((usercourse) => {
         const isExist = savedUsers.data.some(

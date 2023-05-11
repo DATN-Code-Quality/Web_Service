@@ -11,6 +11,7 @@ import {
   Query,
   ParseArrayPipe,
   Request,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiTags } from '@nestjs/swagger';
@@ -98,9 +99,13 @@ export class UserController implements OnModuleInit {
   }
 
   @Roles(Role.ADMIN, Role.SUPERADMIN)
-  @Get('/users')
-  async getAllUsers() {
-    const result = await this.userService.findAll(UserResDto);
+  @Get('/all-users')
+  async getAllUsers(
+    @Query('name', new DefaultValuePipe('')) name: string,
+    @Query('userId', new DefaultValuePipe('')) userId: string,
+    @Query('role', new DefaultValuePipe(null)) role: string,
+  ) {
+    const result = await this.userService.findAllUsers(name, userId, role);
     return result;
   }
 

@@ -3,7 +3,7 @@ import { STATUS, UserReqDto } from './req/user-req.dto';
 import { BaseService } from 'src/common/base.service';
 import { UserResDto } from './res/user-res.dto';
 import { OperationResult } from 'src/common/operation-result';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcrypt';
@@ -171,6 +171,31 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       })
       .catch((e) => {
         return OperationResult.error(e);
+      });
+  }
+
+  async findAllUsers(name: string, userId: string, role: string) {
+    return await this.userRepository
+      .find({
+        order: {
+          userId: 'ASC',
+        },
+        where: {
+          name: Like(`%${name}%`),
+          userId: Like(`%${userId}%`),
+          role: role,
+        },
+      })
+
+      .then((users) => {
+        return OperationResult.ok(
+          plainToInstance(UserResDto, users, {
+            excludeExtraneousValues: true,
+          }),
+        );
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
       });
   }
 }

@@ -5,6 +5,7 @@ import {
   Get,
   Inject,
   OnModuleInit,
+  DefaultValuePipe,
   Param,
   ParseArrayPipe,
   Post,
@@ -50,8 +51,11 @@ export class CourseController implements OnModuleInit {
 
   @Roles(Role.ADMIN)
   @Get('/all-courses')
-  async getAllCourses() {
-    const result = await this.courseService.findAll(CourseResDto);
+  async getAllCourses(
+    @Query('categoryId', new DefaultValuePipe(null)) categoryId: string,
+    @Query('name', new DefaultValuePipe('')) name: string,
+  ) {
+    const result = await this.courseService.findAllCourses(categoryId, name);
     return result;
   }
 

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { BaseService } from 'src/common/base.service';
 import { OperationResult } from 'src/common/operation-result';
-import { Repository } from 'typeorm';
-import { plainToInstance } from 'class-transformer';
+import { Like, Repository } from 'typeorm';
+import { ClassConstructor, plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CourseResDto } from './res/course-res.dto';
 import { CourseReqDto } from './req/course-req.dto';
@@ -19,25 +19,44 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
   async findCoursesByCategoryId(
     categoryId: string,
   ): Promise<OperationResult<Array<CourseResDto>>> {
-    let result: OperationResult<Array<CourseResDto>>;
-
-    await this.courseRepository
+    return await this.courseRepository
       .createQueryBuilder('course')
       .where('course.categoryId = :categoryId and course.deletedAt is null', {
         categoryId: categoryId,
       })
       .getMany()
       .then((courses) => {
-        result = OperationResult.ok(
+        return OperationResult.ok(
           plainToInstance(CourseResDto, courses, {
             excludeExtraneousValues: true,
           }),
         );
       })
       .catch((err) => {
-        result = OperationResult.error(err);
+        return OperationResult.error(err);
       });
-    return result;
+  }
+
+  async findAllCourses(
+    categoryId: string,
+    name: string,
+  ): Promise<OperationResult<any>> {
+    return await this.courseRepository
+      .findBy({
+        name: Like(`%${name}%`),
+        categoryId: categoryId,
+      })
+
+      .then((courses) => {
+        return OperationResult.ok(
+          plainToInstance(CourseResDto, courses, {
+            excludeExtraneousValues: true,
+          }),
+        );
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
   }
 
   // async findCoursesByUserId(userId: string): Promise<OperationResult<Array<CourseDto>>> {

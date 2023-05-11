@@ -36,12 +36,12 @@ export class UserCourseReqDto extends BaseEntity {
   status: boolean;
 
   @ManyToOne(() => UserReqDto, (user) => user.userCourses, {
-    eager: true,
+    // eager: true,
   })
   user: UserResDto;
 
   @ManyToOne(() => CourseReqDto, (course) => course.userCourses, {
-    eager: true,
+    // eager: true,
   })
   course: CourseResDto;
 
