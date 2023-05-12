@@ -28,8 +28,8 @@ export class AssignmentReqDto extends BaseEntity {
   dueDate: Date;
 
   @ApiProperty()
-  @IsNumber()
-  @Column('tinyint', { name: 'status', width: 1 })
+  // @IsNumber()
+  @Column('tinyint', { name: 'status', width: 1, nullable: true })
   status: boolean;
 
   @ApiProperty()

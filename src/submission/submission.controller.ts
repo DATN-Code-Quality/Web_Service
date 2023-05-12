@@ -11,6 +11,7 @@ import {
   Put,
   Query,
   Request,
+  Response,
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
@@ -18,7 +19,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { SubmissionResDto } from './res/submission-res.dto';
 import { SubmissionService } from './submission.service';
-import { SubmissionReqDto } from './req/submission-req.dto';
+import { SUBMISSION_TYPE, SubmissionReqDto } from './req/submission-req.dto';
 import { ClientGrpc } from '@nestjs/microservices';
 import { GSubmissionService } from 'src/gRPc/services/submission';
 import { firstValueFrom } from 'rxjs';
@@ -52,7 +53,7 @@ export class SubmissionController implements OnModuleInit {
           const courseId = req.params['courseId'];
           const assignmentId = req.params['assignmentId'];
           const userId = req.headers['userId'];
-          const path = `D:/source/${courseId}/${assignmentId}/${userId}`;
+          const path = `${process.env.DESTINATION_PATH}/${courseId}/${assignmentId}/${userId}`;
           req.body['link'] = `${path}/${file.originalname}`;
           if (!fs.existsSync(path)) {
             fs.mkdirSync(path, { recursive: true });
@@ -63,26 +64,45 @@ export class SubmissionController implements OnModuleInit {
           cb(null, file.originalname);
         },
       }),
+      fileFilter: (
+        req: Request,
+        file: Express.Multer.File,
+        callback: (error: Error, acceptFile: boolean) => void,
+      ) => {
+        if (Boolean(file.mimetype.match(/(zip|rar)/))) {
+          callback(null, true);
+        } else {
+          callback(null, false);
+        }
+      },
     }),
   )
   @Post('/:courseId/:assignmentId')
   async addSubmission(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile()
+    file: Express.Multer.File,
     @Param('assignmentId') assignmentId: string,
     @Body() submission: SubmissionReqDto,
     @Request() req,
   ) {
+    if (submission.submitType === SUBMISSION_TYPE.FILE) {
+      if (!file) {
+        return OperationResult.error(new Error('Invalid file extension'));
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        return OperationResult.error(new Error('File too large'));
+      }
+    }
     submission.assignmentId = assignmentId;
     submission.userId = req.headers['userId'];
 
-    // const result = await this.submissionService.create(
-    //   SubmissionResDto,
-    //   submission,
-    // );
-
     const result = await this.submissionService.upsertSubmission(submission);
 
-    firstValueFrom(this.gSubmissionService.scanSubmission(submission).pipe());
+    if (result.isOk()) {
+      firstValueFrom(
+        this.gSubmissionService.scanSubmission(result.data).pipe(),
+      );
+    }
     return result;
   }
 

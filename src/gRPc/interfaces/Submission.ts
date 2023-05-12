@@ -1,5 +1,8 @@
 import { IsNumber, Min } from 'class-validator';
-import { SubmissionReqDto } from 'src/submission/req/submission-req.dto';
+import {
+  SUBMISSION_STATUS,
+  SubmissionReqDto,
+} from 'src/submission/req/submission-req.dto';
 
 export interface Submission {
   assignmentId: string;
@@ -34,7 +37,7 @@ export interface ScanSubmissionRequest {
   timemodified: Date;
   userId: string;
   origin: string;
-  status: string;
+  status: SUBMISSION_STATUS;
   grade: number | null;
   submissionMoodleId: string;
   createdAt: Date;

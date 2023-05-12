@@ -54,7 +54,7 @@ import { SonarqubeModule } from './sonarqube/sonarqube.module';
         ProjectReqDto,
       ],
 
-      logging: 'all',
+      // logging: 'all',
       synchronize: true,
     }),
     UserModule,

@@ -144,10 +144,6 @@ export class UserCourseService extends BaseService<
         return isExist == false ? usercourse : null;
       });
     }
-    console.log(savedUsers.data);
-
-    console.log(usercourses);
-
     return await this.createMany(UserCourseResDto, usercourses);
   }
 }

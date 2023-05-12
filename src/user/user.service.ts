@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { STATUS, UserReqDto } from './req/user-req.dto';
+import { USER_STATUS, UserReqDto } from './req/user-req.dto';
 import { BaseService } from 'src/common/base.service';
 import { UserResDto } from './res/user-res.dto';
 import { OperationResult } from 'src/common/operation-result';
@@ -39,12 +39,12 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
             .compare(password, savedDtos.password)
             .then((isValid) => {
               if (isValid) {
-                if (savedDtos.status === STATUS.BLOCK) {
+                if (savedDtos.status === USER_STATUS.BLOCK) {
                   return OperationResult.error(
                     Error('Account has been blocked'),
                   );
                 }
-                if (savedDtos.status === STATUS.INACTIVE) {
+                if (savedDtos.status === USER_STATUS.INACTIVE) {
                   return OperationResult.error(
                     Error('Account has not been actived'),
                   );
@@ -140,7 +140,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       });
   }
 
-  async changeStatus(ids: string[], status: STATUS) {
+  async changeStatus(ids: string[], status: USER_STATUS) {
     if (status < 0 || status > 2) {
       return OperationResult.error(new Error('Status is not valid'));
     }
@@ -163,7 +163,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     return await this.userRepository
       .createQueryBuilder()
       .update(UserReqDto)
-      .set({ status: STATUS.ACTIVE })
+      .set({ status: USER_STATUS.ACTIVE })
       .where('user.id = :id and user.deletedAt is null', { id: userId })
       .execute()
       .then(() => {

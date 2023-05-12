@@ -59,7 +59,7 @@ message ScanSubmissionRequest {
   string timemodified = 6;
   string userId = 7;
   string origin = 8;
-  string status = 9;
+  int32 status = 9;
   int32 grade = 10;
   string submissionMoodleId = 11;
   string createdAt = 12;

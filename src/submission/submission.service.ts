@@ -92,7 +92,9 @@ export class SubmissionService extends BaseService<
     return this.remove(submissionId);
   }
 
-  async upsertSubmission(submission: SubmissionResDto) {
+  async upsertSubmission(
+    submission: SubmissionResDto,
+  ): Promise<OperationResult<SubmissionResDto>> {
     return await this.submissionRepository
       .createQueryBuilder('submission')
       .withDeleted()
@@ -112,7 +114,7 @@ export class SubmissionService extends BaseService<
             submission,
           );
           savedSubmission = await this.submissionRepository.findOneBy({
-            id: submission.id,
+            id: savedSubmission.id,
           });
         } else {
           savedSubmission = await this.submissionRepository.save(submission);

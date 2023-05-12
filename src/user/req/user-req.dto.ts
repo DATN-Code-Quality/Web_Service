@@ -6,7 +6,7 @@ import { SubmissionResDto } from 'src/submission/res/submission-res.dto';
 import { UserCourseReqDto } from 'src/user-course/req/user-course-req.dto';
 import { Column, Entity, OneToMany } from 'typeorm';
 
-export enum STATUS {
+export enum USER_STATUS {
   INACTIVE = 0,
   ACTIVE = 1,
   BLOCK = 2,
@@ -46,9 +46,9 @@ export class UserReqDto extends BaseEntity {
   password: string;
 
   @ApiProperty()
-  @IsBoolean()
+  // @IsBoolean()
   @Column('tinyint', { name: 'status', width: 1 })
-  status: STATUS;
+  status: USER_STATUS;
 
   // @OneToMany(() => Project, (project) => project.user)
   // projects: Project[];

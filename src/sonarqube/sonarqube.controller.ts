@@ -13,6 +13,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/auth/auth.decorator';
 import { Role } from 'src/auth/auth.const';
 import { SonarqubeService } from 'src/gRPc/services/sonarqube';
+import { firstValueFrom } from 'rxjs';
 
 @ApiTags('Sonarqube')
 @Controller('/api/sonarqube')
@@ -32,7 +33,12 @@ export class SonarqubeController implements OnModuleInit {
   @Get('source/:key')
   async getSourceByKey(@Param('key') key: string) {
     const result = await this.clientService.getSourcesByKey({ key: key });
-    return result;
+    const issue = await firstValueFrom(result);
+    return {
+      status: issue.error,
+      data: issue.data,
+      message: issue.message,
+    };
   }
 
   @Roles(Role.USER)
@@ -41,7 +47,12 @@ export class SonarqubeController implements OnModuleInit {
     const result = await this.clientService.getRuleDetailByKey({
       key: key,
     });
-    return result;
+    const issue = await firstValueFrom(result);
+    return {
+      status: issue.error,
+      data: issue.data,
+      message: issue.message,
+    };
   }
 
   @Roles(Role.USER)
@@ -66,7 +77,13 @@ export class SonarqubeController implements OnModuleInit {
       rule: rule,
       file: file,
     });
-    return result;
+
+    const issue = await firstValueFrom(result);
+    return {
+      status: issue.error,
+      data: issue.data,
+      message: issue.message,
+    };
   }
 
   @Roles(Role.USER)
@@ -82,6 +99,11 @@ export class SonarqubeController implements OnModuleInit {
       page: page,
       pageSize: pageSize,
     });
-    return result;
+    const issue = await firstValueFrom(result);
+    return {
+      status: issue.error,
+      data: issue.data,
+      message: issue.message,
+    };
   }
 }

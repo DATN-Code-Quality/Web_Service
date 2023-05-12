@@ -29,7 +29,7 @@ export class RolesGuard implements CanActivate {
 
       return requiredRoles.some((role) => payload.user.role === role);
     } catch (error) {
-      if (context.getArgByIndex(0).route.path === '/api/auth/login') {
+      if (context.getArgByIndex(0).route.path.includes('/api/auth/login')) {
         return true;
       }
       return false;

@@ -13,6 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { LocalAuthGuard } from './guard/local-auth.guard';
 import { Public } from './auth.decorator';
 import { use } from 'passport';
+import { main } from './outlook';
 
 @ApiTags('auth')
 @Controller('/api/auth')
@@ -24,5 +25,12 @@ export class AuthController {
   @Public()
   signIn(@Body() signInDto: AuthReqDto, @Request() req) {
     return this.authService.generateToken(req.user);
+  }
+
+  @Post('/login/outlook')
+  // @UseGuards(LocalAuthGuard)
+  @Public()
+  async loginWithOutlook() {
+    return await this.authService.loginWithOutlook();
   }
 }
