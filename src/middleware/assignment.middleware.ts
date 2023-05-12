@@ -26,7 +26,7 @@ export class AssignmentMiddleware implements NestMiddleware {
       }
     }
     return res.status(200).json({
-      status: 0,
+      status: 1,
       message: `In course ${courseId}, there is no assignment ${assignmentId}`,
     });
   }

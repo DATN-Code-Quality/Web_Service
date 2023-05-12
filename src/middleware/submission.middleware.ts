@@ -9,6 +9,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ExtractJwt } from 'passport-jwt';
 import { AssignmentService } from 'src/assignment/assignment.service';
 import { AssignmentResDto } from 'src/assignment/res/assignment-res.dto';
+import { SubRole } from 'src/auth/auth.const';
 import { SubmissionResDto } from 'src/submission/res/submission-res.dto';
 import { SubmissionService } from 'src/submission/submission.service';
 
@@ -32,25 +33,30 @@ export class SubmissionMiddleware implements NestMiddleware {
 
     if (result.isOk()) {
       if (result.data.assignmentId === assignmentId) {
-        if (result.data.userId === payload.user.id) {
+        if (req.headers['role'] === SubRole.TEACHER) {
           next();
           return;
         } else {
-          return res.status(200).json({
-            status: 0,
-            message: `Not the owner of submission ${submissionId}`,
-          });
+          if (result.data.userId === payload.user.id) {
+            next();
+            return;
+          } else {
+            return res.status(200).json({
+              status: 1,
+              message: `Not the owner of submission ${submissionId}`,
+            });
+          }
         }
       } else {
         return res.status(200).json({
-          status: 0,
+          status: 1,
           message: `In assignment ${assignmentId}, there is no submission ${submissionId}`,
         });
       }
     }
 
     return res.status(200).json({
-      status: 0,
+      status: 1,
       message: `No submission with ID as ${submissionId}`,
     });
   }

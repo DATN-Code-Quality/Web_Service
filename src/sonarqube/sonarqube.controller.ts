@@ -41,6 +41,37 @@ export class SonarqubeController implements OnModuleInit {
     };
   }
 
+  // @Roles(Role.USER)
+  // @Get('issue/:submissionId')
+  // async getIssuesByKey(
+  //   @Param('submissionId') submissionId: string,
+  //   @Query('type', new DefaultValuePipe(null)) type: string,
+  //   @Query('severity', new DefaultValuePipe(null)) severity: string,
+  //   @Query('rule', new DefaultValuePipe(null)) rule: string,
+  //   @Query('file', new DefaultValuePipe(null)) file: string,
+
+  //   @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+  //   @Query('pageSize', new DefaultValuePipe(100), ParseIntPipe)
+  //   pageSize: number,
+  // ) {
+  //   const result = await this.clientService.getIssuesBySubmissionId({
+  //     submissionId: submissionId,
+  //     page: page,
+  //     pageSize: pageSize,
+  //     type: type,
+  //     severity: severity,
+  //     rule: rule,
+  //     file: file,
+  //   });
+
+  //   const issue = await firstValueFrom(result);
+  //   return {
+  //     status: issue.error,
+  //     data: issue.data,
+  //     message: issue.message,
+  //   };
+  // }
+
   @Roles(Role.USER)
   @Get('rule/:key')
   async getRuleDetailByKey(@Param('key') key: string) {
@@ -55,8 +86,29 @@ export class SonarqubeController implements OnModuleInit {
     };
   }
 
+  // @Roles(Role.USER)
+  // @Get('result/:submissionId')
+  // async getResultsByKey(
+  //   @Param('submissionId') submissionId: string,
+  //   @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+  //   @Query('pageSize', new DefaultValuePipe(100), ParseIntPipe)
+  //   pageSize: number,
+  // ) {
+  //   const result = await this.clientService.getResultsBySubmissionId({
+  //     submissionId: submissionId,
+  //     page: page,
+  //     pageSize: pageSize,
+  //   });
+  //   const issue = await firstValueFrom(result);
+  //   return {
+  //     status: issue.error,
+  //     data: issue.data,
+  //     message: issue.message,
+  //   };
+  // }
+
   @Roles(Role.USER)
-  @Get('issue/:submissionId')
+  @Get('issue/:courseId/:assignmentId/:submissionId')
   async getIssuesBySubmissionId(
     @Param('submissionId') submissionId: string,
     @Query('type', new DefaultValuePipe(null)) type: string,
@@ -87,7 +139,7 @@ export class SonarqubeController implements OnModuleInit {
   }
 
   @Roles(Role.USER)
-  @Get('result/:submissionId')
+  @Get('result/:courseId/:assignmentId/:submissionId')
   async getResultsBySubmissionId(
     @Param('submissionId') submissionId: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,

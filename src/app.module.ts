@@ -31,8 +31,8 @@ import { AssignmentMoodleModule } from './assignmentMoodle/assignmentMoodle.modu
 import { AuthModule } from './auth/auth.module';
 import { AssignmentMiddleware } from './middleware/assignment.middleware';
 import { SubmissionMiddleware } from './middleware/submission.middleware';
-import { UserMiddleware } from './middleware/user.middleware';
 import { SonarqubeModule } from './sonarqube/sonarqube.module';
+import { RoleMiddleware } from './middleware/rule.middleware';
 
 @Module({
   imports: [
@@ -110,26 +110,26 @@ export class AppModule implements NestModule {
       },
     );
 
-    consumer.apply(AssignmentMiddleware, SubmissionMiddleware).forRoutes(
-      {
-        path: '/api/submission/:courseId/:assignmentId/:submissionId',
-        method: RequestMethod.GET,
-      },
-      {
-        path: '/api/submission/:courseId/:assignmentId/:submissionId',
-        method: RequestMethod.DELETE,
-      },
-    );
+    consumer.apply(AssignmentMiddleware, SubmissionMiddleware).forRoutes({
+      path: '/api/submission/:courseId/:assignmentId/:submissionId',
+      method: RequestMethod.DELETE,
+    });
 
-    consumer.apply(UserMiddleware).forRoutes(
-      {
-        path: '/api/result/:submissionId',
-        method: RequestMethod.GET,
-      },
-      {
-        path: '/api/sonarqube/issue/:submissionId',
-        method: RequestMethod.GET,
-      },
-    );
+    consumer
+      .apply(RoleMiddleware, AssignmentMiddleware, SubmissionMiddleware)
+      .forRoutes(
+        {
+          path: '/api/submission/:courseId/:assignmentId/:submissionId',
+          method: RequestMethod.GET,
+        },
+        {
+          path: '/api/sonarqube/issue/:courseId/:assignmentId/:submissionId',
+          method: RequestMethod.GET,
+        },
+        {
+          path: '/api/sonarqube/result/:courseId/:assignmentId/:submissionId',
+          method: RequestMethod.GET,
+        },
+      );
   }
 }
