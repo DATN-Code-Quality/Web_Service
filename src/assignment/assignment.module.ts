@@ -11,7 +11,11 @@ import { UserCourseModule } from 'src/user-course/user-course.module';
 import { SubmissionModule } from 'src/submission/submission.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([AssignmentReqDto]), UserCourseModule],
+  imports: [
+    TypeOrmModule.forFeature([AssignmentReqDto]),
+    UserCourseModule,
+    SubmissionModule,
+  ],
   controllers: [AssignmentController],
   providers: [
     AssignmentService,

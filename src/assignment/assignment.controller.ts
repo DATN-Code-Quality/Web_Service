@@ -154,4 +154,17 @@ export class AssignmentController implements OnModuleInit {
     );
     return result;
   }
+
+  @SubRoles(SubRole.TEACHER)
+  @Get(':courseId/:assignmentId/report')
+  async getReport(
+    @Param('courseId') courseId: string,
+    @Param('assignmentId') assignmentId: string,
+  ) {
+    const result = await this.assignmentService.getReport(
+      courseId,
+      assignmentId,
+    );
+    return result;
+  }
 }

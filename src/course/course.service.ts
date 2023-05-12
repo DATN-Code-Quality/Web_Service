@@ -6,12 +6,18 @@ import { ClassConstructor, plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CourseResDto } from './res/course-res.dto';
 import { CourseReqDto } from './req/course-req.dto';
+import { UserCourseService } from 'src/user-course/user-course.service';
+import { AssignmentService } from 'src/assignment/assignment.service';
+import { SubmissionService } from 'src/submission/submission.service';
 
 @Injectable()
 export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
   constructor(
     @InjectRepository(CourseReqDto)
-    private readonly courseRepository: Repository<CourseReqDto>, // @Inject(UsersCoursesService) private readonly usersCoursesService: UsersCoursesService,
+    private readonly courseRepository: Repository<CourseReqDto>,
+    private readonly userCourseService: UserCourseService,
+    private readonly assignmentService: AssignmentService,
+    private readonly submissionService: SubmissionService,
   ) {
     super(courseRepository);
   }
@@ -78,4 +84,39 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
   //     })
   //   return result
   // }
+
+  async getReport(courseId: string) {
+    const studentTotal =
+      await this.userCourseService.countStudentTotalByCourseId(courseId);
+
+    const assignments = await this.assignmentService
+      .findAssignmentsByCourseId(courseId)
+      .then((result) => {
+        if (result.isOk()) {
+          return result.data;
+        } else {
+          return [];
+        }
+      });
+
+    const result = [];
+
+    for (let i = 0; i < assignments.length; i++) {
+      result.push({
+        assignment: {
+          id: assignments[i].id,
+          name: assignments[i].name,
+        },
+        submission:
+          await this.submissionService.countSubmissionByAssignmentIdAndGroupByStatus(
+            assignments[i].id,
+          ),
+      });
+    }
+
+    return await OperationResult.ok({
+      total: studentTotal,
+      assignment: result,
+    });
+  }
 }

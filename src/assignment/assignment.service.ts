@@ -6,6 +6,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OperationResult } from 'src/common/operation-result';
 import { plainToInstance } from 'class-transformer';
+import { UserCourseService } from 'src/user-course/user-course.service';
+import { SubmissionService } from 'src/submission/submission.service';
+import { SUBMISSION_STATUS } from 'src/submission/req/submission-req.dto';
 
 @Injectable()
 export class AssignmentService extends BaseService<
@@ -15,6 +18,8 @@ export class AssignmentService extends BaseService<
   constructor(
     @InjectRepository(AssignmentReqDto)
     private readonly assignmentRepository: Repository<AssignmentReqDto>, // @Inject(UsersCoursesService) private readonly usersCoursesService: UsersCoursesService,
+    private readonly submissionService: SubmissionService,
+    private readonly usercourseService: UserCourseService,
   ) {
     super(assignmentRepository);
   }
@@ -42,5 +47,19 @@ export class AssignmentService extends BaseService<
         result = OperationResult.error(err);
       });
     return result;
+  }
+
+  async getReport(courseId: string, assignmentId: string) {
+    const studentTotal =
+      await this.usercourseService.countStudentTotalByCourseId(courseId);
+    const scanResult =
+      await this.submissionService.countSubmissionByAssignmentIdAndGroupByStatus(
+        assignmentId,
+      );
+
+    return OperationResult.ok({
+      total: studentTotal,
+      submission: scanResult,
+    });
   }
 }

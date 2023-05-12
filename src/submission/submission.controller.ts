@@ -19,7 +19,11 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { SubmissionResDto } from './res/submission-res.dto';
 import { SubmissionService } from './submission.service';
-import { SUBMISSION_TYPE, SubmissionReqDto } from './req/submission-req.dto';
+import {
+  SUBMISSION_STATUS,
+  SUBMISSION_TYPE,
+  SubmissionReqDto,
+} from './req/submission-req.dto';
 import { ClientGrpc } from '@nestjs/microservices';
 import { GSubmissionService } from 'src/gRPc/services/submission';
 import { firstValueFrom } from 'rxjs';
@@ -95,6 +99,7 @@ export class SubmissionController implements OnModuleInit {
     }
     submission.assignmentId = assignmentId;
     submission.userId = req.headers['userId'];
+    submission.status = SUBMISSION_STATUS.SUBMITTED;
 
     const result = await this.submissionService.upsertSubmission(submission);
 

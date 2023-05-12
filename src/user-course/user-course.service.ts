@@ -8,6 +8,7 @@ import { UserCourseResDto } from './res/user-course-res.dto';
 import { UserResDto } from 'src/user/res/user-res.dto';
 import { CourseResDto } from 'src/course/res/course-res.dto';
 import { OperationResult } from 'src/common/operation-result';
+import { SubRole } from 'src/auth/auth.const';
 
 @Injectable()
 export class UserCourseService extends BaseService<
@@ -145,5 +146,14 @@ export class UserCourseService extends BaseService<
       });
     }
     return await this.createMany(UserCourseResDto, usercourses);
+  }
+
+  async countStudentTotalByCourseId(courseId: string): Promise<number> {
+    return await this.usercourseRepository.count({
+      where: {
+        courseId: courseId,
+        role: SubRole.STUDENT,
+      },
+    });
   }
 }

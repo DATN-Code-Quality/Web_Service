@@ -15,8 +15,8 @@ import { SubmissionModule } from 'src/submission/submission.module';
   imports: [
     TypeOrmModule.forFeature([CourseReqDto]),
     UserCourseModule,
-    // AssignmentModule,
-    // SubmissionModule,
+    AssignmentModule,
+    SubmissionModule,
   ],
   controllers: [CourseController],
   providers: [

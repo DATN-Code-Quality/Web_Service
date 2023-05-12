@@ -14,8 +14,9 @@ import { Column, Entity, ManyToOne } from 'typeorm';
 export enum SUBMISSION_STATUS {
   SUBMITTED = 0,
   SCANNING = 1,
-  SCANNED_SUCCESS = 2,
-  SCANNED_FAIL = 3,
+  SCANNED_FAIL = 2,
+  PASS = 3,
+  FAIL = 4,
 }
 
 export enum SUBMISSION_TYPE {

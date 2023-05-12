@@ -101,6 +101,10 @@ export class AppModule implements NestModule {
         method: RequestMethod.GET,
       },
       {
+        path: '/api/assignment/:courseId/:assignmentId/report',
+        method: RequestMethod.GET,
+      },
+      {
         path: '/api/submission/:courseId/:assignmentId',
         method: RequestMethod.POST,
       },

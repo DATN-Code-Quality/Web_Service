@@ -147,4 +147,11 @@ export class CourseController implements OnModuleInit {
     const result = await this.courseService.findOne(CourseResDto, courseId);
     return result;
   }
+
+  @SubRoles(SubRole.TEACHER)
+  @Get('/:courseId/report')
+  async getReport(@Param('courseId') courseId: string) {
+    const result = await this.courseService.getReport(courseId);
+    return result;
+  }
 }
