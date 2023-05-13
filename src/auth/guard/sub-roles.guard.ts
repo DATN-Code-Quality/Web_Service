@@ -16,9 +16,8 @@ export class SubRolesGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private jwtService: JwtService,
-    private userCourseService: UserCourseService,
-  ) // private assignmentService: AssignmentService,
-  // private submissionService: SubmissionService,
+    private userCourseService: UserCourseService, // private assignmentService: AssignmentService,
+  ) // private submissionService: SubmissionService,
   {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -79,7 +78,6 @@ export class SubRolesGuard implements CanActivate {
           }
         })
         .catch((e) => {
-          console.log(e);
           return false;
         });
     }

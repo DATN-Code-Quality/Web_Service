@@ -12,13 +12,13 @@ import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/auth/auth.decorator';
 import { Role } from 'src/auth/auth.const';
-import { SonarqubeService } from 'src/gRPc/services/sonarqube';
+import { GSonarqubeService } from 'src/gRPc/services/sonarqube';
 import { firstValueFrom } from 'rxjs';
 
 @ApiTags('Sonarqube')
 @Controller('/api/sonarqube')
 export class SonarqubeController implements OnModuleInit {
-  private clientService: SonarqubeService;
+  private clientService: GSonarqubeService;
 
   constructor(
     @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
@@ -26,7 +26,7 @@ export class SonarqubeController implements OnModuleInit {
 
   onModuleInit() {
     this.clientService =
-      this.client.getService<SonarqubeService>('GSonarqubeService');
+      this.client.getService<GSonarqubeService>('GSonarqubeService');
   }
 
   @Roles(Role.USER)

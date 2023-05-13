@@ -9,6 +9,7 @@ import { plainToInstance } from 'class-transformer';
 import { UserCourseService } from 'src/user-course/user-course.service';
 import { SubmissionService } from 'src/submission/submission.service';
 import { SUBMISSION_STATUS } from 'src/submission/req/submission-req.dto';
+import { defaultConfig } from 'src/gRPc/interfaces/sonarqube/QulaityGate';
 
 @Injectable()
 export class AssignmentService extends BaseService<

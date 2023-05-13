@@ -281,6 +281,22 @@ message ResultResponse {
 
 }
 
+message Condition {
+  string key = 1;
+  int32 error = 2;
+}
+
+message QualityGateRequest {
+  string assignmentId = 1;
+  repeated Condition conditions = 2;
+}
+
+message QualityGateResponse {
+  int32 error = 1;
+  string data = 2;
+  string message = 3;
+}
+
 
 
 service GSonarqubeService{
@@ -288,6 +304,8 @@ service GSonarqubeService{
   rpc getResultsBySubmissionId(ResultRequest) returns (ResultResponse);
   rpc getSourcesByKey(SourceRequest) returns (SourceResponse);
   rpc getIssuesBySubmissionId(IssueRequest) returns (IssueResponse);
+  rpc createQualityGate(QualityGateRequest) returns (QualityGateResponse);
+  rpc updateConditions(QualityGateRequest) returns (QualityGateResponse);
 }
 
 

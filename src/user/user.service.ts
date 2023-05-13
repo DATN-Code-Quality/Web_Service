@@ -93,7 +93,6 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
   ): Promise<OperationResult<UserResDto>> {
     const salt = await bcrypt.genSalt(SALTROUNDS);
     if (user.password !== null && user.password !== '') {
-      console.log('Change password');
       user.password = await bcrypt.hash(user.password || '1234', salt);
     }
 
@@ -132,7 +131,6 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     return await this.userRepository
       .update(userId, { password: hashedPassword })
       .then((result) => {
-        console.log(result);
         return OperationResult.ok('Update successfully');
       })
       .catch((err) => {

@@ -140,7 +140,6 @@ export class SubmissionController implements OnModuleInit {
     @Request() req,
   ) {
     const role = req.headers['role'];
-    console.log(req.headers);
     if (role === SubRole.TEACHER) {
       const result = await this.submissionService.findSubmissionsByAssigmentId(
         assignmentId,
