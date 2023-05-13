@@ -47,6 +47,11 @@ export class SubmissionResDto extends BaseDto {
   @ApiProperty()
   @IsString()
   @Expose()
+  userId: string;
+
+  @ApiProperty()
+  @IsString()
+  @Expose()
   origin: SUBMISSION_ORIGIN;
 
   @ApiProperty()
