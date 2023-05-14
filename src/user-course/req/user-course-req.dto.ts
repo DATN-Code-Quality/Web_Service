@@ -31,17 +31,17 @@ export class UserCourseReqDto extends BaseEntity {
   role: string;
 
   @ApiProperty()
-  @IsBooleanString()
-  @Column('tinyint', { name: 'status', width: 1 })
+  // @IsBooleanString()
+  @Column('tinyint', { name: 'status', width: 1, nullable: true })
   status: boolean;
 
   @ManyToOne(() => UserReqDto, (user) => user.userCourses, {
-    eager: true,
+    // eager: true,
   })
   user: UserResDto;
 
   @ManyToOne(() => CourseReqDto, (course) => course.userCourses, {
-    eager: true,
+    // eager: true,
   })
   course: CourseResDto;
 

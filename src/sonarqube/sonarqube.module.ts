@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
-import { RuleController } from './rule.controller';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
+import { SonarqubeController } from './sonarqube.controller';
 
 @Module({
   imports: [
@@ -23,7 +23,7 @@ import { RolesGuard } from 'src/auth/guard/roles.guard';
     //   },
     // ]),
   ],
-  controllers: [RuleController],
+  controllers: [SonarqubeController],
   providers: [
     {
       provide: APP_GUARD,
@@ -36,4 +36,4 @@ import { RolesGuard } from 'src/auth/guard/roles.guard';
   ],
   exports: [],
 })
-export class RuleModule {}
+export class SonarqubeModule {}

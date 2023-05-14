@@ -12,6 +12,7 @@ import {
   UseFilters,
   ParseArrayPipe,
   Request,
+  Put,
   Response,
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
@@ -28,11 +29,14 @@ import { ValidationErrorFilter } from 'src/common/validate-exception.filter';
 import { Public, Roles, SubRoles } from 'src/auth/auth.decorator';
 import { Role, SubRole } from 'src/auth/auth.const';
 import { OperationResult } from 'src/common/operation-result';
+import { GSonarqubeService } from 'src/gRPc/services/sonarqube';
+import { defaultConfig } from 'src/gRPc/interfaces/sonarqube/QulaityGate';
 
 @ApiTags('Assignment')
 @Controller('/api/assignment')
 export class AssignmentController implements OnModuleInit {
   private gAssignmentService: GAssignmentService;
+  private gSonarqubeService: GSonarqubeService;
 
   constructor(
     private readonly assignmentService: AssignmentService,
@@ -42,6 +46,8 @@ export class AssignmentController implements OnModuleInit {
   onModuleInit() {
     this.gAssignmentService =
       this.client.getService<GAssignmentService>('GAssignmentService');
+    this.gSonarqubeService =
+      this.client.getService<GSonarqubeService>('GSonarqubeService');
   }
 
   // @Get('/assignments')
@@ -58,14 +64,30 @@ export class AssignmentController implements OnModuleInit {
     @Param('courseId') courseId: string,
   ) {
     assignments.forEach((assignment) => {
-      if (assignment.courseId !== courseId) {
-        return OperationResult.error(new Error('courseId invalid'));
-      }
+      assignment.courseId = courseId;
     });
     const result = await this.assignmentService.createMany(
-      AssignmentReqDto,
+      AssignmentResDto,
       assignments,
     );
+
+    if (result.isOk()) {
+      for (let i = 0; i < result.data.length; i++) {
+        const response = await firstValueFrom(
+          this.gSonarqubeService.createQualityGate(
+            defaultConfig(result.data[i].id),
+          ),
+        );
+
+        if (response.error === 0) {
+          await this.assignmentService.update(result.data[i].id, {
+            config: response.data,
+          } as AssignmentResDto);
+
+          result.data[i].config = response.data;
+        }
+      }
+    }
 
     Logger.debug('Result: ' + JSON.stringify(result));
 
@@ -98,12 +120,57 @@ export class AssignmentController implements OnModuleInit {
     @Body() assignment: AssignmentReqDto,
     @Param('courseId') courseId: string,
   ) {
-    if (assignment.courseId !== courseId) {
-      return OperationResult.error(new Error('courseId invalid'));
-    }
+    assignment.courseId = courseId;
+
     const result = await this.assignmentService.create(
       AssignmentReqDto,
       assignment,
+    );
+
+    if (result.isOk()) {
+      const response = await firstValueFrom(
+        this.gSonarqubeService.createQualityGate(defaultConfig(result.data.id)),
+      );
+
+      if (response.error === 0) {
+        await this.assignmentService.update(result.data.id, {
+          config: response.data,
+        } as AssignmentResDto);
+
+        result.data.config = response.data;
+      }
+    }
+
+    // const result = await firstValueFrom(
+    //   this.gSonarqubeService.createQualityGate(
+    //     defaultConfig(`${Date.now().toString()}`),
+    //   ),
+    // );
+
+    return result;
+  }
+
+  //Moodle:
+  @SubRoles(SubRole.TEACHER)
+  @Get(':courseId/sync-assignments-by-course-id')
+  async getMoodleAssignmentsByCourseId(@Query() query: string) {
+    const response$ = this.gAssignmentService
+      .getAllAssignmentsByCourseId({
+        courseMoodleId: query['courseMoodleId'],
+      })
+      .pipe();
+    const resultDTO = await firstValueFrom(response$);
+    const data = resultDTO.data.map((assignment) => ({
+      ...assignment,
+      dueDate: new Date(parseInt(assignment.dueDate, 10) * 1000),
+    }));
+    const newResultDTO = {
+      ...resultDTO,
+      data,
+    };
+    const result = ServiceResponse.resultFromServiceResponse(
+      newResultDTO,
+      'data',
     );
     return result;
   }
@@ -131,28 +198,39 @@ export class AssignmentController implements OnModuleInit {
     return result;
   }
 
-  //Moodle:
   @SubRoles(SubRole.TEACHER)
-  @Get(':courseId/sync-assignments-by-course-id')
-  async getMoodleAssignmentsByCourseId(@Query() query: string) {
-    const response$ = this.gAssignmentService
-      .getAllAssignmentsByCourseId({
-        courseMoodleId: query['courseMoodleId'],
-      })
-      .pipe();
-    const resultDTO = await firstValueFrom(response$);
-    const data = resultDTO.data.map((assignment) => ({
-      ...assignment,
-      dueDate: new Date(parseInt(assignment.dueDate, 10) * 1000),
-    }));
-    const newResultDTO = {
-      ...resultDTO,
-      data,
-    };
-    const result = ServiceResponse.resultFromServiceResponse(
-      newResultDTO,
-      'data',
+  @Get(':courseId/:assignmentId/report')
+  async getReport(
+    @Param('courseId') courseId: string,
+    @Param('assignmentId') assignmentId: string,
+  ) {
+    const result = await this.assignmentService.getReport(
+      courseId,
+      assignmentId,
     );
     return result;
+  }
+
+  @SubRoles(SubRole.TEACHER)
+  @Put(':courseId/:assignmentId/config')
+  async updateCongig(
+    @Param('assignmentId') assignmentId: string,
+    config: string,
+  ) {
+    //parse config thành 1 list các điều kiện
+    const conditions = defaultConfig(`${Date.now.toString()}`);
+
+    const result = await firstValueFrom(
+      this.gSonarqubeService.updateConditions({
+        assignmentId: assignmentId,
+        conditions: conditions.conditions,
+      }),
+    );
+
+    if (result.error === 0) {
+      return OperationResult.ok(result.data);
+    } else {
+      return OperationResult.error(new Error(result.message));
+    }
   }
 }

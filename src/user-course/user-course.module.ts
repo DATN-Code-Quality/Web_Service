@@ -7,9 +7,15 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { SubRolesGuard } from 'src/auth/guard/sub-roles.guard';
+import { AssignmentModule } from 'src/assignment/assignment.module';
+import { SubmissionModule } from 'src/submission/submission.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserCourseReqDto])],
+  imports: [
+    TypeOrmModule.forFeature([UserCourseReqDto]),
+    // AssignmentModule,
+    // SubmissionModule,
+  ],
   controllers: [UserCourseController],
   providers: [
     UserCourseService,

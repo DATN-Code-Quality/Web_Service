@@ -8,6 +8,7 @@ import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { SubRolesGuard } from 'src/auth/guard/sub-roles.guard';
 import { UserCourseModule } from 'src/user-course/user-course.module';
+import { AssignmentModule } from 'src/assignment/assignment.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([SubmissionReqDto]), UserCourseModule],

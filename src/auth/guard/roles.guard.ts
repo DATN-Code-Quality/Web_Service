@@ -16,16 +16,23 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    if (!requiredRoles) {
-      return true;
+    try {
+      const token = ExtractJwt.fromAuthHeaderAsBearerToken()(
+        context.getArgByIndex(0),
+      );
+      const payload = this.jwtService.verify(token);
+      context.getArgByIndex(0).headers['userId'] = payload.user.id;
+
+      if (!requiredRoles) {
+        return true;
+      }
+
+      return requiredRoles.some((role) => payload.user.role === role);
+    } catch (error) {
+      if (context.getArgByIndex(0).route.path.includes('/api/auth/login')) {
+        return true;
+      }
+      return false;
     }
-
-    const token = ExtractJwt.fromAuthHeaderAsBearerToken()(
-      context.getArgByIndex(0),
-    );
-    const payload = this.jwtService.verify(token);
-    context.getArgByIndex(0).headers['userId'] = payload.user.id;
-
-    return requiredRoles.some((role) => payload.user.role === role);
   }
 }

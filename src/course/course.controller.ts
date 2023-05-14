@@ -5,6 +5,7 @@ import {
   Get,
   Inject,
   OnModuleInit,
+  DefaultValuePipe,
   Param,
   ParseArrayPipe,
   Post,
@@ -49,9 +50,12 @@ export class CourseController implements OnModuleInit {
   }
 
   @Roles(Role.ADMIN)
-  @Get('/courses')
-  async getAllCourses() {
-    const result = await this.courseService.findAll(CourseResDto);
+  @Get('/all-courses')
+  async getAllCourses(
+    @Query('categoryId', new DefaultValuePipe(null)) categoryId: string,
+    @Query('name', new DefaultValuePipe('')) name: string,
+  ) {
+    const result = await this.courseService.findAllCourses(categoryId, name);
     return result;
   }
 
@@ -136,10 +140,18 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
-  @Roles(Role.ADMIN, Role.USER)
+  // @Roles(Role.ADMIN, Role.USER)
+  @SubRoles(SubRole.ADMIN, SubRole.STUDENT, SubRole.TEACHER)
   @Get('/:courseId')
   async getCourseById(@Param('courseId') courseId: string) {
     const result = await this.courseService.findOne(CourseResDto, courseId);
+    return result;
+  }
+
+  @SubRoles(SubRole.TEACHER)
+  @Get('/:courseId/report')
+  async getReport(@Param('courseId') courseId: string) {
+    const result = await this.courseService.getReport(courseId);
     return result;
   }
 }

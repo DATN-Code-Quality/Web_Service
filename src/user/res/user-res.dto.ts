@@ -12,6 +12,7 @@ import { BaseEntity } from 'src/common/base.entity';
 import { BaseDto } from 'src/common/base.dto';
 import { Expose } from 'class-transformer';
 import { UserCourseReqDto } from 'src/user-course/req/user-course-req.dto';
+import { USER_STATUS } from '../req/user-req.dto';
 
 export class UserResDto extends BaseDto {
   @ApiProperty()
@@ -47,7 +48,7 @@ export class UserResDto extends BaseDto {
   @ApiProperty()
   @IsString()
   @Expose()
-  status: boolean;
+  status: USER_STATUS;
 
   @Expose()
   @OneToMany(() => UserCourseReqDto, (userCourse) => userCourse.user)

@@ -49,8 +49,6 @@ export class BaseService<Entity extends BaseEntity, Dto> {
     await this.repo
       .findBy({})
       .then((dtos) => {
-        console.log(dtos);
-
         result = OperationResult.ok(
           plainToInstance(cls, dtos, { excludeExtraneousValues: true }),
         );
@@ -59,7 +57,6 @@ export class BaseService<Entity extends BaseEntity, Dto> {
         result = OperationResult.error(err);
       });
 
-    console.log(result);
     return result;
   }
 

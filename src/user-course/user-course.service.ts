@@ -8,6 +8,7 @@ import { UserCourseResDto } from './res/user-course-res.dto';
 import { UserResDto } from 'src/user/res/user-res.dto';
 import { CourseResDto } from 'src/course/res/course-res.dto';
 import { OperationResult } from 'src/common/operation-result';
+import { SubRole } from 'src/auth/auth.const';
 
 @Injectable()
 export class UserCourseService extends BaseService<
@@ -38,10 +39,17 @@ export class UserCourseService extends BaseService<
 
   async findUsersByCourseId(
     courseId: string,
-  ): Promise<OperationResult<Array<UserResDto>>> {
+    role: string,
+  ): Promise<OperationResult<Array<UserCourseResDto>>> {
     const usercourses = await this.usercourseRepository.find({
+      order: {
+        user: {
+          userId: 'ASC',
+        },
+      },
       where: {
         courseId: courseId,
+        role: role,
       },
       relations: {
         user: true,
@@ -50,15 +58,21 @@ export class UserCourseService extends BaseService<
 
     const users = [] as UserResDto[];
 
-    usercourses.forEach((usercourse) => {
-      users.push(
-        plainToInstance(UserResDto, usercourse.user, {
-          excludeExtraneousValues: true,
-        }),
-      );
-    });
+    for (let i = 0; i < usercourses.length; i++) {
+      usercourses[i].user = plainToInstance(UserResDto, usercourses[i].user, {
+        excludeExtraneousValues: true,
+      });
+    }
 
-    return OperationResult.ok(users);
+    // usercourses.forEach((usercourse) => {
+    //   users.push(
+    //     plainToInstance(UserResDto, usercourse.user, {
+    //       excludeExtraneousValues: true,
+    //     }),
+    //   );
+    // });
+
+    return OperationResult.ok(usercourses);
   }
 
   async findCoursesByUserId(
@@ -108,19 +122,38 @@ export class UserCourseService extends BaseService<
     studentRoleIds: string[],
     teacherRoleIds: string[],
   ): Promise<OperationResult<UserCourseResDto>> {
-    const usercourse = [] as UserCourseReqDto[];
+    let usercourses = [] as UserCourseReqDto[];
+
     if (studentRoleIds) {
       studentRoleIds.forEach((studentId) => {
-        usercourse.push(UserCourseReqDto.Student(courseId, studentId));
+        usercourses.push(UserCourseReqDto.Student(courseId, studentId));
       });
     }
 
     if (teacherRoleIds) {
       teacherRoleIds.forEach((teacherId) => {
-        usercourse.push(UserCourseReqDto.Teacher(courseId, teacherId));
+        usercourses.push(UserCourseReqDto.Teacher(courseId, teacherId));
       });
     }
 
-    return await this.createMany(UserCourseResDto, usercourse);
+    const savedUsers = await this.findUsersByCourseId(courseId, null);
+    if (savedUsers.isOk()) {
+      usercourses = usercourses.filter((usercourse) => {
+        const isExist = savedUsers.data.some(
+          (savedUser) => savedUser.id === usercourse.userId,
+        );
+        return isExist == false ? usercourse : null;
+      });
+    }
+    return await this.createMany(UserCourseResDto, usercourses);
+  }
+
+  async countStudentTotalByCourseId(courseId: string): Promise<number> {
+    return await this.usercourseRepository.count({
+      where: {
+        courseId: courseId,
+        role: SubRole.STUDENT,
+      },
+    });
   }
 }

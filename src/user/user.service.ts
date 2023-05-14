@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { UserReqDto } from './req/user-req.dto';
+import { USER_STATUS, UserReqDto } from './req/user-req.dto';
 import { BaseService } from 'src/common/base.service';
 import { UserResDto } from './res/user-res.dto';
 import { OperationResult } from 'src/common/operation-result';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcrypt';
@@ -39,6 +39,16 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
             .compare(password, savedDtos.password)
             .then((isValid) => {
               if (isValid) {
+                if (savedDtos.status === USER_STATUS.BLOCK) {
+                  return OperationResult.error(
+                    Error('Account has been blocked'),
+                  );
+                }
+                if (savedDtos.status === USER_STATUS.INACTIVE) {
+                  return OperationResult.error(
+                    Error('Account has not been actived'),
+                  );
+                }
                 return OperationResult.ok(
                   plainToInstance(UserResDto, savedDtos, {
                     excludeExtraneousValues: true,
@@ -83,7 +93,6 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
   ): Promise<OperationResult<UserResDto>> {
     const salt = await bcrypt.genSalt(SALTROUNDS);
     if (user.password !== null && user.password !== '') {
-      console.log('Change password');
       user.password = await bcrypt.hash(user.password || '1234', salt);
     }
 
@@ -115,4 +124,76 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
   // async addUsers(users: UserReqDto[]) {}
   // async updateUser(user: UserReqDto, userId: string) {}
   // async deleteUser(userId: string) {}
+
+  async changePassword(userId: string, password: string) {
+    const salt = await bcrypt.genSalt(SALTROUNDS);
+    const hashedPassword = await bcrypt.hash(password || '1234', salt);
+    return await this.userRepository
+      .update(userId, { password: hashedPassword })
+      .then((result) => {
+        return OperationResult.ok('Update successfully');
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
+  }
+
+  async changeStatus(ids: string[], status: USER_STATUS) {
+    if (status < 0 || status > 2) {
+      return OperationResult.error(new Error('Status is not valid'));
+    }
+
+    return await this.userRepository
+      .createQueryBuilder()
+      .update(UserReqDto)
+      .set({ status: status })
+      .where('user.id IN (:...ids) and user.deletedAt is null', { ids: ids })
+      .execute()
+      .then(() => {
+        return OperationResult.ok('Update status successfully');
+      })
+      .catch((e) => {
+        return OperationResult.error(e);
+      });
+  }
+
+  async activeAccount(userId: string) {
+    return await this.userRepository
+      .createQueryBuilder()
+      .update(UserReqDto)
+      .set({ status: USER_STATUS.ACTIVE })
+      .where('user.id = :id and user.deletedAt is null', { id: userId })
+      .execute()
+      .then(() => {
+        return OperationResult.ok('Active account successfully');
+      })
+      .catch((e) => {
+        return OperationResult.error(e);
+      });
+  }
+
+  async findAllUsers(name: string, userId: string, role: string) {
+    return await this.userRepository
+      .find({
+        order: {
+          userId: 'ASC',
+        },
+        where: {
+          name: Like(`%${name}%`),
+          userId: Like(`%${userId}%`),
+          role: role,
+        },
+      })
+
+      .then((users) => {
+        return OperationResult.ok(
+          plainToInstance(UserResDto, users, {
+            excludeExtraneousValues: true,
+          }),
+        );
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
+  }
 }

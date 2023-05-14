@@ -1,5 +1,8 @@
 import { IsNumber, Min } from 'class-validator';
-import { SubmissionReqDto } from 'src/submission/req/submission-req.dto';
+import {
+  SUBMISSION_STATUS,
+  SubmissionReqDto,
+} from 'src/submission/req/submission-req.dto';
 
 export interface Submission {
   assignmentId: string;
@@ -34,31 +37,10 @@ export interface ScanSubmissionRequest {
   timemodified: Date;
   userId: string;
   origin: string;
-  status: string;
+  status: SUBMISSION_STATUS;
   grade: number | null;
   submissionMoodleId: string;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date;
-}
-
-export function converSubmissionReqDtoTooScanSubmissionRequest(
-  submission: SubmissionReqDto,
-): ScanSubmissionRequest {
-  return {
-    id: submission.id,
-    assignmentId: submission.assignmentId,
-    link: submission.link,
-    note: submission.note,
-    submitType: submission.submitType,
-    timemodified: submission.timemodified,
-    userId: submission.userId,
-    origin: submission.origin,
-    status: submission.status,
-    grade: submission.grade,
-    submissionMoodleId: submission.submissionMoodleId,
-    createdAt: submission.createdAt,
-    updatedAt: submission.updatedAt,
-    deletedAt: submission.deletedAt,
-  };
 }

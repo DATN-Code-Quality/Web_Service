@@ -3,6 +3,13 @@ import { UserService } from 'src/user/user.service';
 import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { OperationResult } from 'src/common/operation-result';
+import {
+  getUserAsync,
+  getUserTokenAsync,
+  initializeGraphForUserAuth,
+} from './outlook/graphHelper';
+import settings, { AppSettings } from './outlook/appSettings';
+import { DeviceCodeInfo } from '@azure/identity';
 
 @Injectable()
 export class AuthService {
@@ -21,14 +28,6 @@ export class AuthService {
       password,
       //   hashedPassword,
     );
-    // if (result.status === 0) {
-    //   const payload = { user: result.data };
-    //   return OperationResult.ok({
-    //     user: result.data,
-    //     accessToken: await this.jwtService.signAsync(payload),
-    //   });
-    // }
-    console.log(result);
     return result;
   }
   async generateToken(user: any) {
@@ -37,5 +36,37 @@ export class AuthService {
       user: user.data,
       accessToken: await this.jwtService.signAsync(payload),
     });
+  }
+
+  async loginWithOutlook() {
+    // Khởi tạo app
+    initializeGraphForUserAuth(settings, (info: DeviceCodeInfo) => {
+      console.log('Call to init app');
+      console.log(info.verificationUri);
+      console.log(info.userCode);
+    });
+    console.log('-------------------------------------------------');
+
+    //Get user
+    try {
+      console.log('Call to get user');
+
+      const user = await getUserAsync();
+      console.log(user);
+    } catch (err) {
+      console.log(`Error getting user: ${err}`);
+    }
+    console.log('-------------------------------------------------');
+
+    // Get token
+    try {
+      console.log('Call to get token');
+
+      const userToken = await getUserTokenAsync();
+      console.log(`User token: ${userToken}`);
+    } catch (err) {
+      console.log(`Error getting user access token: ${err}`);
+    }
+    console.log('-------------------------------------------------');
   }
 }

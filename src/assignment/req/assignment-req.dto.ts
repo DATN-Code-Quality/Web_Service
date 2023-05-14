@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsOptional, IsString } from 'class-validator';
+import {
+  IsDate,
+  IsDateString,
+  IsNumber,
+  IsNumberString,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { BaseEntity } from 'src/common/base.entity';
 import { Column, Entity } from 'typeorm';
 
@@ -16,13 +23,13 @@ export class AssignmentReqDto extends BaseEntity {
   assignmentMoodleId: string;
 
   @ApiProperty()
-  @IsDate()
+  @IsDateString()
   @Column('datetime', { name: 'dueDate' })
   dueDate: Date;
 
   @ApiProperty()
-  @IsString()
-  @Column('tinyint', { name: 'status', width: 1 })
+  // @IsNumber()
+  @Column('tinyint', { name: 'status', width: 1, nullable: true })
   status: boolean;
 
   @ApiProperty()
@@ -31,12 +38,12 @@ export class AssignmentReqDto extends BaseEntity {
   courseId: string;
 
   @ApiProperty()
-  @IsString()
+  // @IsString()
   @Column('varchar', { name: 'description', nullable: true, length: 255 })
   description: string | null;
 
   @ApiProperty()
-  @IsString()
+  // @IsString()
   @Column('varchar', {
     name: 'attachmentFileLink',
     nullable: true,

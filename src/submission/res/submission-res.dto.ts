@@ -12,6 +12,11 @@ import { BaseEntity } from 'src/common/base.entity';
 import { BaseDto } from 'src/common/base.dto';
 import { Expose } from 'class-transformer';
 import { UserResDto } from 'src/user/res/user-res.dto';
+import {
+  SUBMISSION_ORIGIN,
+  SUBMISSION_STATUS,
+  SUBMISSION_TYPE,
+} from '../req/submission-req.dto';
 
 export class SubmissionResDto extends BaseDto {
   @ApiProperty()
@@ -32,7 +37,7 @@ export class SubmissionResDto extends BaseDto {
   @ApiProperty()
   @IsString()
   @Expose()
-  submitType: string;
+  submitType: SUBMISSION_TYPE;
 
   @ApiProperty()
   @IsDate()
@@ -47,12 +52,12 @@ export class SubmissionResDto extends BaseDto {
   @ApiProperty()
   @IsString()
   @Expose()
-  origin: string;
+  origin: SUBMISSION_ORIGIN;
 
   @ApiProperty()
   @IsString()
   @Expose()
-  status: string;
+  status: SUBMISSION_STATUS;
 
   @ApiProperty()
   @IsString()

@@ -11,6 +11,7 @@ export enum Role {
 }
 
 export enum SubRole {
+  ADMIN = 'admin',
   TEACHER = 'teacher',
   STUDENT = 'student',
 }

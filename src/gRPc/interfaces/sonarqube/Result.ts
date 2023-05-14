@@ -21,3 +21,15 @@ export interface History {
 
 // export interface FacetsDetail {
 // }
+
+export interface ResultRequest {
+  submissionId: string;
+  page: number;
+  pageSize: number;
+}
+
+export interface ResultResponse {
+  data: Result;
+  error: number;
+  message: string;
+}

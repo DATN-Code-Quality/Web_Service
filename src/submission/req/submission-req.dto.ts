@@ -11,6 +11,26 @@ import { UserReqDto } from 'src/user/req/user-req.dto';
 import { UserResDto } from 'src/user/res/user-res.dto';
 import { Column, Entity, ManyToOne } from 'typeorm';
 
+export enum SUBMISSION_STATUS {
+  SUBMITTED = 0,
+  SCANNING = 1,
+  SCANNED_FAIL = 2,
+  PASS = 3,
+  FAIL = 4,
+}
+
+export enum SUBMISSION_TYPE {
+  FILE = 'FILE',
+  LINK = 'LINK',
+}
+
+export enum SUBMISSION_ORIGIN {
+  GIT = 'GIT',
+  DRIVE = 'DRIVE',
+  SYSTEM = 'SYSTEM',
+  MOODLE = 'MOODLE',
+}
+
 @Entity('submission', { schema: 'sonarqube' })
 export class SubmissionReqDto extends BaseEntity {
   @ApiProperty()
@@ -24,14 +44,14 @@ export class SubmissionReqDto extends BaseEntity {
   link: string;
 
   @ApiProperty()
-  @IsString()
+  // @IsString()
   @Column('varchar', { name: 'note', nullable: true, length: 255 })
   note: string | null;
 
   @ApiProperty()
   @IsString()
   @Column('varchar', { name: 'submitType', length: 255 })
-  submitType: string;
+  submitType: SUBMISSION_TYPE;
 
   @ApiProperty()
   @IsDate()
@@ -46,12 +66,12 @@ export class SubmissionReqDto extends BaseEntity {
   @ApiProperty()
   @IsString()
   @Column('varchar', { name: 'origin', length: 255 })
-  origin: string;
+  origin: SUBMISSION_ORIGIN;
 
   @ApiProperty()
-  @IsString()
-  @Column('varchar', { name: 'status', length: 255 })
-  status: string;
+  @IsNumber()
+  @Column('tinyint', { name: 'status', width: 1 })
+  status: SUBMISSION_STATUS;
 
   @ApiProperty()
   @IsNumber()
@@ -64,7 +84,7 @@ export class SubmissionReqDto extends BaseEntity {
   submissionMoodleId: string;
 
   @ManyToOne(() => UserReqDto, (user) => user.userCourses, {
-    eager: true,
+    // eager: true,
   })
   user: UserResDto;
 }
