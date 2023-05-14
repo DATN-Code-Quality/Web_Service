@@ -23,8 +23,12 @@ export class AuthController {
   @Post('/login')
   @UseGuards(LocalAuthGuard)
   @Public()
-  signIn(@Body() signInDto: AuthReqDto, @Request() req) {
-    return this.authService.generateToken(req.user);
+  signIn(@Request() req) {
+    if (req.user.status === 0) {
+      return this.authService.generateToken(req.user);
+    } else {
+      return req.user;
+    }
   }
 
   @Post('/login/outlook')
