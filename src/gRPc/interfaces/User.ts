@@ -5,7 +5,7 @@ export interface User {
   userId: string;
   moodleId: string;
   password: string;
-  status: boolean;
+  status: number;
 }
 
 export interface UserRequest {
