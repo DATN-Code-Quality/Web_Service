@@ -32,9 +32,13 @@ export class AuthService {
   }
   async generateToken(user: any) {
     const payload = { user: user.data };
+    const token = await this.jwtService.signAsync(payload);
     return OperationResult.ok({
       user: user.data,
-      accessToken: await this.jwtService.signAsync(payload),
+      accessToken: {
+        token: token,
+        expiredAt: this.jwtService.decode(token)['exp'],
+      },
     });
   }
 
