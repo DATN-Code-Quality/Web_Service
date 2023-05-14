@@ -20,8 +20,6 @@ export class AuthService {
 
   async validateUser(userId: string, password: string): Promise<any> {
     // const hashedPassword = await this.usersService.hashPassword(password);
-    // console.log(hashedPassword);
-    // console.log(password);
 
     const result = await this.usersService.findUserByUsernameAndPassword(
       userId,
@@ -41,32 +39,18 @@ export class AuthService {
   async loginWithOutlook() {
     // Khởi tạo app
     initializeGraphForUserAuth(settings, (info: DeviceCodeInfo) => {
-      console.log('Call to init app');
-      console.log(info.verificationUri);
-      console.log(info.userCode);
     });
-    console.log('-------------------------------------------------');
 
     //Get user
     try {
-      console.log('Call to get user');
-
       const user = await getUserAsync();
-      console.log(user);
     } catch (err) {
-      console.log(`Error getting user: ${err}`);
     }
-    console.log('-------------------------------------------------');
 
     // Get token
     try {
-      console.log('Call to get token');
-
       const userToken = await getUserTokenAsync();
-      console.log(`User token: ${userToken}`);
     } catch (err) {
-      console.log(`Error getting user access token: ${err}`);
     }
-    console.log('-------------------------------------------------');
   }
 }

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/swagger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { logger: [] });
   const config = new DocumentBuilder()
     .setTitle('DATN')
     .setDescription('The DATN API description')
