@@ -8,6 +8,7 @@ import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcrypt';
 import { SALTROUNDS } from './user.controller';
+import { Role } from 'src/auth/auth.const';
 
 @Injectable()
 export class UserService extends BaseService<UserReqDto, UserResDto> {
@@ -198,33 +199,50 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
   }
 
   async upsertUsers(users: UserReqDto[]) {
-    // const moodleIds = users.map((user) => {
-    //   return user.moodleId;
-    // });
+    const moodleIds = users.map((user) => {
+      return user.moodleId;
+    });
 
-    // const savedUsers = await this.userRepository
-    //   .createQueryBuilder('user')
-    //   .where('user.moodleId IN (:...moodleIds) and user.deletedAt is null', {
-    //     moodleIds: moodleIds,
-    //   })
-    //   .getMany();
-
-    // const updateUser = [];
-    // const insertUser = [];
-
-    // users.forEach(user => {
-    //   for
-    // })
-
-    const userRepository = this.userRepository
-      .createQueryBuilder()
-      .insert()
-      .into(UserReqDto)
-      .values(users)
-      .orUpdate({
-        conflict_target: ['moodleId'],
-        overwrite: ['name', 'role', 'email', 'userId'],
+    const savedUsers = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.moodleId IN (:...moodleIds) and user.deletedAt is null', {
+        moodleIds: moodleIds,
       })
-      .execute();
+      .getMany();
+
+    const insertUser = [];
+
+    for (let j = 0; j < users.length; j++) {
+      let isExist = false;
+      for (let i = 0; i < savedUsers.length; i++) {
+        if (users[j].moodleId == savedUsers[i].moodleId) {
+          users[j].role = Role.USER;
+          users[j].status = USER_STATUS.ACTIVE;
+
+          await this.userRepository
+            .update(savedUsers[i].id, users[j])
+            .catch((e) => {
+              return OperationResult.error(
+                new Error(`Can not import users: ${e.message}`),
+              );
+            });
+          isExist = true;
+          break;
+        }
+      }
+      if (!isExist) {
+        insertUser.push(users[j]);
+      }
+    }
+
+    const insertResult = await this.addUsers(insertUser);
+
+    if (insertResult.isOk()) {
+      return OperationResult.ok('import successully');
+    } else {
+      return OperationResult.error(
+        new Error(`Can not import users: ${insertResult.message}`),
+      );
+    }
   }
 }
