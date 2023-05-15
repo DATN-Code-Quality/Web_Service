@@ -120,18 +120,4 @@ export class UserController implements OnModuleInit {
     const result = ServiceResponse.resultFromServiceResponse(resultDTO, 'data');
     return result;
   }
-
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
-  @Get('/sync-users')
-  async getUsersByCourseMoodleId(@Query() query: string) {
-    // ban đầu nhờ client truyền id dùm, nhưng sau thì thông tin này phải lấy từ session
-    const response$ = this.gUserMoodleService
-      .getUsersByCourseMoodleId({
-        courseMoodleId: query['courseMoodleId'],
-      })
-      .pipe();
-    const resultDTO = await firstValueFrom(response$);
-    const result = ServiceResponse.resultFromServiceResponse(resultDTO, 'data');
-    return result;
-  }
 }
