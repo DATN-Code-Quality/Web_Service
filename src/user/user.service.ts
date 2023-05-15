@@ -196,4 +196,35 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         return OperationResult.error(err);
       });
   }
+
+  async upsertUsers(users: UserReqDto[]) {
+    // const moodleIds = users.map((user) => {
+    //   return user.moodleId;
+    // });
+
+    // const savedUsers = await this.userRepository
+    //   .createQueryBuilder('user')
+    //   .where('user.moodleId IN (:...moodleIds) and user.deletedAt is null', {
+    //     moodleIds: moodleIds,
+    //   })
+    //   .getMany();
+
+    // const updateUser = [];
+    // const insertUser = [];
+
+    // users.forEach(user => {
+    //   for
+    // })
+
+    const userRepository = this.userRepository
+      .createQueryBuilder()
+      .insert()
+      .into(UserReqDto)
+      .values(users)
+      .orUpdate({
+        conflict_target: ['moodleId'],
+        overwrite: ['name', 'role', 'email', 'userId'],
+      })
+      .execute();
+  }
 }
