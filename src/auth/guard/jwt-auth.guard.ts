@@ -24,11 +24,18 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       return true;
     }
 
-    const token = ExtractJwt.fromAuthHeaderAsBearerToken()(
-      context.getArgByIndex(0),
-    );
-    const payload = this.jwtService.verify(token);
-    context.getArgByIndex(0).headers['userId'] = payload.user.id;
+    try {
+      const token = ExtractJwt.fromAuthHeaderAsBearerToken()(
+        context.getArgByIndex(0),
+      );
+      const payload = this.jwtService.verify(token);
+      context.getArgByIndex(0).headers['userId'] = payload.user.id;
+    } catch (e) {
+      return context.getArgByIndex(1).status(200).json({
+        status: 1,
+        message: `Unauthenticated`,
+      });
+    }
 
     return super.canActivate(context);
   }
