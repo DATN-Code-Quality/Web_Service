@@ -238,7 +238,22 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     const insertResult = await this.addUsers(insertUser);
 
     if (insertResult.isOk()) {
-      return OperationResult.ok('import successully');
+      return this.userRepository
+        .createQueryBuilder('user')
+        .where('user.moodleId IN (:...moodleIds) and user.deletedAt is null', {
+          moodleIds: moodleIds,
+        })
+        .getMany()
+        .then((upsertedUsers) => {
+          return OperationResult.ok(
+            plainToInstance(UserResDto, upsertedUsers, {
+              excludeExtraneousValues: true,
+            }),
+          );
+        })
+        .catch((e) => {
+          return OperationResult.error(new Error(e));
+        });
     } else {
       return OperationResult.error(
         new Error(`Can not import users: ${insertResult.message}`),
