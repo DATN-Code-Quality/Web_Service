@@ -61,7 +61,6 @@ export class UserCourseController {
   @Roles(Role.ADMIN, Role.SUPERADMIN)
   @Get('/sync-users')
   async getUsersByCourseMoodleId(@Query() query: string) {
-    console.log('Có chạy');
     const response$ = this.gUserMoodleService
       .getUsersByCourseMoodleId({
         courseMoodleId: query['courseMoodleId'],
