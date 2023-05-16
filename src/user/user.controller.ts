@@ -24,6 +24,7 @@ import { firstValueFrom } from 'rxjs';
 import { ServiceResponse } from 'src/common/service-response';
 import { Public, Roles } from 'src/auth/auth.decorator';
 import { Role } from 'src/auth/auth.const';
+import { User } from 'src/gRPc/interfaces/User';
 export const SALTROUNDS = 10;
 @ApiTags('User')
 @Controller('/api/user')
@@ -45,9 +46,9 @@ export class UserController implements OnModuleInit {
   @Roles(Role.SUPERADMIN, Role.ADMIN)
   @Post('/')
   async addUsers(
-    @Body(new ParseArrayPipe({ items: UserReqDto })) users: UserReqDto[],
+    @Body(new ParseArrayPipe({ items: UserReqDto })) users: User[],
   ) {
-    const result = await this.userService.addUsers(users);
+    const result = await this.userService.upsertUsers(users);
     return result;
   }
 
