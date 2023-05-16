@@ -209,7 +209,13 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       .where('user.moodleId IN (:...moodleIds) and user.deletedAt is null', {
         moodleIds: moodleIds,
       })
-      .getMany();
+      .getMany()
+      .then((result) => {
+        return result;
+      })
+      .catch((e) => {
+        return [];
+      });
 
     const insertUser = [];
 

@@ -66,7 +66,7 @@ export class UserCourseService extends BaseService<
   async findUsersByCourseId(
     courseId: string,
     role: string,
-  ): Promise<OperationResult<Array<UserCourseResDto>>> {
+  ): Promise<OperationResult<Array<UserResDto>>> {
     const usercourses = await this.usercourseRepository.find({
       order: {
         user: {
@@ -88,6 +88,10 @@ export class UserCourseService extends BaseService<
       usercourses[i].user = plainToInstance(UserResDto, usercourses[i].user, {
         excludeExtraneousValues: true,
       });
+
+      usercourses[i].user.role = usercourses[i].role;
+
+      users.push(usercourses[i].user);
     }
 
     // usercourses.forEach((usercourse) => {
@@ -98,7 +102,7 @@ export class UserCourseService extends BaseService<
     //   );
     // });
 
-    return OperationResult.ok(usercourses);
+    return OperationResult.ok(users);
   }
 
   async findCoursesByUserId(
