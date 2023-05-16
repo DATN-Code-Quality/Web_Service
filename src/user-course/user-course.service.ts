@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { BaseService } from 'src/common/base.service';
@@ -9,17 +9,43 @@ import { UserResDto } from 'src/user/res/user-res.dto';
 import { CourseResDto } from 'src/course/res/course-res.dto';
 import { OperationResult } from 'src/common/operation-result';
 import { SubRole } from 'src/auth/auth.const';
+import { GUserService } from 'src/gRPc/services/user';
+import { ClientGrpc } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
+import { ServiceResponse } from 'src/common/service-response';
 
 @Injectable()
 export class UserCourseService extends BaseService<
   UserCourseReqDto,
   UserCourseResDto
 > {
+  private gUserMoodleService: GUserService;
   constructor(
+    @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
     @InjectRepository(UserCourseReqDto)
     private readonly usercourseRepository: Repository<UserCourseReqDto>,
   ) {
     super(usercourseRepository);
+  }
+
+  onModuleInit() {
+    this.gUserMoodleService =
+      this.client.getService<GUserService>('GUserService');
+  }
+
+  async getUsersByCourseMoodleId(courseMoodleId: number) {
+    const response$ = this.gUserMoodleService
+      .getUsersByCourseMoodleId({
+        courseMoodleId,
+      })
+      .pipe();
+    const resultDTO = await firstValueFrom(response$);
+    // 6 is error in third party with no participant in this course
+    if (resultDTO?.error == 6) {
+      resultDTO.error = 0;
+      resultDTO.data = [];
+    }
+    return resultDTO;
   }
 
   async findUserCoursesByUserId(

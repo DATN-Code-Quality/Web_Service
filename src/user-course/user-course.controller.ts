@@ -61,12 +61,9 @@ export class UserCourseController {
   @Roles(Role.ADMIN, Role.SUPERADMIN)
   @Get('/sync-users')
   async getUsersByCourseMoodleId(@Query() query: string) {
-    const response$ = this.gUserMoodleService
-      .getUsersByCourseMoodleId({
-        courseMoodleId: query['courseMoodleId'],
-      })
-      .pipe();
-    const resultDTO = await firstValueFrom(response$);
+    const resultDTO = await this.userCourseService.getUsersByCourseMoodleId(
+      query['courseMoodleId'],
+    );
     const result = ServiceResponse.resultFromServiceResponse(resultDTO, 'data');
     return result;
   }
