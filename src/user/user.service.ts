@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcrypt';
 import { SALTROUNDS } from './user.controller';
 import { Role } from 'src/auth/auth.const';
+import { User } from 'src/gRPc/interfaces/User';
 
 @Injectable()
 export class UserService extends BaseService<UserReqDto, UserResDto> {
@@ -198,7 +199,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       });
   }
 
-  async upsertUsers(users: UserReqDto[]) {
+  async upsertUsers(users: User[]) {
     const moodleIds = users.map((user) => {
       return user.moodleId;
     });
