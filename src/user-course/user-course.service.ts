@@ -77,10 +77,12 @@ export class UserCourseService extends BaseService<
 
   async findCoursesByUserId(
     userId: string,
+    role: string,
   ): Promise<OperationResult<Array<CourseResDto>>> {
     const usercourses = await this.usercourseRepository.find({
       where: {
         userId: userId,
+        role: role,
       },
       relations: {
         course: true,

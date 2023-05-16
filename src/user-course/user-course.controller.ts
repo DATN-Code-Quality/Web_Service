@@ -79,7 +79,10 @@ export class UserCourseController {
     // @Query('categoryId', new DefaultValuePipe(null)) categoryId: string,
     // @Query('name', new DefaultValuePipe('')) name: string,
   ) {
-    const result = await this.userCourseService.findCoursesByUserId(userId);
+    const result = await this.userCourseService.findCoursesByUserId(
+      userId,
+      null,
+    );
     return result;
   }
 
@@ -87,11 +90,15 @@ export class UserCourseController {
   @Get('/courses-of-user')
   async getAllCoursesOfUser(
     @Request() req,
+    @Query('role', new DefaultValuePipe(null)) role: string,
     // @Query('categoryId', new DefaultValuePipe(null)) categoryId: string,
     // @Query('name', new DefaultValuePipe('')) name: string,
   ) {
     const userId = req.headers['userId'];
-    const result = await this.userCourseService.findCoursesByUserId(userId);
+    const result = await this.userCourseService.findCoursesByUserId(
+      userId,
+      role,
+    );
     return result;
   }
 
