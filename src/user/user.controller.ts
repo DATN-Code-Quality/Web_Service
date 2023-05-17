@@ -44,7 +44,7 @@ export class UserController implements OnModuleInit {
   }
 
   @Roles(Role.SUPERADMIN, Role.ADMIN)
-  @Post('/import/sync-users')
+  @Post('/import-sync-users')
   async syncUsers(
     @Body(new ParseArrayPipe({ items: UserReqDto })) users: User[],
   ) {
@@ -54,10 +54,8 @@ export class UserController implements OnModuleInit {
 
   @Roles(Role.SUPERADMIN, Role.ADMIN)
   @Post('/')
-  async addUsers(
-    @Body(new ParseArrayPipe({ items: UserReqDto })) users: User[],
-  ) {
-    const result = await this.userService.upsertUsers(users);
+  async addUsers(@Body() user: UserReqDto) {
+    const result = await this.userService.addUsers([user]);
     return result;
   }
 
