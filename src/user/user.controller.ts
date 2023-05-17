@@ -25,6 +25,7 @@ import { ServiceResponse } from 'src/common/service-response';
 import { Public, Roles } from 'src/auth/auth.decorator';
 import { Role } from 'src/auth/auth.const';
 import { User } from 'src/gRPc/interfaces/User';
+import { USER_STATUS } from './req/user-req.dto';
 export const SALTROUNDS = 10;
 @ApiTags('User')
 @Controller('/api/user')
@@ -54,11 +55,23 @@ export class UserController implements OnModuleInit {
 
   @Roles(Role.SUPERADMIN, Role.ADMIN)
   @Post('/')
-  async addUsers(@Body() user: UserReqDto) {
+  async addUser(@Body() user: UserReqDto) {
+    user.status = USER_STATUS.ACTIVE;
     const result = await this.userService.addUsers([user]);
     return result;
   }
 
+  @Roles(Role.SUPERADMIN, Role.ADMIN)
+  @Post('/users')
+  async addUsers(
+    @Body(new ParseArrayPipe({ items: UserReqDto })) users: UserReqDto[],
+  ) {
+    for (let i = 0; i < users.length; i++) {
+      users[i].status = USER_STATUS.ACTIVE;
+    }
+    const result = await this.userService.addUsers(users);
+    return result;
+  }
   @Roles(Role.ADMIN, Role.SUPERADMIN)
   @Put('/change-status')
   async changeStatus(@Body() data) {
