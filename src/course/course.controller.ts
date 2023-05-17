@@ -49,7 +49,9 @@ export class CourseController implements OnModuleInit {
     @Body(new ParseArrayPipe({ items: CourseReqDto }))
     courses: CourseReqDto[],
   ) {
-    const result = await this.courseService.createMany(CourseResDto, courses);
+    // const result = await this.courseService.createMany(CourseResDto, courses);
+    const result = await this.courseService.upsertCourses(courses);
+
     result.data.map(async (course) => {
       const users = (
         await this.userCourseService.getUsersByCourseMoodleId(
@@ -194,9 +196,9 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
-  @Roles(Role.ADMIN)
-  @Post('/import')
-  async importuser(@Body() courses: CourseReqDto[]) {
-    return this.courseService.upsertCourses(courses);
-  }
+  // @Roles(Role.ADMIN)
+  // @Post('/import')
+  // async importuser(@Body() courses: CourseReqDto[]) {
+  //   return this.courseService.upsertCourses(courses);
+  // }
 }
