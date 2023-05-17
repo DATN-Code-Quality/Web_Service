@@ -119,4 +119,82 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
       assignment: result,
     });
   }
+
+  async upsertCourses(courses: CourseReqDto[]) {
+    const moodleIds = courses.map((course) => {
+      return course.courseMoodleId;
+    });
+
+    const savedCourses = await this.courseRepository
+      .createQueryBuilder('course')
+      .where(
+        'course.courseMoodleId IN (:...moodleIds) and course.deletedAt is null',
+        {
+          moodleIds: moodleIds,
+        },
+      )
+      .getMany()
+      .then((result) => {
+        return result;
+      })
+      .catch((e) => {
+        return [];
+      });
+
+    const insertCourses = [];
+    const updatedCourseIds = [];
+
+    for (let j = 0; j < courses.length; j++) {
+      let isExist = false;
+      for (let i = 0; i < savedCourses.length; i++) {
+        if (courses[j].courseMoodleId == savedCourses[i].courseMoodleId) {
+          await this.courseRepository
+            .update(savedCourses[i].id, courses[j])
+            .catch((e) => {
+              return OperationResult.error(
+                new Error(`Can not import course: ${e.message}`),
+              );
+            });
+          isExist = true;
+          updatedCourseIds.push(savedCourses[i].id);
+          break;
+        }
+      }
+      if (!isExist) {
+        insertCourses.push(courses[j]);
+      }
+    }
+
+    const insertResult = await this.createMany(CourseResDto, insertCourses);
+    if (insertResult.isOk()) {
+      if (updatedCourseIds.length > 0) {
+        return this.courseRepository
+          .createQueryBuilder('course')
+          .where('course.id IN (:...id) and course.deletedAt is null', {
+            id: updatedCourseIds,
+          })
+          .getMany()
+          .then((upsertedCourses) => {
+            insertResult.data.forEach((course) => {
+              upsertedCourses.push(course);
+            });
+
+            return OperationResult.ok(
+              plainToInstance(CourseResDto, upsertedCourses, {
+                excludeExtraneousValues: true,
+              }),
+            );
+          })
+          .catch((e) => {
+            return OperationResult.error(new Error(e));
+          });
+      } else {
+        return insertResult;
+      }
+    } else {
+      return OperationResult.error(
+        new Error(`Can not import courses: ${insertResult.message}`),
+      );
+    }
+  }
 }

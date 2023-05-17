@@ -16,9 +16,8 @@ export class SubRolesGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private jwtService: JwtService,
-    private userCourseService: UserCourseService, // private assignmentService: AssignmentService,
-  ) // private submissionService: SubmissionService,
-  {}
+    private userCourseService: UserCourseService, // private assignmentService: AssignmentService, // private submissionService: SubmissionService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredSubRoles = this.reflector.getAllAndOverride<Role[]>(
@@ -64,21 +63,35 @@ export class SubRolesGuard implements CanActivate {
       //     return false;
       //   }
       // }
-
       return await this.userCourseService
         .findUserCoursesByCourseIdAndUserId(courseId, payload.user.id)
         .then((userCourse) => {
           if (userCourse === null) {
-            return false;
+            return context
+              .getArgByIndex(1)
+              .status(200)
+              .json({
+                status: 1,
+                message: `You are not menber in course ${courseId}`,
+              });
           } else {
             context.getArgByIndex(0).headers['role'] = userCourse.role;
             context.getArgByIndex(0).headers['userId'] = payload.user.id;
-
-            return requiredSubRoles.some((role) => userCourse.role === role);
+            if (requiredSubRoles.some((role) => userCourse.role === role)) {
+              return true;
+            } else {
+              return context.getArgByIndex(1).status(200).json({
+                status: 1,
+                message: `You can not access this api`,
+              });
+            }
           }
         })
         .catch((e) => {
-          return false;
+          // return context.getArgByIndex(1).status(200).json({
+          //   status: 1,
+          //   message: e.message,
+          // });
         });
     }
     // return isTrueSubRole;

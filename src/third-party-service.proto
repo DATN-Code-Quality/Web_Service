@@ -81,6 +81,10 @@ message GetCourseOfUserRequest {
   int32 userMoodleId = 1;
 }
 
+message CourseUserRequest {
+  int32 courseMoodleId = 1;
+}
+
 message GetAssignmentsOfCourseRequest {
   int32 courseMoodleId = 1;
 }
@@ -323,6 +327,7 @@ service GSubmissionService {
 service GUserService {
   rpc GetUsersByEmails(GetUsersRequest) returns (UsersResponse);
   rpc GetAllUsers(Empty) returns (UsersResponse);
+  rpc GetUsersByCourseMoodleId(CourseUserRequest) returns (UsersResponse);
 }
 
 service GCourseService {

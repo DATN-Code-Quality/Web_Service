@@ -18,8 +18,13 @@ export class AssignmentReqDto extends BaseEntity {
   name: string;
 
   @ApiProperty()
-  @IsString()
-  @Column('varchar', { name: 'assignmentMoodleId', length: 10 })
+  // @IsString()
+  @Column('varchar', {
+    name: 'assignmentMoodleId',
+    length: 10,
+    nullable: true,
+    unique: true,
+  })
   assignmentMoodleId: string;
 
   @ApiProperty()

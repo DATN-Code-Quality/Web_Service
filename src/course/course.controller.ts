@@ -23,6 +23,8 @@ import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { Roles, SubRoles } from 'src/auth/auth.decorator';
 import { Role, SubRole } from 'src/auth/auth.const';
+import { UserCourseService } from 'src/user-course/user-course.service';
+import { UserService } from 'src/user/user.service';
 @ApiTags('Course')
 @Controller('/api/course')
 export class CourseController implements OnModuleInit {
@@ -31,6 +33,8 @@ export class CourseController implements OnModuleInit {
   constructor(
     @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
     private readonly courseService: CourseService,
+    private readonly userService: UserService,
+    private readonly userCourseService: UserCourseService,
   ) {}
   onModuleInit() {
     this.gCourseMoodleService =
@@ -45,7 +49,44 @@ export class CourseController implements OnModuleInit {
     @Body(new ParseArrayPipe({ items: CourseReqDto }))
     courses: CourseReqDto[],
   ) {
-    const result = await this.courseService.createMany(CourseResDto, courses);
+    // const result = await this.courseService.createMany(CourseResDto, courses);
+    const result = await this.courseService.upsertCourses(courses);
+
+    result.data.map(async (course) => {
+      const users = (
+        await this.userCourseService.getUsersByCourseMoodleId(
+          parseInt(course.courseMoodleId),
+        )
+      ).data;
+      const copyUsers = JSON.parse(JSON.stringify(users));
+      const newUsers = await this.userService.upsertUsers(users);
+      const userDto = newUsers.data as any;
+      const teacherIds = userDto
+        .filter((user) => {
+          const role = copyUsers.find(
+            (userRole) => userRole.moodleId === user.moodleId,
+          ).role;
+          if (role == SubRole.TEACHER) {
+            return user;
+          }
+        })
+        .map((user) => user.id);
+      const studentIds = userDto
+        .filter((user) => {
+          const role = copyUsers.find(
+            (userRole) => userRole.moodleId === user.moodleId,
+          ).role;
+          if (role == SubRole.STUDENT) {
+            return user;
+          }
+        })
+        .map((user) => user.id);
+      this.userCourseService.addUsersIntoCourse(
+        course.id,
+        teacherIds,
+        studentIds,
+      );
+    });
     return result;
   }
 
@@ -154,4 +195,10 @@ export class CourseController implements OnModuleInit {
     const result = await this.courseService.getReport(courseId);
     return result;
   }
+
+  // @Roles(Role.ADMIN)
+  // @Post('/import')
+  // async importuser(@Body() courses: CourseReqDto[]) {
+  //   return this.courseService.upsertCourses(courses);
+  // }
 }

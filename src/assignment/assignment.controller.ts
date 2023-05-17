@@ -31,6 +31,7 @@ import { Role, SubRole } from 'src/auth/auth.const';
 import { OperationResult } from 'src/common/operation-result';
 import { GSonarqubeService } from 'src/gRPc/services/sonarqube';
 import { defaultConfig } from 'src/gRPc/interfaces/sonarqube/QulaityGate';
+import { UserReqDto } from 'src/user/req/user-req.dto';
 
 @ApiTags('Assignment')
 @Controller('/api/assignment')
@@ -215,7 +216,7 @@ export class AssignmentController implements OnModuleInit {
   @Put(':courseId/:assignmentId/config')
   async updateCongig(
     @Param('assignmentId') assignmentId: string,
-    config: string,
+    @Body() data,
   ) {
     //parse config thành 1 list các điều kiện
     const conditions = defaultConfig(`${Date.now.toString()}`);
@@ -226,11 +227,20 @@ export class AssignmentController implements OnModuleInit {
         conditions: conditions.conditions,
       }),
     );
-
     if (result.error === 0) {
-      return OperationResult.ok(result.data);
+      //Lưu config vào db
+      const assignment = await this.assignmentService.update(assignmentId, {
+        config: data['config'],
+      } as any);
+      return assignment;
     } else {
       return OperationResult.error(new Error(result.message));
     }
   }
+
+  // @SubRoles(SubRole.TEACHER)
+  // @Post('/:courseId/import')
+  // async importuser(@Body() assignments: AssignmentReqDto[]) {
+  //   return this.assignmentService.upsertAssignments(assignments);
+  // }
 }

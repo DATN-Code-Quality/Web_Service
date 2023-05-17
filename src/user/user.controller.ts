@@ -24,6 +24,7 @@ import { firstValueFrom } from 'rxjs';
 import { ServiceResponse } from 'src/common/service-response';
 import { Public, Roles } from 'src/auth/auth.decorator';
 import { Role } from 'src/auth/auth.const';
+import { User } from 'src/gRPc/interfaces/User';
 export const SALTROUNDS = 10;
 @ApiTags('User')
 @Controller('/api/user')
@@ -45,26 +46,10 @@ export class UserController implements OnModuleInit {
   @Roles(Role.SUPERADMIN, Role.ADMIN)
   @Post('/')
   async addUsers(
-    @Body(new ParseArrayPipe({ items: UserReqDto })) users: UserReqDto[],
+    @Body(new ParseArrayPipe({ items: UserReqDto })) users: User[],
   ) {
-    const result = await this.userService.addUsers(users);
+    const result = await this.userService.upsertUsers(users);
     return result;
-  }
-
-  @Roles(Role.USER)
-  @Put('/')
-  async updateUserByUser(@Request() req, @Body() userInfo: UserReqDto) {
-    const result = await this.userService.updateUser(
-      req.headers.userId,
-      userInfo,
-    );
-    return result;
-  }
-
-  @Put('/change-password')
-  async changePassword(@Body() data, @Request() req) {
-    const userId = req.headers['userId'];
-    return this.userService.changePassword(userId, data['password']);
   }
 
   @Roles(Role.ADMIN, Role.SUPERADMIN)
@@ -73,12 +58,6 @@ export class UserController implements OnModuleInit {
     const ids = data['ids'];
     const status = data['status'];
     return this.userService.changeStatus(ids, status);
-  }
-
-  @Put('/active-account')
-  async activeAccount(@Request() req) {
-    const userId = req.headers['userId'];
-    return this.userService.activeAccount(userId);
   }
 
   @Roles(Role.SUPERADMIN, Role.ADMIN, Role.USER)
@@ -141,5 +120,10 @@ export class UserController implements OnModuleInit {
     const resultDTO = await firstValueFrom(response$);
     const result = ServiceResponse.resultFromServiceResponse(resultDTO, 'data');
     return result;
+  }
+
+  @Post('/import')
+  async importuser(@Body() users: UserReqDto[]) {
+    return this.userService.upsertUsers(users);
   }
 }

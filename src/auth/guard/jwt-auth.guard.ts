@@ -6,10 +6,12 @@ import {
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '../auth.decorator';
+import { JwtService } from '@nestjs/jwt';
+import { ExtractJwt } from 'passport-jwt';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private reflector: Reflector) {
+  constructor(private reflector: Reflector, private jwtService: JwtService) {
     super();
   }
 
@@ -21,6 +23,20 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (isPublic) {
       return true;
     }
+
+    try {
+      const token = ExtractJwt.fromAuthHeaderAsBearerToken()(
+        context.getArgByIndex(0),
+      );
+      const payload = this.jwtService.verify(token);
+      context.getArgByIndex(0).headers['userId'] = payload.user.id;
+    } catch (e) {
+      return context.getArgByIndex(1).status(200).json({
+        status: 1,
+        message: `Unauthenticated`,
+      });
+    }
+
     return super.canActivate(context);
   }
 }

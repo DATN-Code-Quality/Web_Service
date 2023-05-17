@@ -22,7 +22,7 @@ export function defaultConfig(assignmentId: string) {
     conditions: [
       {
         key: 'code_smells',
-        error: 10,
+        error: 20,
       },
       {
         key: 'bugs',
@@ -34,7 +34,7 @@ export function defaultConfig(assignmentId: string) {
       },
       {
         key: 'violations',
-        error: 10,
+        error: 20,
       },
       {
         key: 'blocker_violations',
