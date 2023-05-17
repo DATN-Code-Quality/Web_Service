@@ -223,9 +223,11 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
 
     for (let j = 0; j < users.length; j++) {
       let isExist = false;
+      if (!users[j].role) {
+        users[j].role = Role.USER;
+      }
       for (let i = 0; i < savedUsers.length; i++) {
         if (users[j].moodleId == savedUsers[i].moodleId) {
-          users[j].role = Role.USER;
           users[j].status = USER_STATUS.ACTIVE;
 
           await this.userRepository
