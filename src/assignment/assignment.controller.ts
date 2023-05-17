@@ -67,6 +67,7 @@ export class AssignmentController implements OnModuleInit {
   ) {
     assignments.forEach((assignment) => {
       assignment.courseId = courseId;
+      assignment.config = JSON.stringify(assignment.configObject);
     });
     const result = await this.assignmentService.createMany(
       AssignmentResDto,

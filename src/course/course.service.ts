@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { BaseService } from 'src/common/base.service';
 import { OperationResult } from 'src/common/operation-result';
 import { Like, Repository } from 'typeorm';
@@ -15,6 +15,7 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
   constructor(
     @InjectRepository(CourseReqDto)
     private readonly courseRepository: Repository<CourseReqDto>,
+    @Inject(forwardRef(() => UserCourseService))
     private readonly userCourseService: UserCourseService,
     private readonly assignmentService: AssignmentService,
     private readonly submissionService: SubmissionService,
@@ -51,6 +52,24 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
       .findBy({
         name: Like(`%${name}%`),
         categoryId: categoryId,
+      })
+
+      .then((courses) => {
+        return OperationResult.ok(
+          plainToInstance(CourseResDto, courses, {
+            excludeExtraneousValues: true,
+          }),
+        );
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
+  }
+
+  async findCourseById(courseId: string): Promise<OperationResult<any>> {
+    return await this.courseRepository
+      .findBy({
+        id: courseId,
       })
 
       .then((courses) => {
