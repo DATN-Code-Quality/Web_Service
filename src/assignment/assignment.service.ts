@@ -63,4 +63,91 @@ export class AssignmentService extends BaseService<
       submission: scanResult,
     });
   }
+
+  async upsertAssignments(assignments: AssignmentReqDto[]) {
+    const moodleIds = assignments.map((assignment) => {
+      return assignment.assignmentMoodleId;
+    });
+
+    const savedAssignments = await this.assignmentRepository
+      .createQueryBuilder('assignment')
+      .where(
+        'assignment.assignmentMoodleId IN (:...moodleIds) and assignment.deletedAt is null',
+        {
+          moodleIds: moodleIds,
+        },
+      )
+      .getMany()
+      .then((result) => {
+        return result;
+      })
+      .catch((e) => {
+        return [];
+      });
+
+    const insertAssignments = [];
+    const updatedAssignmentIds = [];
+
+    for (let j = 0; j < assignments.length; j++) {
+      let isExist = false;
+      for (let i = 0; i < savedAssignments.length; i++) {
+        if (
+          assignments[j].assignmentMoodleId ==
+          savedAssignments[i].assignmentMoodleId
+        ) {
+          await this.assignmentRepository
+            .update(savedAssignments[i].id, assignments[j])
+            .catch((e) => {
+              return OperationResult.error(
+                new Error(`Can not import assignments: ${e.message}`),
+              );
+            });
+          isExist = true;
+          updatedAssignmentIds.push(savedAssignments[i].id);
+          break;
+        }
+      }
+      if (!isExist) {
+        insertAssignments.push(assignments[j]);
+      }
+    }
+
+    const insertResult = await this.createMany(
+      AssignmentResDto,
+      insertAssignments,
+    );
+
+    if (insertResult.isOk()) {
+      if (updatedAssignmentIds.length > 0) {
+        return this.assignmentRepository
+          .createQueryBuilder('assignment')
+          .where(
+            'assignment.id IN (:...ids) and assignment.deletedAt is null',
+            {
+              ids: updatedAssignmentIds,
+            },
+          )
+          .getMany()
+          .then((upsertedAssignments) => {
+            insertResult.data.forEach((assignment) => {
+              upsertedAssignments.push(assignment);
+            });
+            return OperationResult.ok(
+              plainToInstance(AssignmentResDto, upsertedAssignments, {
+                excludeExtraneousValues: true,
+              }),
+            );
+          })
+          .catch((e) => {
+            return OperationResult.error(new Error(e));
+          });
+      } else {
+        return insertResult;
+      }
+    } else {
+      return OperationResult.error(
+        new Error(`Can not import assignments: ${insertResult.message}`),
+      );
+    }
+  }
 }

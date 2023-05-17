@@ -31,6 +31,7 @@ import { Role, SubRole } from 'src/auth/auth.const';
 import { OperationResult } from 'src/common/operation-result';
 import { GSonarqubeService } from 'src/gRPc/services/sonarqube';
 import { defaultConfig } from 'src/gRPc/interfaces/sonarqube/QulaityGate';
+import { UserReqDto } from 'src/user/req/user-req.dto';
 
 @ApiTags('Assignment')
 @Controller('/api/assignment')
@@ -236,4 +237,10 @@ export class AssignmentController implements OnModuleInit {
       return OperationResult.error(new Error(result.message));
     }
   }
+
+  // @SubRoles(SubRole.TEACHER)
+  // @Post('/:courseId/import')
+  // async importuser(@Body() assignments: AssignmentReqDto[]) {
+  //   return this.assignmentService.upsertAssignments(assignments);
+  // }
 }

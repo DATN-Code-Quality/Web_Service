@@ -153,4 +153,88 @@ export class SubmissionService extends BaseService<
       scanFail: result[`${SUBMISSION_STATUS.SCANNED_FAIL}`],
     };
   }
+
+  async upsertSubmissions(submissions: SubmissionReqDto[]) {
+    const moodleIds = submissions.map((submission) => {
+      return submission.submissionMoodleId;
+    });
+
+    const savedSubmissions = await this.submissionRepository
+      .createQueryBuilder('submission')
+      .where(
+        'submission.submissionMoodleId IN (:...moodleIds) and submission.deletedAt is null',
+        {
+          moodleIds: moodleIds,
+        },
+      )
+      .getMany()
+      .then((result) => {
+        return result;
+      })
+      .catch((e) => {
+        return [];
+      });
+
+    const insertSubmissions = [];
+    const updatedSubmissionIds = [];
+
+    for (let j = 0; j < submissions.length; j++) {
+      let isExist = false;
+      for (let i = 0; i < savedSubmissions.length; i++) {
+        if (
+          submissions[j].submissionMoodleId ==
+          savedSubmissions[i].submissionMoodleId
+        ) {
+          await this.submissionRepository
+            .update(savedSubmissions[i].id, submissions[j])
+            .catch((e) => {
+              return OperationResult.error(
+                new Error(`Can not import submissions: ${e.message}`),
+              );
+            });
+          isExist = true;
+          updatedSubmissionIds.push(savedSubmissions[i].id);
+          break;
+        }
+      }
+      if (!isExist) {
+        insertSubmissions.push(submissions[j]);
+      }
+    }
+
+    const insertResult = await this.createMany(
+      SubmissionResDto,
+      insertSubmissions,
+    );
+    if (insertResult.isOk()) {
+      if (updatedSubmissionIds.length > 0) {
+        return this.submissionRepository
+          .createQueryBuilder('submission')
+          .where('submission.id IN (:...id) and submission.deletedAt is null', {
+            id: updatedSubmissionIds,
+          })
+          .getMany()
+          .then((upsertedSubmissions) => {
+            insertResult.data.forEach((submission) => {
+              upsertedSubmissions.push(submission);
+            });
+
+            return OperationResult.ok(
+              plainToInstance(SubmissionResDto, upsertedSubmissions, {
+                excludeExtraneousValues: true,
+              }),
+            );
+          })
+          .catch((e) => {
+            return OperationResult.error(new Error(e));
+          });
+      } else {
+        return insertResult;
+      }
+    } else {
+      return OperationResult.error(
+        new Error(`Can not import submissions: ${insertResult.message}`),
+      );
+    }
+  }
 }

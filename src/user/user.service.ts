@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Body, Injectable } from '@nestjs/common';
 import { USER_STATUS, UserReqDto } from './req/user-req.dto';
 import { BaseService } from 'src/common/base.service';
 import { UserResDto } from './res/user-res.dto';
@@ -72,7 +72,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       });
   }
 
-  async addUsers(users: UserReqDto[]): Promise<OperationResult<UserResDto>> {
+  async addUsers(users: UserReqDto[]): Promise<OperationResult<UserResDto[]>> {
     const salt = await bcrypt.genSalt(SALTROUNDS);
     const hash = users.map(async (user) => {
       const hashedPassword = await bcrypt.hash(user.password || '1234', salt);
@@ -200,6 +200,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
   }
 
   async upsertUsers(users: User[]) {
+    console.log(users);
     const moodleIds = users.map((user) => {
       return user.moodleId;
     });
@@ -218,6 +219,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       });
 
     const insertUser = [];
+    const updatedUserIds = [];
 
     for (let j = 0; j < users.length; j++) {
       let isExist = false;
@@ -234,6 +236,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
               );
             });
           isExist = true;
+          updatedUserIds.push(savedUsers[i].id);
           break;
         }
       }
@@ -245,22 +248,28 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     const insertResult = await this.addUsers(insertUser);
 
     if (insertResult.isOk()) {
-      return this.userRepository
-        .createQueryBuilder('user')
-        .where('user.moodleId IN (:...moodleIds) and user.deletedAt is null', {
-          moodleIds: moodleIds,
-        })
-        .getMany()
-        .then((upsertedUsers) => {
-          return OperationResult.ok(
-            plainToInstance(UserResDto, upsertedUsers, {
+      if (updatedUserIds.length > 0) {
+        return this.userRepository
+          .createQueryBuilder('user')
+          .where('user.id IN (:...ids) and user.deletedAt is null', {
+            ids: updatedUserIds,
+          })
+          .getMany()
+          .then((upsertedUsers) => {
+            const userRes = plainToInstance(UserResDto, upsertedUsers, {
               excludeExtraneousValues: true,
-            }),
-          );
-        })
-        .catch((e) => {
-          return OperationResult.error(new Error(e));
-        });
+            });
+            insertResult.data.forEach((user) => {
+              userRes.push(user);
+            });
+            return OperationResult.ok(userRes);
+          })
+          .catch((e) => {
+            return OperationResult.error(new Error(e));
+          });
+      } else {
+        return insertResult;
+      }
     } else {
       return OperationResult.error(
         new Error(`Can not import users: ${insertResult.message}`),

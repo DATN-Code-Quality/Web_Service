@@ -121,4 +121,9 @@ export class UserController implements OnModuleInit {
     const result = ServiceResponse.resultFromServiceResponse(resultDTO, 'data');
     return result;
   }
+
+  @Post('/import')
+  async importuser(@Body() users: UserReqDto[]) {
+    return this.userService.upsertUsers(users);
+  }
 }

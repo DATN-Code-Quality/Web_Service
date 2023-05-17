@@ -79,8 +79,13 @@ export class SubmissionReqDto extends BaseEntity {
   grade: number | null;
 
   @ApiProperty()
-  @IsString()
-  @Column('varchar', { name: 'submissionMoodleId', length: 10 })
+  // @IsString()
+  @Column('varchar', {
+    name: 'submissionMoodleId',
+    length: 10,
+    nullable: true,
+    unique: true,
+  })
   submissionMoodleId: string;
 
   @ManyToOne(() => UserReqDto, (user) => user.userCourses, {

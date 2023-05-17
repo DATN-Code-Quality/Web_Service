@@ -193,4 +193,10 @@ export class CourseController implements OnModuleInit {
     const result = await this.courseService.getReport(courseId);
     return result;
   }
+
+  @Roles(Role.ADMIN)
+  @Post('/import')
+  async importuser(@Body() courses: CourseReqDto[]) {
+    return this.courseService.upsertCourses(courses);
+  }
 }

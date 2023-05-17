@@ -40,9 +40,9 @@ import { RoleMiddleware } from './middleware/rule.middleware';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
-      port: 3308,
+      port: 3306,
       username: 'root',
-      password: 'root',
+      password: '04042001',
       database: 'sonarqube',
       entities: [
         UserReqDto,
