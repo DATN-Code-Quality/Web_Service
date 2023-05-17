@@ -11,6 +11,7 @@ import {
   Post,
   Put,
   Query,
+  Request,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CourseService } from './course.service';
@@ -25,6 +26,7 @@ import { Roles, SubRoles } from 'src/auth/auth.decorator';
 import { Role, SubRole } from 'src/auth/auth.const';
 import { UserCourseService } from 'src/user-course/user-course.service';
 import { UserService } from 'src/user/user.service';
+import { OperationResult } from 'src/common/operation-result';
 @ApiTags('Course')
 @Controller('/api/course')
 export class CourseController implements OnModuleInit {
@@ -184,15 +186,27 @@ export class CourseController implements OnModuleInit {
   // @Roles(Role.ADMIN, Role.USER)
   @SubRoles(SubRole.ADMIN, SubRole.STUDENT, SubRole.TEACHER)
   @Get('/:courseId')
-  async getCourseById(@Param('courseId') courseId: string) {
+  async getCourseById(@Param('courseId') courseId: string, @Request() req) {
     const result = await this.courseService.findOne(CourseResDto, courseId);
+    if (result.isOk()) {
+      return OperationResult.ok({
+        course: result.data,
+        role: req.headers['role'],
+      });
+    }
     return result;
   }
 
   @SubRoles(SubRole.TEACHER)
   @Get('/:courseId/report')
-  async getReport(@Param('courseId') courseId: string) {
+  async getReport(@Param('courseId') courseId: string, @Request() req) {
     const result = await this.courseService.getReport(courseId);
+    if (result.isOk()) {
+      return OperationResult.ok({
+        course: result.data,
+        role: req.headers['role'],
+      });
+    }
     return result;
   }
 

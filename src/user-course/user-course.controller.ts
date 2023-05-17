@@ -22,6 +22,7 @@ import { ClientGrpc } from '@nestjs/microservices';
 import { UserService } from 'src/user/user.service';
 import { firstValueFrom } from 'rxjs';
 import { ServiceResponse } from 'src/common/service-response';
+import { OperationResult } from 'src/common/operation-result';
 @ApiTags('UserCourse')
 @Controller('/api/user-course')
 export class UserCourseController {
@@ -50,11 +51,18 @@ export class UserCourseController {
     // @Query('name', new DefaultValuePipe('')) name: string,
     // @Query('userId', new DefaultValuePipe('')) userId: string,
     @Query('role', new DefaultValuePipe(null)) role: string,
+    @Request() req,
   ) {
     const result = await this.userCourseService.findUsersByCourseId(
       courseId,
       role,
     );
+    if (result.isOk()) {
+      return OperationResult.ok({
+        course: result.data,
+        role: req.headers['role'],
+      });
+    }
     return result;
   }
 

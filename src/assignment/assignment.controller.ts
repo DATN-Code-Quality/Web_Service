@@ -63,6 +63,7 @@ export class AssignmentController implements OnModuleInit {
     @Body(new ParseArrayPipe({ items: AssignmentReqDto }))
     assignments: AssignmentReqDto[],
     @Param('courseId') courseId: string,
+    @Request() req,
   ) {
     assignments.forEach((assignment) => {
       assignment.courseId = courseId;
@@ -88,27 +89,32 @@ export class AssignmentController implements OnModuleInit {
           result.data[i].config = response.data;
         }
       }
+
+      Logger.debug('Result: ' + JSON.stringify(result));
+
+      const savedAssignments: AssignmentCronjobRequest[] = result.data.map(
+        (assignment) => ({
+          id: assignment.id,
+          assignmentMoodleId: assignment.assignmentMoodleId,
+          dueDate: new Date(assignment.dueDate).getTime(),
+        }),
+      );
+
+      Logger.debug('Data: ' + JSON.stringify(savedAssignments));
+
+      firstValueFrom(
+        this.gAssignmentService
+          .addAssignmentCronjob({
+            assignments: savedAssignments,
+          })
+          .pipe(),
+      );
+
+      return OperationResult.ok({
+        course: result.data,
+        role: req.headers['role'],
+      });
     }
-
-    Logger.debug('Result: ' + JSON.stringify(result));
-
-    const savedAssignments: AssignmentCronjobRequest[] = result.data.map(
-      (assignment) => ({
-        id: assignment.id,
-        assignmentMoodleId: assignment.assignmentMoodleId,
-        dueDate: new Date(assignment.dueDate).getTime(),
-      }),
-    );
-
-    Logger.debug('Data: ' + JSON.stringify(savedAssignments));
-
-    firstValueFrom(
-      this.gAssignmentService
-        .addAssignmentCronjob({
-          assignments: savedAssignments,
-        })
-        .pipe(),
-    );
 
     return result;
   }
@@ -120,6 +126,7 @@ export class AssignmentController implements OnModuleInit {
   async addAssignment(
     @Body() assignment: AssignmentReqDto,
     @Param('courseId') courseId: string,
+    @Request() req,
   ) {
     assignment.courseId = courseId;
 
@@ -140,6 +147,11 @@ export class AssignmentController implements OnModuleInit {
 
         result.data.config = response.data;
       }
+
+      return OperationResult.ok({
+        course: result.data,
+        role: req.headers['role'],
+      });
     }
 
     // const result = await firstValueFrom(
@@ -154,7 +166,7 @@ export class AssignmentController implements OnModuleInit {
   //Moodle:
   @SubRoles(SubRole.TEACHER)
   @Get(':courseId/sync-assignments-by-course-id')
-  async getMoodleAssignmentsByCourseId(@Query() query: string) {
+  async getMoodleAssignmentsByCourseId(@Query() query: string, @Request() req) {
     const response$ = this.gAssignmentService
       .getAllAssignmentsByCourseId({
         courseMoodleId: query['courseMoodleId'],
@@ -173,6 +185,13 @@ export class AssignmentController implements OnModuleInit {
       newResultDTO,
       'data',
     );
+
+    if (result.isOk()) {
+      return OperationResult.ok({
+        course: result.data,
+        role: req.headers['role'],
+      });
+    }
     return result;
   }
 
@@ -186,16 +205,33 @@ export class AssignmentController implements OnModuleInit {
       AssignmentResDto,
       assignmentId,
     );
+
+    if (result.isOk()) {
+      return OperationResult.ok({
+        course: result.data,
+        role: req.headers['role'],
+      });
+    }
     return result;
   }
 
   @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
   @Get(':courseId')
-  async getAssignmentsByCourseId(@Param('courseId') courseId: string) {
+  async getAssignmentsByCourseId(
+    @Param('courseId') courseId: string,
+    @Request() req,
+  ) {
     const result = await this.assignmentService.findAssignmentsByCourseId(
       // query['courseId'],
       courseId,
     );
+
+    if (result.isOk()) {
+      return OperationResult.ok({
+        course: result.data,
+        role: req.headers['role'],
+      });
+    }
     return result;
   }
 
@@ -204,11 +240,18 @@ export class AssignmentController implements OnModuleInit {
   async getReport(
     @Param('courseId') courseId: string,
     @Param('assignmentId') assignmentId: string,
+    @Request() req,
   ) {
     const result = await this.assignmentService.getReport(
       courseId,
       assignmentId,
     );
+    if (result.isOk()) {
+      return OperationResult.ok({
+        course: result.data,
+        role: req.headers['role'],
+      });
+    }
     return result;
   }
 
@@ -217,6 +260,7 @@ export class AssignmentController implements OnModuleInit {
   async updateCongig(
     @Param('assignmentId') assignmentId: string,
     @Body() data,
+    @Request() req,
   ) {
     //parse config thành 1 list các điều kiện
     const conditions = defaultConfig(`${Date.now.toString()}`);
@@ -232,6 +276,12 @@ export class AssignmentController implements OnModuleInit {
       const assignment = await this.assignmentService.update(assignmentId, {
         config: data['config'],
       } as any);
+      if (assignment.isOk()) {
+        return OperationResult.ok({
+          course: result.data,
+          role: req.headers['role'],
+        });
+      }
       return assignment;
     } else {
       return OperationResult.error(new Error(result.message));

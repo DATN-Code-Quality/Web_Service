@@ -120,7 +120,7 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
     });
   }
 
-  async upsertCourses(courses: CourseReqDto[]) {
+  async upsertCourses(courses: CourseReqDto[]): Promise<any> {
     const moodleIds = courses.map((course) => {
       return course.courseMoodleId;
     });

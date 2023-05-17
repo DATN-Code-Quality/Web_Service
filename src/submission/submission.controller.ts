@@ -107,6 +107,10 @@ export class SubmissionController implements OnModuleInit {
       firstValueFrom(
         this.gSubmissionService.scanSubmission(result.data).pipe(),
       );
+      return OperationResult.ok({
+        course: result.data,
+        role: req.headers['role'],
+      });
     }
     return result;
   }
@@ -116,19 +120,34 @@ export class SubmissionController implements OnModuleInit {
   async deleteSubmissions(
     @Param('assignmentId') assignmentId: string,
     @Param('submissionId') submissionId: string,
+    @Request() req,
   ) {
     const result = await this.submissionService.removeSubmission(submissionId);
-
+    if (result.isOk()) {
+      return OperationResult.ok({
+        course: result.data,
+        role: req.headers['role'],
+      });
+    }
     return result;
   }
 
   @SubRoles(SubRole.STUDENT, SubRole.TEACHER)
   @Get('/:courseId/:assignmentId/:submissionId')
-  async getSubmissionById(@Param('submissionId') submissionId: string) {
+  async getSubmissionById(
+    @Param('submissionId') submissionId: string,
+    @Request() req,
+  ) {
     const result = await this.submissionService.findOne(
       SubmissionResDto,
       submissionId,
     );
+    if (result.isOk()) {
+      return OperationResult.ok({
+        course: result.data,
+        role: req.headers['role'],
+      });
+    }
     return result;
   }
 
@@ -160,7 +179,7 @@ export class SubmissionController implements OnModuleInit {
   //Moodle:
   @SubRoles(SubRole.TEACHER)
   @Get('/sync-submissions-by-assignment-id')
-  async syncSubmissionsByAssignmentId(@Query() query: string) {
+  async syncSubmissionsByAssignmentId(@Query() query: string, @Request() req) {
     const response$ = this.gSubmissionService
       .getSubmissionsByAssignmentId({
         assignmentMoodleId: query['assignmentMoodleId'],
@@ -179,6 +198,13 @@ export class SubmissionController implements OnModuleInit {
       newResultDTO,
       'data',
     );
+
+    if (result.isOk()) {
+      return OperationResult.ok({
+        course: result.data,
+        role: req.headers['role'],
+      });
+    }
     return result;
   }
 }
