@@ -200,7 +200,6 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
   }
 
   async upsertUsers(users: User[]) {
-    console.log(users);
     const moodleIds = users.map((user) => {
       return user.moodleId;
     });
