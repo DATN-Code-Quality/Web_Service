@@ -111,7 +111,7 @@ export class AssignmentController implements OnModuleInit {
       );
 
       return OperationResult.ok({
-        course: result.data,
+        assignments: result.data,
         role: req.headers['role'],
       });
     }
@@ -149,7 +149,7 @@ export class AssignmentController implements OnModuleInit {
       }
 
       return OperationResult.ok({
-        course: result.data,
+        assignment: result.data,
         role: req.headers['role'],
       });
     }
@@ -188,7 +188,7 @@ export class AssignmentController implements OnModuleInit {
 
     if (result.isOk()) {
       return OperationResult.ok({
-        course: result.data,
+        assignments: result.data,
         role: req.headers['role'],
       });
     }
@@ -208,7 +208,7 @@ export class AssignmentController implements OnModuleInit {
 
     if (result.isOk()) {
       return OperationResult.ok({
-        course: result.data,
+        assignment: result.data,
         role: req.headers['role'],
       });
     }
@@ -228,7 +228,7 @@ export class AssignmentController implements OnModuleInit {
 
     if (result.isOk()) {
       return OperationResult.ok({
-        course: result.data,
+        assignments: result.data,
         role: req.headers['role'],
       });
     }
@@ -248,7 +248,7 @@ export class AssignmentController implements OnModuleInit {
     );
     if (result.isOk()) {
       return OperationResult.ok({
-        course: result.data,
+        report: result.data,
         role: req.headers['role'],
       });
     }
@@ -278,7 +278,7 @@ export class AssignmentController implements OnModuleInit {
       } as any);
       if (assignment.isOk()) {
         return OperationResult.ok({
-          course: result.data,
+          assignment: result.data,
           role: req.headers['role'],
         });
       }

@@ -218,6 +218,8 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         return [];
       });
 
+    console.log(savedUsers);
+
     const insertUser = [];
     const updatedUserIds = [];
 
@@ -233,7 +235,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
             .update(savedUsers[i].id, users[j])
             .catch((e) => {
               return OperationResult.error(
-                new Error(`Can not import users: ${e.message}`),
+                new Error(`Can not update users: ${e.message}`),
               );
             });
           isExist = true;

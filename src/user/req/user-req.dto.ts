@@ -45,7 +45,7 @@ export class UserReqDto extends BaseEntity {
   moodleId: string;
 
   @ApiProperty()
-  @IsString()
+  // @IsString()
   @IsOptional()
   @Column('varchar', { name: 'password', length: 255 })
   password: string;

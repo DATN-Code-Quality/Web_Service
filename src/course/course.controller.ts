@@ -203,7 +203,7 @@ export class CourseController implements OnModuleInit {
     const result = await this.courseService.getReport(courseId);
     if (result.isOk()) {
       return OperationResult.ok({
-        course: result.data,
+        report: result.data,
         role: req.headers['role'],
       });
     }

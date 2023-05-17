@@ -108,7 +108,7 @@ export class SubmissionController implements OnModuleInit {
         this.gSubmissionService.scanSubmission(result.data).pipe(),
       );
       return OperationResult.ok({
-        course: result.data,
+        submission: result.data,
         role: req.headers['role'],
       });
     }
@@ -123,12 +123,6 @@ export class SubmissionController implements OnModuleInit {
     @Request() req,
   ) {
     const result = await this.submissionService.removeSubmission(submissionId);
-    if (result.isOk()) {
-      return OperationResult.ok({
-        course: result.data,
-        role: req.headers['role'],
-      });
-    }
     return result;
   }
 
@@ -144,7 +138,7 @@ export class SubmissionController implements OnModuleInit {
     );
     if (result.isOk()) {
       return OperationResult.ok({
-        course: result.data,
+        submission: result.data,
         role: req.headers['role'],
       });
     }
@@ -201,7 +195,7 @@ export class SubmissionController implements OnModuleInit {
 
     if (result.isOk()) {
       return OperationResult.ok({
-        course: result.data,
+        submissions: result.data,
         role: req.headers['role'],
       });
     }

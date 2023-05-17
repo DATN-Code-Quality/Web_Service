@@ -59,7 +59,7 @@ export class UserCourseController {
     );
     if (result.isOk()) {
       return OperationResult.ok({
-        course: result.data,
+        users: result.data,
         role: req.headers['role'],
       });
     }
