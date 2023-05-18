@@ -1,32 +1,31 @@
 import {
   Body,
   Controller,
-  Delete,
+  DefaultValuePipe,
   Get,
   Inject,
   OnModuleInit,
-  DefaultValuePipe,
   Param,
   ParseArrayPipe,
   Post,
-  Put,
   Query,
-  Request,
+  Request
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { CourseService } from './course.service';
-import { CourseResDto } from './res/course-res.dto';
-import { CourseReqDto } from './req/course-req.dto';
-import { ServiceResponse } from 'src/common/service-response';
-import { GCourseService } from 'src/gRPc/services/course';
-import { GCategoryService } from 'src/gRPc/services/category';
 import { ClientGrpc } from '@nestjs/microservices';
+import { ApiTags } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
-import { Roles, SubRoles } from 'src/auth/auth.decorator';
 import { Role, SubRole } from 'src/auth/auth.const';
+import { Roles, SubRoles } from 'src/auth/auth.decorator';
+import { OperationResult } from 'src/common/operation-result';
+import { ServiceResponse } from 'src/common/service-response';
+import { CourseCronjobRequest } from 'src/gRPc/interfaces/Course';
+import { GCategoryService } from 'src/gRPc/services/category';
+import { GCourseService } from 'src/gRPc/services/course';
 import { UserCourseService } from 'src/user-course/user-course.service';
 import { UserService } from 'src/user/user.service';
-import { OperationResult } from 'src/common/operation-result';
+import { CourseService } from './course.service';
+import { CourseReqDto } from './req/course-req.dto';
+import { CourseResDto } from './res/course-res.dto';
 @ApiTags('Course')
 @Controller('/api/course')
 export class CourseController implements OnModuleInit {
@@ -55,6 +54,14 @@ export class CourseController implements OnModuleInit {
     const result = await this.courseService.upsertCourses(courses);
 
     result.data.map(async (course) => {
+      const cronJobData: CourseCronjobRequest = {
+        id: course.id,
+        courseMoodleId: course.courseMoodleId,
+        endAt: course.endAt,
+      };
+
+      this.gCourseMoodleService.addCourseCronjob(cronJobData);
+
       const users = (
         await this.userCourseService.getUsersByCourseMoodleId(
           parseInt(course.courseMoodleId),

@@ -139,6 +139,12 @@ message AssignmentsCronjobRequest {
   repeated AssignmentCronjobRequest assignments = 1;
 }
 
+message CourseCronjobRequest {
+  string id = 1;
+  int32 moodleId = 2;
+  int64 endAt = 3;
+}
+
 message TextRange {
   int32 startLine = 1;
   int32 endLine = 2;
@@ -335,4 +341,5 @@ service GCourseService {
   rpc GetUsersCourse(GetCourseOfUserRequest) returns (CoursesResponse);
   rpc GetCoursesByCategory(GetCourseOfCategoryRequest) returns (CoursesResponse);
   rpc GetCoursesByMoodleId(GetCourseOfMoodleIdRequest) returns (CoursesResponse);
+  rpc AddCourseCronjob(CourseCronjobRequest) returns (Empty);
 }
