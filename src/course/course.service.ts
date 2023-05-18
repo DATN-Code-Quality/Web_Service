@@ -1,7 +1,7 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { BaseService } from 'src/common/base.service';
 import { OperationResult } from 'src/common/operation-result';
-import { Between, Like, Repository } from 'typeorm';
+import { Between, In, Like, Repository } from 'typeorm';
 import { ClassConstructor, plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CourseResDto } from './res/course-res.dto';
@@ -300,5 +300,74 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
         new Error(`Can not import courses: ${insertResult.message}`),
       );
     }
+  }
+
+  async getCoursesByIds(
+    ids: string[],
+    name: string,
+    startAt: Date,
+    endAt: Date,
+  ): Promise<OperationResult<CourseResDto[]>> {
+    //   return this.courseRepository
+    //     .createQueryBuilder('course')
+    //     .where(
+    //       "course.id IN (:...ids) and course.name LIKE '%:name%' and course.startAt >= :startAd and course.endAt <= :endAt and course.deletedAt is null ",
+    //       {
+    //         ids: ids,
+    //         name: name,
+    //         // startAt: startAt,
+    //         // endAt: endAt,
+    //       },
+    //     )
+    //     .execute()
+    //     .then((courses) => {
+    //       return OperationResult.ok(courses);
+    //     })
+    //     .catch((e) => {
+    //       return OperationResult.error(e);
+    //     });
+    // }
+
+    const [courseMin, courseMax] = await Promise.all([
+      this.courseRepository.find({
+        order: {
+          startAt: 'DESC',
+        },
+      }),
+      this.courseRepository.find({
+        order: {
+          endAt: 'ASC',
+        },
+      }),
+    ]);
+
+    let dayMin = courseMin[0].startAt;
+    let dayMax = courseMax[0].endAt;
+
+    if (startAt && endAt) {
+      dayMin = endAt;
+      dayMax = startAt;
+    }
+
+    return await this.courseRepository
+      .find({
+        order: {
+          updatedAt: 'DESC',
+        },
+        where: {
+          // id: Like(`%${courseId}%`),
+          id: In(ids),
+          name: Like(`%${name}%`),
+          startAt: startAt ? Between(startAt, dayMin) : null,
+          endAt: endAt ? Between(dayMax, endAt) : null,
+        },
+      })
+
+      .then((courses) => {
+        return OperationResult.ok(courses);
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
   }
 }
