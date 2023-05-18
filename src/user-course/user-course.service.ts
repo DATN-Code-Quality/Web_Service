@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { BaseService } from 'src/common/base.service';
@@ -13,6 +13,8 @@ import { GUserService } from 'src/gRPc/services/user';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { ServiceResponse } from 'src/common/service-response';
+import { CourseReqDto } from 'src/course/req/course-req.dto';
+import { CourseService } from 'src/course/course.service';
 
 @Injectable()
 export class UserCourseService extends BaseService<
@@ -24,6 +26,8 @@ export class UserCourseService extends BaseService<
     @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
     @InjectRepository(UserCourseReqDto)
     private readonly usercourseRepository: Repository<UserCourseReqDto>,
+    @Inject(forwardRef(() => CourseService))
+    private readonly courseService: CourseService,
   ) {
     super(usercourseRepository);
   }
@@ -94,14 +98,6 @@ export class UserCourseService extends BaseService<
       users.push(usercourses[i].user);
     }
 
-    // usercourses.forEach((usercourse) => {
-    //   users.push(
-    //     plainToInstance(UserResDto, usercourse.user, {
-    //       excludeExtraneousValues: true,
-    //     }),
-    //   );
-    // });
-
     return OperationResult.ok(users);
   }
 
@@ -117,22 +113,27 @@ export class UserCourseService extends BaseService<
         userId: userId,
         role: role,
       },
-      relations: {
-        course: true,
-      },
     });
 
-    const courses = [] as CourseResDto[];
+    const promiseCourses = await Promise.all(
+      usercourses.map(async (usercourse) => {
+        return await this.courseService.findCourses(
+          usercourse.courseId,
+          name,
+          startAt,
+          endAt,
+        );
+      }),
+    );
+    const courses = promiseCourses.filter(
+      (promiseCourse) => promiseCourse[0] != null,
+    );
 
-    usercourses.forEach((usercourse) => {
-      courses.push(
-        plainToInstance(CourseResDto, usercourse.course, {
-          excludeExtraneousValues: true,
-        }),
-      );
-    });
-
-    return OperationResult.ok(courses);
+    return OperationResult.ok(
+      plainToInstance(CourseResDto, courses, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
   async findUserCoursesByCourseIdAndUserId(

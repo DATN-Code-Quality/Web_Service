@@ -65,15 +65,11 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
 
     let dayMin = courseMin[0].startAt;
     let dayMax = courseMax[0].endAt;
-    console.log(startAt);
-    console.log(dayMin);
-    console.log(startAt > dayMin);
 
     if (startAt && endAt) {
       dayMin = endAt;
       dayMax = startAt;
     }
-    console.log({ startAt, endAt, dayMin, dayMax });
 
     return await this.courseRepository
       .find({
@@ -112,6 +108,54 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
             excludeExtraneousValues: true,
           }),
         );
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
+  }
+
+  async findCourses(
+    courseId: string,
+    name: string,
+    startAt: Date,
+    endAt: Date,
+  ) {
+    const [courseMin, courseMax] = await Promise.all([
+      this.courseRepository.find({
+        order: {
+          startAt: 'DESC',
+        },
+      }),
+      this.courseRepository.find({
+        order: {
+          endAt: 'ASC',
+        },
+      }),
+    ]);
+
+    let dayMin = courseMin[0].startAt;
+    let dayMax = courseMax[0].endAt;
+
+    if (startAt && endAt) {
+      dayMin = endAt;
+      dayMax = startAt;
+    }
+
+    return await this.courseRepository
+      .find({
+        order: {
+          updatedAt: 'DESC',
+        },
+        where: {
+          id: Like(`%${courseId}%`),
+          name: Like(`%${name}%`),
+          startAt: startAt ? Between(startAt, dayMin) : null,
+          endAt: endAt ? Between(dayMax, endAt) : null,
+        },
+      })
+
+      .then((courses) => {
+        return courses;
       })
       .catch((err) => {
         return OperationResult.error(err);
