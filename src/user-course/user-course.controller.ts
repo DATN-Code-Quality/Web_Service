@@ -92,12 +92,17 @@ export class UserCourseController {
   @Get('/:userId/courses')
   async getAllCoursesByUserId(
     @Param('userId') userId: string,
-    // @Query('categoryId', new DefaultValuePipe(null)) categoryId: string,
-    // @Query('name', new DefaultValuePipe('')) name: string,
+    @Query('role', new DefaultValuePipe(null)) role: string,
+    @Query('name', new DefaultValuePipe('')) name: string,
+    @Query('startAt', new DefaultValuePipe('')) startAt: Date,
+    @Query('endAt', new DefaultValuePipe('')) endAt: Date,
   ) {
     const result = await this.userCourseService.findCoursesByUserId(
       userId,
-      null,
+      role,
+      name,
+      startAt,
+      endAt,
     );
     return result;
   }
@@ -107,13 +112,17 @@ export class UserCourseController {
   async getAllCoursesOfUser(
     @Request() req,
     @Query('role', new DefaultValuePipe(null)) role: string,
-    // @Query('categoryId', new DefaultValuePipe(null)) categoryId: string,
-    // @Query('name', new DefaultValuePipe('')) name: string,
+    @Query('name', new DefaultValuePipe('')) name: string,
+    @Query('startAt', new DefaultValuePipe(null)) startAt: Date,
+    @Query('endAt', new DefaultValuePipe(null)) endAt: Date,
   ) {
     const userId = req.headers['userId'];
     const result = await this.userCourseService.findCoursesByUserId(
       userId,
       role,
+      name,
+      startAt,
+      endAt,
     );
     return result;
   }

@@ -97,8 +97,15 @@ export class CourseController implements OnModuleInit {
   async getAllCourses(
     @Query('categoryId', new DefaultValuePipe(null)) categoryId: string,
     @Query('name', new DefaultValuePipe('')) name: string,
+    @Query('startAt', new DefaultValuePipe(null)) startAt: Date,
+    @Query('endAt', new DefaultValuePipe(null)) endAt: Date,
   ) {
-    const result = await this.courseService.findAllCourses(categoryId, name);
+    const result = await this.courseService.findAllCourses(
+      categoryId,
+      name,
+      startAt,
+      endAt,
+    );
     return result;
   }
 

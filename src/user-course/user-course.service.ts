@@ -108,6 +108,9 @@ export class UserCourseService extends BaseService<
   async findCoursesByUserId(
     userId: string,
     role: string,
+    name: string,
+    startAt: Date,
+    endAt: Date,
   ): Promise<OperationResult<Array<CourseResDto>>> {
     const usercourses = await this.usercourseRepository.find({
       where: {

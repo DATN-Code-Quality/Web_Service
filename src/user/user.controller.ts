@@ -100,11 +100,17 @@ export class UserController implements OnModuleInit {
   @Roles(Role.ADMIN, Role.SUPERADMIN)
   @Get('/all-users')
   async getAllUsers(
-    @Query('name', new DefaultValuePipe('')) name: string,
+    @Query('search', new DefaultValuePipe('')) search: string,
     @Query('userId', new DefaultValuePipe('')) userId: string,
     @Query('role', new DefaultValuePipe(null)) role: string,
+    @Query('status', new DefaultValuePipe(null)) status: USER_STATUS,
   ) {
-    const result = await this.userService.findAllUsers(name, userId, role);
+    const result = await this.userService.findAllUsers(
+      search,
+      userId,
+      role,
+      status,
+    );
     return result;
   }
 

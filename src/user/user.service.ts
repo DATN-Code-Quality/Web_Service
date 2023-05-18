@@ -174,17 +174,32 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       });
   }
 
-  async findAllUsers(name: string, userId: string, role: string) {
+  async findAllUsers(
+    search: string,
+    userId: string,
+    role: string,
+    status: USER_STATUS,
+  ) {
     return await this.userRepository
       .find({
         order: {
-          userId: 'ASC',
+          // userId: 'ASC',
+          updatedAt: 'DESC',
         },
-        where: {
-          name: Like(`%${name}%`),
-          userId: Like(`%${userId}%`),
-          role: role,
-        },
+        where: [
+          {
+            name: Like(`%${search}%`),
+            userId: Like(`%${userId}%`),
+            role: role,
+            status: status,
+          },
+          {
+            email: Like(`%${search}%`),
+            userId: Like(`%${userId}%`),
+            role: role,
+            status: status,
+          },
+        ],
       })
 
       .then((users) => {
