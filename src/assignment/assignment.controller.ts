@@ -69,10 +69,7 @@ export class AssignmentController implements OnModuleInit {
       assignment.courseId = courseId;
       assignment.config = JSON.stringify(assignment.configObject);
     });
-    const result = await this.assignmentService.createMany(
-      AssignmentResDto,
-      assignments,
-    );
+    const result = await this.assignmentService.upsertAssignments(assignments);
 
     if (result.isOk()) {
       for (let i = 0; i < result.data.length; i++) {

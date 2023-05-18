@@ -64,7 +64,9 @@ export class AssignmentService extends BaseService<
     });
   }
 
-  async upsertAssignments(assignments: AssignmentReqDto[]) {
+  async upsertAssignments(
+    assignments: AssignmentReqDto[],
+  ): Promise<OperationResult<any>> {
     const moodleIds = assignments.map((assignment) => {
       return assignment.assignmentMoodleId;
     });
