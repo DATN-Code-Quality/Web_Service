@@ -96,13 +96,13 @@ export class CourseController implements OnModuleInit {
   @Get('/all-courses')
   async getAllCourses(
     @Query('categoryId', new DefaultValuePipe(null)) categoryId: string,
-    @Query('name', new DefaultValuePipe('')) name: string,
+    @Query('search', new DefaultValuePipe('')) search: string,
     @Query('startAt', new DefaultValuePipe(null)) startAt: Date,
     @Query('endAt', new DefaultValuePipe(null)) endAt: Date,
   ) {
     const result = await this.courseService.findAllCourses(
       categoryId,
-      name,
+      search,
       startAt,
       endAt,
     );

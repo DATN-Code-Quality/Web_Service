@@ -112,7 +112,7 @@ export class UserCourseController {
   async getAllCoursesOfUser(
     @Request() req,
     @Query('role', new DefaultValuePipe(null)) role: string,
-    @Query('name', new DefaultValuePipe('')) name: string,
+    @Query('search', new DefaultValuePipe('')) search: string,
     @Query('startAt', new DefaultValuePipe(null)) startAt: Date,
     @Query('endAt', new DefaultValuePipe(null)) endAt: Date,
   ) {
@@ -120,7 +120,7 @@ export class UserCourseController {
     const result = await this.userCourseService.findCoursesByUserId(
       userId,
       role,
-      name,
+      search,
       startAt,
       endAt,
     );
