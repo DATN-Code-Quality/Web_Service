@@ -27,6 +27,7 @@ import { User } from 'src/gRPc/interfaces/User';
 import { CourseService } from 'src/course/course.service';
 import { CourseResDto } from 'src/course/res/course-res.dto';
 import { OperationResult } from 'src/common/operation-result';
+import { USER_STATUS } from 'src/user/req/user-req.dto';
 
 @ApiTags('UserCourse')
 @Controller('/api/user-course')
@@ -56,14 +57,20 @@ export class UserCourseController {
   @Get('/:courseId/users')
   async getAllUsersByCourseId(
     @Param('courseId') courseId: string,
-    // @Query('name', new DefaultValuePipe('')) name: string,
-    // @Query('userId', new DefaultValuePipe('')) userId: string,
     @Query('role', new DefaultValuePipe(null)) role: string,
+    @Query('search', new DefaultValuePipe('')) search: string,
+    @Query('status', new DefaultValuePipe(null)) status: USER_STATUS,
+    @Query('limit', new DefaultValuePipe(10)) limit: number,
+    @Query('offset', new DefaultValuePipe(0)) offset: number,
     @Request() req,
   ) {
     const result = await this.userCourseService.findUsersByCourseId(
       courseId,
       role,
+      search,
+      status,
+      limit,
+      offset,
     );
     if (result.isOk()) {
       return OperationResult.ok({
@@ -96,6 +103,8 @@ export class UserCourseController {
     @Query('name', new DefaultValuePipe('')) name: string,
     @Query('startAt', new DefaultValuePipe('')) startAt: Date,
     @Query('endAt', new DefaultValuePipe('')) endAt: Date,
+    @Query('limit', new DefaultValuePipe(10)) limit: number,
+    @Query('offset', new DefaultValuePipe(0)) offset: number,
   ) {
     const result = await this.userCourseService.findCoursesByUserId(
       userId,
@@ -103,6 +112,8 @@ export class UserCourseController {
       name,
       startAt,
       endAt,
+      limit,
+      offset,
     );
     return result;
   }
@@ -115,6 +126,8 @@ export class UserCourseController {
     @Query('search', new DefaultValuePipe('')) search: string,
     @Query('startAt', new DefaultValuePipe(null)) startAt: Date,
     @Query('endAt', new DefaultValuePipe(null)) endAt: Date,
+    @Query('limit', new DefaultValuePipe(10)) limit: number,
+    @Query('offset', new DefaultValuePipe(0)) offset: number,
   ) {
     const userId = req.headers['userId'];
     const result = await this.userCourseService.findCoursesByUserId(
@@ -123,6 +136,8 @@ export class UserCourseController {
       search,
       startAt,
       endAt,
+      limit,
+      offset,
     );
     return result;
   }
@@ -179,7 +194,7 @@ export class UserCourseController {
         }
       })
       .map((user) => user.id);
-    this.userCourseService.addUsersIntoCourse(courseId, teacherIds, studentIds);
+    // this.userCourseService.addUsersIntoCourse(courseId, teacherIds, studentIds);
     const result = await this.userCourseService.addUsersIntoCourse(
       courseId,
       teacherIds,
