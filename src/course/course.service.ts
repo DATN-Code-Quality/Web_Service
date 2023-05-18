@@ -63,7 +63,7 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
       }),
     ]);
     if (!courseMin[0]?.startAt || !courseMax[0]?.endAt) {
-      OperationResult.ok(
+      return OperationResult.ok(
         plainToInstance(CourseResDto, [], {
           excludeExtraneousValues: true,
         }),
