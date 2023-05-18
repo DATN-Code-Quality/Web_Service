@@ -115,25 +115,46 @@ export class UserCourseService extends BaseService<
       },
     });
 
-    const promiseCourses = await Promise.all(
-      usercourses.map(async (usercourse) => {
-        return await this.courseService.findCourses(
-          usercourse.courseId,
-          name,
-          startAt,
-          endAt,
-        );
-      }),
-    );
-    const courses = promiseCourses.filter(
-      (promiseCourse) => promiseCourse[0] != null,
-    );
+    const courseIds = usercourses.map((usercourse) => usercourse.courseId);
+    return this.courseService.getCoursesByIds(courseIds, name, startAt, endAt);
+    // const courses = await this.usercourseRepository.createQueryBuilder('course')
+    // .where('course.id IN (:...ids) and course.deletedAt is null', {
+    //   ids: courseIds,
+    // })
+    // .getMany()
+    // .then((upsertedCategories) => {
+    //   insertResult.data.forEach((category) => {
+    //     upsertedCategories.push(category);
+    //   });
+    //   return OperationResult.ok(
+    //     plainToInstance(CategoryResDto, upsertedCategories, {
+    //       excludeExtraneousValues: true,
+    //     }),
+    //   );
+    // })
+    // .catch((e) => {
+    //   return OperationResult.error(new Error(e));
+    // });
 
-    return OperationResult.ok(
-      plainToInstance(CourseResDto, courses, {
-        excludeExtraneousValues: true,
-      }),
-    );
+    // const promiseCourses = await Promise.all(
+    //   usercourses.map(async (usercourse) => {
+    //     return await this.courseService.findCourses(
+    //       usercourse.courseId,
+    //       name,
+    //       startAt,
+    //       endAt,
+    //     );
+    //   }),
+    // );
+    // const courses = promiseCourses.filter(
+    //   (promiseCourse) => promiseCourse[0] != null,
+    // );
+
+    // return OperationResult.ok(
+    //   plainToInstance(CourseResDto, courses, {
+    //     excludeExtraneousValues: true,
+    //   }),
+    // );
   }
 
   async findUserCoursesByCourseIdAndUserId(
