@@ -257,7 +257,7 @@ export class AssignmentController implements OnModuleInit {
   }
 
   @SubRoles(SubRole.TEACHER)
-  @Put(':courseId/:assignmentId/config')
+  @Put(':courseId/:assignmentId')
   async updateCongig(
     @Param('assignmentId') assignmentId: string,
     @Body() data,
@@ -272,11 +272,18 @@ export class AssignmentController implements OnModuleInit {
         conditions: conditions.conditions,
       }),
     );
+    const payload = {
+      name: data['name'],
+      dueDate: data['dueDate'],
+      description: data['description'],
+      config: data['config'],
+    };
     if (result.error === 0) {
-      //Lưu config vào db
-      const assignment = await this.assignmentService.update(assignmentId, {
-        config: data['config'],
-      } as any);
+      //Lưu payload vào db
+      const assignment = await this.assignmentService.update(
+        assignmentId,
+        payload as any,
+      );
       if (assignment.isOk()) {
         return OperationResult.ok({
           assignment: result.data,

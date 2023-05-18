@@ -115,6 +115,34 @@ export class SubmissionController implements OnModuleInit {
     }
     return result;
   }
+  @SubRoles(SubRole.TEACHER)
+  @Put(':courseId/:assignmentId/:submissionId')
+  async updateCongig(
+    @Param('assignmentId') assignmentId: string,
+    @Param('submissionId') submissionId: string,
+    @Body() data,
+    @Request() req,
+  ) {
+    const payload = {
+      link: data['link'],
+      note: data['note'],
+      submitType: data['submitType'],
+      timemodified: data['timemodified'],
+      origin: data['origin'],
+      grade: data['grade'],
+    };
+    const assignment = await this.submissionService.update(
+      submissionId,
+      payload as any,
+    );
+    if (assignment.isOk()) {
+      return OperationResult.ok({
+        assignment,
+        role: req.headers['role'],
+      });
+    }
+    return assignment;
+  }
 
   @SubRoles(SubRole.STUDENT)
   @Delete('/:courseId/:assignmentId/:submissionId')
