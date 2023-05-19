@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserCourseReqDto } from './req/user-course-req.dto';
 import { UserCourseController } from './user-course.controller';
@@ -9,12 +9,16 @@ import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { SubRolesGuard } from 'src/auth/guard/sub-roles.guard';
 import { AssignmentModule } from 'src/assignment/assignment.module';
 import { SubmissionModule } from 'src/submission/submission.module';
+import { CourseModule } from 'src/course/course.module';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserCourseReqDto]),
     // AssignmentModule,
     // SubmissionModule,
+    forwardRef(() => CourseModule),
+    UserModule,
   ],
   controllers: [UserCourseController],
   providers: [
