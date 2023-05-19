@@ -233,8 +233,6 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         return [];
       });
 
-    console.log(savedUsers);
-
     const insertUser = [];
     const updatedUserIds = [];
 
