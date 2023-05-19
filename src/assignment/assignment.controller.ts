@@ -69,10 +69,7 @@ export class AssignmentController implements OnModuleInit {
       assignment.courseId = courseId;
       assignment.config = JSON.stringify(assignment.configObject);
     });
-    const result = await this.assignmentService.createMany(
-      AssignmentResDto,
-      assignments,
-    );
+    const result = await this.assignmentService.upsertAssignments(assignments);
 
     if (result.isOk()) {
       for (let i = 0; i < result.data.length; i++) {
@@ -83,13 +80,13 @@ export class AssignmentController implements OnModuleInit {
           }),
         );
 
-        if (response.error === 0) {
-          await this.assignmentService.update(result.data[i].id, {
-            config: response.data,
-          } as AssignmentResDto);
+        // if (response.error === 0) {
+        //   await this.assignmentService.update(result.data[i].id, {
+        //     config: response.data,
+        //   } as AssignmentResDto);
 
-          result.data[i].config = response.data;
-        }
+        //   result.data[i].config = response.data;
+        // }
       }
 
       Logger.debug('Result: ' + JSON.stringify(result));
