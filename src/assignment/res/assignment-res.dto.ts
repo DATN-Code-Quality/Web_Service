@@ -10,7 +10,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 import { BaseEntity } from 'src/common/base.entity';
 import { BaseDto } from 'src/common/base.dto';
-import { Expose } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
+import { ConfigObject } from '../req/assignment-req.dto';
 
 export class AssignmentResDto extends BaseDto {
   @ApiProperty()
@@ -52,4 +53,8 @@ export class AssignmentResDto extends BaseDto {
   @IsString()
   @Expose()
   config: string;
+
+  @Transform(({ obj }) => JSON.parse(obj.config))
+  @Expose()
+  configObject: ConfigObject;
 }
