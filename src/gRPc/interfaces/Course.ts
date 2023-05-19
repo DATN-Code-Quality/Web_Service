@@ -1,4 +1,4 @@
-import { IsNumber, Min } from 'class-validator';
+import { IsNumber, IsString, Min } from 'class-validator';
 
 export interface Course {
   name: string;
@@ -32,4 +32,17 @@ export class GetCourseOfMoodleIdRequest {
   @IsNumber()
   @Min(1)
   courseMoodleId: number;
+}
+
+export class CourseCronjobRequest {
+  @IsString()
+  id: string;
+
+  @IsNumber()
+  @Min(1)
+  courseMoodleId: number;
+
+  @IsNumber()
+  @Min(1)
+  endAt: number;
 }

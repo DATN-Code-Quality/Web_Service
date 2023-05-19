@@ -69,7 +69,7 @@ export class SubmissionReqDto extends BaseEntity {
   origin: SUBMISSION_ORIGIN;
 
   @ApiProperty()
-  @IsNumber()
+  // @IsNumber()
   @Column('tinyint', { name: 'status', width: 1 })
   status: SUBMISSION_STATUS;
 

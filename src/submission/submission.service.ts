@@ -23,15 +23,22 @@ export class SubmissionService extends BaseService<
 
   async findSubmissionsByAssigmentId(
     assignmentId: string,
+    limit: number,
+    offset: number,
   ): Promise<OperationResult<any>> {
     return await this.submissionRepository
       .find({
         where: {
           assignmentId: assignmentId,
         },
+        order: {
+          updatedAt: 'DESC',
+        },
         relations: {
           user: true,
         },
+        skip: offset,
+        take: limit,
       })
       .then((submissions) => {
         for (let i = 0; i < submissions.length; i++) {

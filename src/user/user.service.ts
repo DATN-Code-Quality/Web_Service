@@ -179,6 +179,8 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     userId: string,
     role: string,
     status: USER_STATUS,
+    limit: number,
+    offset: number,
   ) {
     return await this.userRepository
       .find({
@@ -200,6 +202,8 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
             status: status,
           },
         ],
+        skip: offset,
+        take: limit,
       })
 
       .then((users) => {
@@ -215,7 +219,6 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
   }
 
   async upsertUsers(users: User[]) {
-    console.log(users);
     const moodleIds = users.map((user) => {
       return user.moodleId;
     });
