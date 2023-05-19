@@ -1,4 +1,4 @@
-import { error } from 'console';
+import { ConfigObject } from 'src/assignment/req/assignment-req.dto';
 
 export interface Condition {
   key: string;
@@ -16,54 +16,53 @@ export interface QualityGateResponse {
   message: string;
 }
 
-export function defaultConfig(assignmentId: string) {
-  return {
-    assignmentId: assignmentId,
-    conditions: [
-      {
-        key: 'code_smells',
-        error: 20,
-      },
-      {
-        key: 'bugs',
-        error: 10,
-      },
-      {
-        key: 'vulnerabilities',
-        error: 10,
-      },
-      {
-        key: 'violations',
-        error: 20,
-      },
-      {
-        key: 'blocker_violations',
-        error: 10,
-      },
-      {
-        key: 'critical_violations',
-        error: 10,
-      },
-      {
-        key: 'major_violations',
-        error: 10,
-      },
-      {
-        key: 'minor_violations',
-        error: 10,
-      },
-      {
-        key: 'info_violations',
-        error: 10,
-      },
-      {
-        key: 'duplicated_lines_density',
-        error: 10,
-      },
-      {
-        key: 'coverage',
-        error: 0,
-      },
-    ],
-  };
+export function createCondition(configObject: ConfigObject): Condition[] {
+  return [
+    {
+      key: 'code_smells',
+      error: configObject.code_smells,
+    },
+    {
+      key: 'bugs',
+      error: configObject.bugs,
+    },
+    {
+      key: 'vulnerabilities',
+      error: configObject.vulnerabilities,
+    },
+    {
+      key: 'violations',
+      error: configObject.violations,
+    },
+    {
+      key: 'blocker_violations',
+      error: configObject.blocker_violations,
+    },
+    {
+      key: 'critical_violations',
+      error: configObject.critical_violations,
+    },
+    {
+      key: 'major_violations',
+      error: configObject.major_violations,
+    },
+    {
+      key: 'minor_violations',
+      error: configObject.minor_violations,
+    },
+    {
+      key: 'info_violations',
+      error: configObject.info_violations,
+    },
+    {
+      key: 'duplicated_lines_density',
+      error: configObject.duplicated_lines_density,
+      // ? configObject.duplicated_lines_density
+      // : 100,
+    },
+    {
+      key: 'coverage',
+      error: configObject.coverage, //? configObject.coverage : 0,
+    },
+  ];
 }

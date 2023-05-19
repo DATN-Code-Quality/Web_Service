@@ -30,7 +30,7 @@ import { Public, Roles, SubRoles } from 'src/auth/auth.decorator';
 import { Role, SubRole } from 'src/auth/auth.const';
 import { OperationResult } from 'src/common/operation-result';
 import { GSonarqubeService } from 'src/gRPc/services/sonarqube';
-import { defaultConfig } from 'src/gRPc/interfaces/sonarqube/QulaityGate';
+import { createCondition } from 'src/gRPc/interfaces/sonarqube/QulaityGate';
 import { UserReqDto } from 'src/user/req/user-req.dto';
 
 @ApiTags('Assignment')
@@ -77,9 +77,10 @@ export class AssignmentController implements OnModuleInit {
     if (result.isOk()) {
       for (let i = 0; i < result.data.length; i++) {
         const response = await firstValueFrom(
-          this.gSonarqubeService.createQualityGate(
-            defaultConfig(result.data[i].id),
-          ),
+          this.gSonarqubeService.createQualityGate({
+            assignmentId: result.data[i].id,
+            conditions: createCondition(JSON.parse(result.data[i].config)),
+          }),
         );
 
         if (response.error === 0) {
@@ -130,29 +131,35 @@ export class AssignmentController implements OnModuleInit {
     @Request() req,
   ) {
     assignment.courseId = courseId;
+    assignment.config = JSON.stringify(assignment.configObject);
 
     const result = await this.assignmentService.create(
       AssignmentReqDto,
       assignment,
     );
 
+    const conditions = createCondition(assignment.configObject);
     if (result.isOk()) {
       const response = await firstValueFrom(
-        this.gSonarqubeService.createQualityGate(defaultConfig(result.data.id)),
+        this.gSonarqubeService.createQualityGate({
+          assignmentId: result.data.id,
+          conditions: conditions, //createCondition(assignment.configObject),
+        }),
       );
 
       if (response.error === 0) {
-        await this.assignmentService.update(result.data.id, {
-          config: response.data,
-        } as AssignmentResDto);
+        return OperationResult.ok({
+          assignment: result.data,
+          role: req.headers['role'],
+        });
+        // await this.assignmentService.update(result.data.id, {
+        //   config: response.data,
+        // } as AssignmentResDto);
 
-        result.data.config = response.data;
+        // result.data.config = response.data;
+      } else {
+        return OperationResult.error(new Error(response.message));
       }
-
-      return OperationResult.ok({
-        assignment: result.data,
-        role: req.headers['role'],
-      });
     }
 
     // const result = await firstValueFrom(
@@ -263,21 +270,23 @@ export class AssignmentController implements OnModuleInit {
     @Body() data,
     @Request() req,
   ) {
-    //parse config thành 1 list các điều kiện
-    const conditions = defaultConfig(`${Date.now.toString()}`);
-
-    const result = await firstValueFrom(
-      this.gSonarqubeService.updateConditions({
-        assignmentId: assignmentId,
-        conditions: conditions.conditions,
-      }),
-    );
     const payload = {
       name: data['name'],
       dueDate: data['dueDate'],
       description: data['description'],
-      config: data['config'],
+      config: JSON.stringify(data['configObject']),
     };
+
+    //parse config thành 1 list các điều kiện
+    const conditions = createCondition(data['configObject']);
+
+    const result = await firstValueFrom(
+      this.gSonarqubeService.updateConditions({
+        assignmentId: assignmentId,
+        conditions: conditions,
+      }),
+    );
+
     if (result.error === 0) {
       //Lưu payload vào db
       const assignment = await this.assignmentService.update(
