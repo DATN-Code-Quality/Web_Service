@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { BaseService } from 'src/common/base.service';
@@ -9,17 +9,47 @@ import { UserResDto } from 'src/user/res/user-res.dto';
 import { CourseResDto } from 'src/course/res/course-res.dto';
 import { OperationResult } from 'src/common/operation-result';
 import { SubRole } from 'src/auth/auth.const';
+import { GUserService } from 'src/gRPc/services/user';
+import { ClientGrpc } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
+import { ServiceResponse } from 'src/common/service-response';
+import { CourseReqDto } from 'src/course/req/course-req.dto';
+import { CourseService } from 'src/course/course.service';
 
 @Injectable()
 export class UserCourseService extends BaseService<
   UserCourseReqDto,
   UserCourseResDto
 > {
+  private gUserMoodleService: GUserService;
   constructor(
+    @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
     @InjectRepository(UserCourseReqDto)
     private readonly usercourseRepository: Repository<UserCourseReqDto>,
+    @Inject(forwardRef(() => CourseService))
+    private readonly courseService: CourseService,
   ) {
     super(usercourseRepository);
+  }
+
+  onModuleInit() {
+    this.gUserMoodleService =
+      this.client.getService<GUserService>('GUserService');
+  }
+
+  async getUsersByCourseMoodleId(courseMoodleId: number) {
+    const response$ = this.gUserMoodleService
+      .getUsersByCourseMoodleId({
+        courseMoodleId,
+      })
+      .pipe();
+    const resultDTO = await firstValueFrom(response$);
+    // 6 is error in third party with no participant in this course
+    if (resultDTO?.error == 6) {
+      resultDTO.error = 0;
+      resultDTO.data = [];
+    }
+    return resultDTO;
   }
 
   async findUserCoursesByUserId(
@@ -40,7 +70,7 @@ export class UserCourseService extends BaseService<
   async findUsersByCourseId(
     courseId: string,
     role: string,
-  ): Promise<OperationResult<Array<UserCourseResDto>>> {
+  ): Promise<OperationResult<Array<UserResDto>>> {
     const usercourses = await this.usercourseRepository.find({
       order: {
         user: {
@@ -62,42 +92,69 @@ export class UserCourseService extends BaseService<
       usercourses[i].user = plainToInstance(UserResDto, usercourses[i].user, {
         excludeExtraneousValues: true,
       });
+
+      usercourses[i].user.role = usercourses[i].role;
+
+      users.push(usercourses[i].user);
     }
 
-    // usercourses.forEach((usercourse) => {
-    //   users.push(
-    //     plainToInstance(UserResDto, usercourse.user, {
-    //       excludeExtraneousValues: true,
-    //     }),
-    //   );
-    // });
-
-    return OperationResult.ok(usercourses);
+    return OperationResult.ok(users);
   }
 
   async findCoursesByUserId(
     userId: string,
+    role: string,
+    name: string,
+    startAt: Date,
+    endAt: Date,
   ): Promise<OperationResult<Array<CourseResDto>>> {
     const usercourses = await this.usercourseRepository.find({
       where: {
         userId: userId,
-      },
-      relations: {
-        course: true,
+        role: role,
       },
     });
 
-    const courses = [] as CourseResDto[];
+    const courseIds = usercourses.map((usercourse) => usercourse.courseId);
+    return this.courseService.getCoursesByIds(courseIds, name, startAt, endAt);
+    // const courses = await this.usercourseRepository.createQueryBuilder('course')
+    // .where('course.id IN (:...ids) and course.deletedAt is null', {
+    //   ids: courseIds,
+    // })
+    // .getMany()
+    // .then((upsertedCategories) => {
+    //   insertResult.data.forEach((category) => {
+    //     upsertedCategories.push(category);
+    //   });
+    //   return OperationResult.ok(
+    //     plainToInstance(CategoryResDto, upsertedCategories, {
+    //       excludeExtraneousValues: true,
+    //     }),
+    //   );
+    // })
+    // .catch((e) => {
+    //   return OperationResult.error(new Error(e));
+    // });
 
-    usercourses.forEach((usercourse) => {
-      courses.push(
-        plainToInstance(CourseResDto, usercourse.course, {
-          excludeExtraneousValues: true,
-        }),
-      );
-    });
+    // const promiseCourses = await Promise.all(
+    //   usercourses.map(async (usercourse) => {
+    //     return await this.courseService.findCourses(
+    //       usercourse.courseId,
+    //       name,
+    //       startAt,
+    //       endAt,
+    //     );
+    //   }),
+    // );
+    // const courses = promiseCourses.filter(
+    //   (promiseCourse) => promiseCourse[0] != null,
+    // );
 
-    return OperationResult.ok(courses);
+    // return OperationResult.ok(
+    //   plainToInstance(CourseResDto, courses, {
+    //     excludeExtraneousValues: true,
+    //   }),
+    // );
   }
 
   async findUserCoursesByCourseIdAndUserId(

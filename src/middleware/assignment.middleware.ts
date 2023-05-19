@@ -14,6 +14,13 @@ export class AssignmentMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     const courseId = req.params['courseId'];
     const assignmentId = req.params['assignmentId'];
+    const regexExp =
+      /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+
+    if (regexExp.test(assignmentId) == false) {
+      next();
+      return;
+    }
 
     const result = await this.assignmentService.findOne(
       AssignmentResDto,

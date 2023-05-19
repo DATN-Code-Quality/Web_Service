@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Body, Injectable } from '@nestjs/common';
 import { USER_STATUS, UserReqDto } from './req/user-req.dto';
 import { BaseService } from 'src/common/base.service';
 import { UserResDto } from './res/user-res.dto';
@@ -8,6 +8,8 @@ import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcrypt';
 import { SALTROUNDS } from './user.controller';
+import { Role } from 'src/auth/auth.const';
+import { User } from 'src/gRPc/interfaces/User';
 
 @Injectable()
 export class UserService extends BaseService<UserReqDto, UserResDto> {
@@ -70,7 +72,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       });
   }
 
-  async addUsers(users: UserReqDto[]): Promise<OperationResult<UserResDto>> {
+  async addUsers(users: UserReqDto[]): Promise<OperationResult<UserResDto[]>> {
     const salt = await bcrypt.genSalt(SALTROUNDS);
     const hash = users.map(async (user) => {
       const hashedPassword = await bcrypt.hash(user.password || '1234', salt);
@@ -172,17 +174,32 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       });
   }
 
-  async findAllUsers(name: string, userId: string, role: string) {
+  async findAllUsers(
+    search: string,
+    userId: string,
+    role: string,
+    status: USER_STATUS,
+  ) {
     return await this.userRepository
       .find({
         order: {
-          userId: 'ASC',
+          // userId: 'ASC',
+          updatedAt: 'DESC',
         },
-        where: {
-          name: Like(`%${name}%`),
-          userId: Like(`%${userId}%`),
-          role: role,
-        },
+        where: [
+          {
+            name: Like(`%${search}%`),
+            userId: Like(`%${userId}%`),
+            role: role,
+            status: status,
+          },
+          {
+            email: Like(`%${search}%`),
+            userId: Like(`%${userId}%`),
+            role: role,
+            status: status,
+          },
+        ],
       })
 
       .then((users) => {
@@ -195,5 +212,86 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       .catch((err) => {
         return OperationResult.error(err);
       });
+  }
+
+  async upsertUsers(users: User[]) {
+    console.log(users);
+    const moodleIds = users.map((user) => {
+      return user.moodleId;
+    });
+
+    const savedUsers = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.moodleId IN (:...moodleIds) and user.deletedAt is null', {
+        moodleIds: moodleIds,
+      })
+      .getMany()
+      .then((result) => {
+        return result;
+      })
+      .catch((e) => {
+        return [];
+      });
+
+    console.log(savedUsers);
+
+    const insertUser = [];
+    const updatedUserIds = [];
+
+    for (let j = 0; j < users.length; j++) {
+      let isExist = false;
+      users[j].role = Role.USER;
+
+      for (let i = 0; i < savedUsers.length; i++) {
+        if (users[j].moodleId == savedUsers[i].moodleId) {
+          users[j].status = USER_STATUS.ACTIVE;
+
+          await this.userRepository
+            .update(savedUsers[i].id, users[j])
+            .catch((e) => {
+              return OperationResult.error(
+                new Error(`Can not update users: ${e.message}`),
+              );
+            });
+          isExist = true;
+          updatedUserIds.push(savedUsers[i].id);
+          break;
+        }
+      }
+      if (!isExist) {
+        insertUser.push(users[j]);
+      }
+    }
+
+    const insertResult = await this.addUsers(insertUser);
+
+    if (insertResult.isOk()) {
+      if (updatedUserIds.length > 0) {
+        return this.userRepository
+          .createQueryBuilder('user')
+          .where('user.id IN (:...ids) and user.deletedAt is null', {
+            ids: updatedUserIds,
+          })
+          .getMany()
+          .then((upsertedUsers) => {
+            const userRes = plainToInstance(UserResDto, upsertedUsers, {
+              excludeExtraneousValues: true,
+            });
+            insertResult.data.forEach((user) => {
+              userRes.push(user);
+            });
+            return OperationResult.ok(userRes);
+          })
+          .catch((e) => {
+            return OperationResult.error(new Error(e));
+          });
+      } else {
+        return insertResult;
+      }
+    } else {
+      return OperationResult.error(
+        new Error(`Can not import users: ${insertResult.message}`),
+      );
+    }
   }
 }

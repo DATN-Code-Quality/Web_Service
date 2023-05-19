@@ -27,12 +27,24 @@ export class RolesGuard implements CanActivate {
         return true;
       }
 
-      return requiredRoles.some((role) => payload.user.role === role);
+      if (requiredRoles.some((role) => payload.user.role === role)) {
+        return true;
+      } else {
+        context.getArgByIndex(1).status(200).json({
+          status: 1,
+          message: `You can not call this api`,
+        });
+      }
+
+      return;
     } catch (error) {
       if (context.getArgByIndex(0).route.path.includes('/api/auth/login')) {
         return true;
       }
-      return false;
+      return context.getArgByIndex(1).status(200).json({
+        status: 1,
+        message: `Unauthenticated`,
+      });
     }
   }
 }

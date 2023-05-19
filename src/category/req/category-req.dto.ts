@@ -11,7 +11,12 @@ export class CategoryReqDto extends BaseEntity {
   name: string;
 
   @ApiProperty()
-  @IsString()
-  @Column('varchar', { name: 'categoryMoodleId', length: 255 })
+  // @IsString()
+  @Column('varchar', {
+    name: 'categoryMoodleId',
+    length: 255,
+    nullable: true,
+    unique: true,
+  })
   categoryMoodleId: string;
 }

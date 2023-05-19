@@ -24,6 +24,8 @@ import { firstValueFrom } from 'rxjs';
 import { ServiceResponse } from 'src/common/service-response';
 import { Public, Roles } from 'src/auth/auth.decorator';
 import { Role } from 'src/auth/auth.const';
+import { User } from 'src/gRPc/interfaces/User';
+import { USER_STATUS } from './req/user-req.dto';
 export const SALTROUNDS = 10;
 @ApiTags('User')
 @Controller('/api/user')
@@ -43,42 +45,39 @@ export class UserController implements OnModuleInit {
   }
 
   @Roles(Role.SUPERADMIN, Role.ADMIN)
+  @Post('/import-sync-users')
+  async syncUsers(
+    @Body(new ParseArrayPipe({ items: UserReqDto })) users: User[],
+  ) {
+    const result = await this.userService.upsertUsers(users);
+    return result;
+  }
+
+  @Roles(Role.SUPERADMIN, Role.ADMIN)
   @Post('/')
+  async addUser(@Body() user: UserReqDto) {
+    user.status = USER_STATUS.ACTIVE;
+    const result = await this.userService.addUsers([user]);
+    return result;
+  }
+
+  @Roles(Role.SUPERADMIN, Role.ADMIN)
+  @Post('/users')
   async addUsers(
     @Body(new ParseArrayPipe({ items: UserReqDto })) users: UserReqDto[],
   ) {
+    for (let i = 0; i < users.length; i++) {
+      users[i].status = USER_STATUS.ACTIVE;
+    }
     const result = await this.userService.addUsers(users);
     return result;
   }
-
-  @Roles(Role.USER)
-  @Put('/')
-  async updateUserByUser(@Request() req, @Body() userInfo: UserReqDto) {
-    const result = await this.userService.updateUser(
-      req.headers.userId,
-      userInfo,
-    );
-    return result;
-  }
-
-  @Put('/change-password')
-  async changePassword(@Body() data, @Request() req) {
-    const userId = req.headers['userId'];
-    return this.userService.changePassword(userId, data['password']);
-  }
-
   @Roles(Role.ADMIN, Role.SUPERADMIN)
   @Put('/change-status')
   async changeStatus(@Body() data) {
     const ids = data['ids'];
     const status = data['status'];
     return this.userService.changeStatus(ids, status);
-  }
-
-  @Put('/active-account')
-  async activeAccount(@Request() req) {
-    const userId = req.headers['userId'];
-    return this.userService.activeAccount(userId);
   }
 
   @Roles(Role.SUPERADMIN, Role.ADMIN, Role.USER)
@@ -101,11 +100,17 @@ export class UserController implements OnModuleInit {
   @Roles(Role.ADMIN, Role.SUPERADMIN)
   @Get('/all-users')
   async getAllUsers(
-    @Query('name', new DefaultValuePipe('')) name: string,
+    @Query('search', new DefaultValuePipe('')) search: string,
     @Query('userId', new DefaultValuePipe('')) userId: string,
     @Query('role', new DefaultValuePipe(null)) role: string,
+    @Query('status', new DefaultValuePipe(null)) status: USER_STATUS,
   ) {
-    const result = await this.userService.findAllUsers(name, userId, role);
+    const result = await this.userService.findAllUsers(
+      search,
+      userId,
+      role,
+      status,
+    );
     return result;
   }
 
@@ -141,5 +146,10 @@ export class UserController implements OnModuleInit {
     const resultDTO = await firstValueFrom(response$);
     const result = ServiceResponse.resultFromServiceResponse(resultDTO, 'data');
     return result;
+  }
+
+  @Post('/import')
+  async importuser(@Body() users: UserReqDto[]) {
+    return this.userService.upsertUsers(users);
   }
 }

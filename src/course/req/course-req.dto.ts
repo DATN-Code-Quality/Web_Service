@@ -17,8 +17,13 @@ export class CourseReqDto extends BaseEntity {
   moodleId: string;
 
   @ApiProperty()
-  @IsString()
-  @Column('varchar', { name: 'courseMoodleId', length: 255 })
+  // @IsString()
+  @Column('varchar', {
+    name: 'courseMoodleId',
+    length: 255,
+    nullable: true,
+    unique: true,
+  })
   courseMoodleId: string;
 
   @ApiProperty()

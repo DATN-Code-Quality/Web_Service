@@ -38,4 +38,9 @@ export class CategoryController {
     );
     return result;
   }
+  // @Roles(Role.ADMIN)
+  // @Post('/import')
+  // async importuser(@Body() categories: CategoryReqDto[]) {
+  //   return this.categoryService.upsertCategories(categories);
+  // }
 }

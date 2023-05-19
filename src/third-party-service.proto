@@ -12,7 +12,7 @@ message User {
   string role = 3;
   string userId = 4;
   string moodleId = 5;
-  bool status = 6;
+  int32 status = 6;
 }
 
 message Course {    
@@ -79,6 +79,10 @@ message UsersResponse {
 
 message GetCourseOfUserRequest {
   int32 userMoodleId = 1;
+}
+
+message CourseUserRequest {
+  int32 courseMoodleId = 1;
 }
 
 message GetAssignmentsOfCourseRequest {
@@ -323,6 +327,7 @@ service GSubmissionService {
 service GUserService {
   rpc GetUsersByEmails(GetUsersRequest) returns (UsersResponse);
   rpc GetAllUsers(Empty) returns (UsersResponse);
+  rpc GetUsersByCourseMoodleId(CourseUserRequest) returns (UsersResponse);
 }
 
 service GCourseService {

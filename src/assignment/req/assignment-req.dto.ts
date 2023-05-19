@@ -10,6 +10,20 @@ import {
 import { BaseEntity } from 'src/common/base.entity';
 import { Column, Entity } from 'typeorm';
 
+export interface ConfigObject {
+  code_smells?: number;
+  bugs?: number;
+  vulnerabilities?: number;
+  violations?: number;
+  blocker_violations?: number;
+  critical_violations?: number;
+  major_violations?: number;
+  minor_violations?: number;
+  info_violations?: number;
+  duplicated_lines_density?: number;
+  coverage?: number;
+}
+
 @Entity('assignment', { schema: 'sonarqube' })
 export class AssignmentReqDto extends BaseEntity {
   @ApiProperty()
@@ -18,8 +32,13 @@ export class AssignmentReqDto extends BaseEntity {
   name: string;
 
   @ApiProperty()
-  @IsString()
-  @Column('varchar', { name: 'assignmentMoodleId', length: 10 })
+  // @IsString()
+  @Column('varchar', {
+    name: 'assignmentMoodleId',
+    length: 10,
+    nullable: true,
+    unique: true,
+  })
   assignmentMoodleId: string;
 
   @ApiProperty()
@@ -51,8 +70,10 @@ export class AssignmentReqDto extends BaseEntity {
   })
   attachmentFileLink: string | null;
 
+  //Object:
   @ApiProperty()
-  @IsString()
+  configObject: ConfigObject;
+
   @Column('varchar', { name: 'config', length: 255 })
   config: string;
 }
