@@ -152,4 +152,16 @@ export class AssignmentService extends BaseService<
       );
     }
   }
+  // async exportResult(assignmentId: string) {
+
+  //   const scanResult =
+  //     await this.submissionService.countSubmissionByAssignmentIdAndGroupByStatus(
+  //       assignmentId,
+  //     );
+
+  //   return OperationResult.ok({
+  //     total: studentTotal,
+  //     submission: scanResult,
+  //   });
+  // }
 }
