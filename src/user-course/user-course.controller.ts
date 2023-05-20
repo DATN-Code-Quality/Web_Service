@@ -90,6 +90,11 @@ export class UserCourseController {
       })
       .pipe();
     const resultDTO = await firstValueFrom(response$);
+    // 6 is error in third party with no participant in this course
+    if (resultDTO?.error == 6) {
+      resultDTO.error = 0;
+      resultDTO.data = [];
+    }
     const result = ServiceResponse.resultFromServiceResponse(resultDTO, 'data');
     return result;
   }
@@ -174,6 +179,7 @@ export class UserCourseController {
     const copyUsers = JSON.parse(JSON.stringify(users));
     const newUsers = await this.userService.upsertUsers(users);
     const userDto = newUsers.data as any;
+    if (!userDto) return;
     const teacherIds = userDto
       .filter((user) => {
         const role = copyUsers.find(
@@ -197,8 +203,8 @@ export class UserCourseController {
     // this.userCourseService.addUsersIntoCourse(courseId, teacherIds, studentIds);
     const result = await this.userCourseService.addUsersIntoCourse(
       courseId,
-      teacherIds,
       studentIds,
+      teacherIds,
     );
     return result;
   }
