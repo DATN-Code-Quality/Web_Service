@@ -179,6 +179,7 @@ export class UserCourseController {
     const copyUsers = JSON.parse(JSON.stringify(users));
     const newUsers = await this.userService.upsertUsers(users);
     const userDto = newUsers.data as any;
+    if (!userDto) return;
     const teacherIds = userDto
       .filter((user) => {
         const role = copyUsers.find(
@@ -202,8 +203,8 @@ export class UserCourseController {
     // this.userCourseService.addUsersIntoCourse(courseId, teacherIds, studentIds);
     const result = await this.userCourseService.addUsersIntoCourse(
       courseId,
-      teacherIds,
       studentIds,
+      teacherIds,
     );
     return result;
   }
