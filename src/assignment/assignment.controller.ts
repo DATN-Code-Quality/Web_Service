@@ -365,7 +365,7 @@ export class AssignmentController implements OnModuleInit {
     }
 
     return OperationResult.ok({
-      result: data,
+      results: data,
       role: SubRole.TEACHER,
     });
   }
