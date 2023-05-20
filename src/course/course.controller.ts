@@ -93,8 +93,8 @@ export class CourseController implements OnModuleInit {
         .map((user) => user.id);
       this.userCourseService.addUsersIntoCourse(
         course.id,
-        teacherIds,
         studentIds,
+        teacherIds,
       );
     });
     return result;

@@ -220,8 +220,8 @@ export class UserCourseService extends BaseService<
       },
     });
 
-    const insertUserCourses = [];
     if (savedUserCourses.length > 0) {
+      const insertUserCourses = [];
       for (let j = 0; j < usercourses.length; j++) {
         let isExist = false;
         for (let i = 0; i < savedUserCourses.length; i++) {
@@ -236,8 +236,10 @@ export class UserCourseService extends BaseService<
           insertUserCourses.push(usercourses[j]);
         }
       }
+      await this.createMany(UserCourseResDto, insertUserCourses);
+    } else {
+      await this.createMany(UserCourseResDto, usercourses);
     }
-    await this.createMany(UserCourseResDto, insertUserCourses);
     return await this.usercourseRepository
       .createQueryBuilder('user_course')
       .where(
