@@ -9,7 +9,7 @@ import {
   ParseArrayPipe,
   Post,
   Query,
-  Request
+  Request,
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
@@ -70,6 +70,7 @@ export class CourseController implements OnModuleInit {
       const copyUsers = JSON.parse(JSON.stringify(users));
       const newUsers = await this.userService.upsertUsers(users);
       const userDto = newUsers.data as any;
+      if (!userDto) return;
       const teacherIds = userDto
         .filter((user) => {
           const role = copyUsers.find(

@@ -90,6 +90,11 @@ export class UserCourseController {
       })
       .pipe();
     const resultDTO = await firstValueFrom(response$);
+    // 6 is error in third party with no participant in this course
+    if (resultDTO?.error == 6) {
+      resultDTO.error = 0;
+      resultDTO.data = [];
+    }
     const result = ServiceResponse.resultFromServiceResponse(resultDTO, 'data');
     return result;
   }
