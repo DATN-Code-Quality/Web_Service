@@ -1,32 +1,31 @@
 import {
   Body,
   Controller,
-  Delete,
+  DefaultValuePipe,
   Get,
   Inject,
   OnModuleInit,
-  DefaultValuePipe,
   Param,
   ParseArrayPipe,
   Post,
-  Put,
   Query,
   Request,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { CourseService } from './course.service';
-import { CourseResDto } from './res/course-res.dto';
-import { CourseReqDto } from './req/course-req.dto';
-import { ServiceResponse } from 'src/common/service-response';
-import { GCourseService } from 'src/gRPc/services/course';
-import { GCategoryService } from 'src/gRPc/services/category';
 import { ClientGrpc } from '@nestjs/microservices';
+import { ApiTags } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
-import { Roles, SubRoles } from 'src/auth/auth.decorator';
 import { Role, SubRole } from 'src/auth/auth.const';
+import { Roles, SubRoles } from 'src/auth/auth.decorator';
+import { OperationResult } from 'src/common/operation-result';
+import { ServiceResponse } from 'src/common/service-response';
+import { CourseCronjobRequest } from 'src/gRPc/interfaces/Course';
+import { GCategoryService } from 'src/gRPc/services/category';
+import { GCourseService } from 'src/gRPc/services/course';
 import { UserCourseService } from 'src/user-course/user-course.service';
 import { UserService } from 'src/user/user.service';
-import { OperationResult } from 'src/common/operation-result';
+import { CourseService } from './course.service';
+import { CourseReqDto } from './req/course-req.dto';
+import { CourseResDto } from './res/course-res.dto';
 @ApiTags('Course')
 @Controller('/api/course')
 export class CourseController implements OnModuleInit {
@@ -53,42 +52,57 @@ export class CourseController implements OnModuleInit {
   ) {
     // const result = await this.courseService.createMany(CourseResDto, courses);
     const result = await this.courseService.upsertCourses(courses);
+    const a = result.data.map((course, index) => {
+      const asyncFunc = async () => {
+        const cronJobData: CourseCronjobRequest = {
+          id: course.id,
+          courseMoodleId: course.courseMoodleId,
+          endAt: course.endAt,
+        };
 
-    result.data.map(async (course) => {
-      const users = (
-        await this.userCourseService.getUsersByCourseMoodleId(
-          parseInt(course.courseMoodleId),
-        )
-      ).data;
-      const copyUsers = JSON.parse(JSON.stringify(users));
-      const newUsers = await this.userService.upsertUsers(users);
-      const userDto = newUsers.data as any;
-      const teacherIds = userDto
-        .filter((user) => {
-          const role = copyUsers.find(
-            (userRole) => userRole.moodleId === user.moodleId,
-          ).role;
-          if (role == SubRole.TEACHER) {
-            return user;
-          }
-        })
-        .map((user) => user.id);
-      const studentIds = userDto
-        .filter((user) => {
-          const role = copyUsers.find(
-            (userRole) => userRole.moodleId === user.moodleId,
-          ).role;
-          if (role == SubRole.STUDENT) {
-            return user;
-          }
-        })
-        .map((user) => user.id);
-      this.userCourseService.addUsersIntoCourse(
-        course.id,
-        teacherIds,
-        studentIds,
-      );
+        this.gCourseMoodleService.addCourseCronjob(cronJobData);
+
+        const users = (
+          await this.userCourseService.getUsersByCourseMoodleId(
+            parseInt(course.courseMoodleId),
+          )
+        ).data;
+        const copyUsers = JSON.parse(JSON.stringify(users));
+        const newUsers = await this.userService.upsertUsers(users);
+        const userDto = newUsers.data as any;
+        if (!userDto) return;
+        const teacherIds = userDto
+          .filter((user) => {
+            const role = copyUsers.find(
+              (userRole) => userRole.moodleId === user.moodleId,
+            ).role;
+            if (role == SubRole.TEACHER) {
+              return user;
+            }
+          })
+          .map((user) => user.id);
+        const studentIds = userDto
+          .filter((user) => {
+            const role = copyUsers.find(
+              (userRole) => userRole.moodleId === user.moodleId,
+            ).role;
+            if (role == SubRole.STUDENT) {
+              return user;
+            }
+          })
+          .map((user) => user.id);
+        await this.userCourseService.addUsersIntoCourse(
+          course.id,
+          studentIds,
+          teacherIds,
+        );
+      };
+      return asyncFunc;
     });
+    for await (const item of a) {
+      await item();
+    }
+
     return result;
   }
 
@@ -99,12 +113,16 @@ export class CourseController implements OnModuleInit {
     @Query('search', new DefaultValuePipe('')) search: string,
     @Query('startAt', new DefaultValuePipe(null)) startAt: Date,
     @Query('endAt', new DefaultValuePipe(null)) endAt: Date,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const result = await this.courseService.findAllCourses(
       categoryId,
       search,
       startAt,
       endAt,
+      limit,
+      offset,
     );
     return result;
   }

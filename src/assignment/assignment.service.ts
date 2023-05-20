@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { BaseService } from 'src/common/base.service';
 import { AssignmentReqDto } from './req/assignment-req.dto';
 import { AssignmentResDto } from './res/assignment-res.dto';
@@ -9,7 +9,6 @@ import { plainToInstance } from 'class-transformer';
 import { UserCourseService } from 'src/user-course/user-course.service';
 import { SubmissionService } from 'src/submission/submission.service';
 import { SUBMISSION_STATUS } from 'src/submission/req/submission-req.dto';
-import { defaultConfig } from 'src/gRPc/interfaces/sonarqube/QulaityGate';
 
 @Injectable()
 export class AssignmentService extends BaseService<
@@ -20,6 +19,7 @@ export class AssignmentService extends BaseService<
     @InjectRepository(AssignmentReqDto)
     private readonly assignmentRepository: Repository<AssignmentReqDto>, // @Inject(UsersCoursesService) private readonly usersCoursesService: UsersCoursesService,
     private readonly submissionService: SubmissionService,
+    @Inject(forwardRef(() => UserCourseService))
     private readonly usercourseService: UserCourseService,
   ) {
     super(assignmentRepository);
@@ -152,4 +152,16 @@ export class AssignmentService extends BaseService<
       );
     }
   }
+  // async exportResult(assignmentId: string) {
+
+  //   const scanResult =
+  //     await this.submissionService.countSubmissionByAssignmentIdAndGroupByStatus(
+  //       assignmentId,
+  //     );
+
+  //   return OperationResult.ok({
+  //     total: studentTotal,
+  //     submission: scanResult,
+  //   });
+  // }
 }

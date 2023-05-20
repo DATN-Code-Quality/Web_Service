@@ -52,7 +52,7 @@ export class AssignmentReqDto extends BaseEntity {
   status: boolean;
 
   @ApiProperty()
-  @IsString()
+  // @IsString()
   @Column('varchar', { name: 'courseId', length: 255 })
   courseId: string;
 

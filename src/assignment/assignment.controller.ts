@@ -30,8 +30,11 @@ import { Public, Roles, SubRoles } from 'src/auth/auth.decorator';
 import { Role, SubRole } from 'src/auth/auth.const';
 import { OperationResult } from 'src/common/operation-result';
 import { GSonarqubeService } from 'src/gRPc/services/sonarqube';
-import { defaultConfig } from 'src/gRPc/interfaces/sonarqube/QulaityGate';
+import { createCondition } from 'src/gRPc/interfaces/sonarqube/QulaityGate';
 import { UserReqDto } from 'src/user/req/user-req.dto';
+import { GSubmissionService } from 'src/gRPc/services/submission';
+import { SubmissionService } from 'src/submission/submission.service';
+import { SUBMISSION_STATUS } from 'src/submission/req/submission-req.dto';
 
 @ApiTags('Assignment')
 @Controller('/api/assignment')
@@ -41,6 +44,7 @@ export class AssignmentController implements OnModuleInit {
 
   constructor(
     private readonly assignmentService: AssignmentService,
+    private readonly submissionService: SubmissionService,
     @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
   ) {}
 
@@ -69,26 +73,24 @@ export class AssignmentController implements OnModuleInit {
       assignment.courseId = courseId;
       assignment.config = JSON.stringify(assignment.configObject);
     });
-    const result = await this.assignmentService.createMany(
-      AssignmentResDto,
-      assignments,
-    );
+    const result = await this.assignmentService.upsertAssignments(assignments);
 
     if (result.isOk()) {
       for (let i = 0; i < result.data.length; i++) {
         const response = await firstValueFrom(
-          this.gSonarqubeService.createQualityGate(
-            defaultConfig(result.data[i].id),
-          ),
+          this.gSonarqubeService.createQualityGate({
+            assignmentId: result.data[i].id,
+            conditions: createCondition(JSON.parse(result.data[i].config)),
+          }),
         );
 
-        if (response.error === 0) {
-          await this.assignmentService.update(result.data[i].id, {
-            config: response.data,
-          } as AssignmentResDto);
+        // if (response.error === 0) {
+        //   await this.assignmentService.update(result.data[i].id, {
+        //     config: response.data,
+        //   } as AssignmentResDto);
 
-          result.data[i].config = response.data;
-        }
+        //   result.data[i].config = response.data;
+        // }
       }
 
       Logger.debug('Result: ' + JSON.stringify(result));
@@ -130,29 +132,35 @@ export class AssignmentController implements OnModuleInit {
     @Request() req,
   ) {
     assignment.courseId = courseId;
+    assignment.config = JSON.stringify(assignment.configObject);
 
     const result = await this.assignmentService.create(
       AssignmentReqDto,
       assignment,
     );
 
+    const conditions = createCondition(assignment.configObject);
     if (result.isOk()) {
       const response = await firstValueFrom(
-        this.gSonarqubeService.createQualityGate(defaultConfig(result.data.id)),
+        this.gSonarqubeService.createQualityGate({
+          assignmentId: result.data.id,
+          conditions: conditions, //createCondition(assignment.configObject),
+        }),
       );
 
       if (response.error === 0) {
-        await this.assignmentService.update(result.data.id, {
-          config: response.data,
-        } as AssignmentResDto);
+        return OperationResult.ok({
+          assignment: result.data,
+          role: req.headers['role'],
+        });
+        // await this.assignmentService.update(result.data.id, {
+        //   config: response.data,
+        // } as AssignmentResDto);
 
-        result.data.config = response.data;
+        // result.data.config = response.data;
+      } else {
+        return OperationResult.error(new Error(response.message));
       }
-
-      return OperationResult.ok({
-        assignment: result.data,
-        role: req.headers['role'],
-      });
     }
 
     // const result = await firstValueFrom(
@@ -263,21 +271,23 @@ export class AssignmentController implements OnModuleInit {
     @Body() data,
     @Request() req,
   ) {
-    //parse config thành 1 list các điều kiện
-    const conditions = defaultConfig(`${Date.now.toString()}`);
-
-    const result = await firstValueFrom(
-      this.gSonarqubeService.updateConditions({
-        assignmentId: assignmentId,
-        conditions: conditions.conditions,
-      }),
-    );
     const payload = {
       name: data['name'],
       dueDate: data['dueDate'],
       description: data['description'],
-      config: data['config'],
+      config: JSON.stringify(data['configObject']),
     };
+
+    //parse config thành 1 list các điều kiện
+    const conditions = createCondition(data['configObject']);
+
+    const result = await firstValueFrom(
+      this.gSonarqubeService.updateConditions({
+        assignmentId: assignmentId,
+        conditions: conditions,
+      }),
+    );
+
     if (result.error === 0) {
       //Lưu payload vào db
       const assignment = await this.assignmentService.update(
@@ -301,4 +311,62 @@ export class AssignmentController implements OnModuleInit {
   // async importuser(@Body() assignments: AssignmentReqDto[]) {
   //   return this.assignmentService.upsertAssignments(assignments);
   // }
+
+  @SubRoles(SubRole.TEACHER)
+  @Get(':courseId/:assignmentId/export')
+  async exportResult(
+    @Param('courseId') courseId: string,
+    @Param('assignmentId') assignmentId: string,
+    @Request() req,
+  ) {
+    const submissions =
+      await this.submissionService.findSubmissionsByAssigmentId(
+        assignmentId,
+        null,
+        null,
+      );
+
+    const data = [];
+
+    if (submissions.isOk()) {
+      for (let i = 0; i < submissions.data.submissions.length; i++) {
+        const resultItem = {};
+        resultItem['submission'] = {
+          submissionId: submissions.data.submissions[i].status,
+          userId: submissions.data.submissions[i].user.id,
+          userNane: submissions.data.submissions[i].user.id,
+          userMoodleId: submissions.data.submissions[i].user.userId,
+          status: submissions.data.submissions[i].status,
+        };
+
+        if (
+          submissions.data.submissions[i].status == SUBMISSION_STATUS.PASS ||
+          submissions.data.submissions[i].status == SUBMISSION_STATUS.FAIL
+        ) {
+          const results = await firstValueFrom(
+            await this.gSonarqubeService.getResultsBySubmissionId({
+              submissionId: submissions.data.submissions[i].id,
+              page: null,
+              pageSize: null,
+            }),
+          );
+
+          if (results.error == 0) {
+            const metricItem = {};
+            results.data.measures.forEach((measure) => {
+              metricItem[`${measure.metric}`] =
+                measure['history'][measure['history'].length - 1]['value'];
+            });
+            resultItem['result'] = metricItem;
+          }
+        }
+        data.push(resultItem);
+      }
+    }
+
+    return OperationResult.ok({
+      results: data,
+      role: SubRole.TEACHER,
+    });
+  }
 }
