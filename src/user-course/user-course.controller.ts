@@ -60,8 +60,8 @@ export class UserCourseController {
     @Query('role', new DefaultValuePipe(null)) role: string,
     @Query('search', new DefaultValuePipe('')) search: string,
     @Query('status', new DefaultValuePipe(null)) status: USER_STATUS,
-    @Query('limit', new DefaultValuePipe(10)) limit: number,
-    @Query('offset', new DefaultValuePipe(0)) offset: number,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
     @Request() req,
   ) {
     const result = await this.userCourseService.findUsersByCourseId(
@@ -131,8 +131,8 @@ export class UserCourseController {
     @Query('search', new DefaultValuePipe('')) search: string,
     @Query('startAt', new DefaultValuePipe(null)) startAt: Date,
     @Query('endAt', new DefaultValuePipe(null)) endAt: Date,
-    @Query('limit', new DefaultValuePipe(10)) limit: number,
-    @Query('offset', new DefaultValuePipe(0)) offset: number,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const userId = req.headers['userId'];
     const result = await this.userCourseService.findCoursesByUserId(

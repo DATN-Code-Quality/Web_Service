@@ -180,8 +180,8 @@ export class SubmissionController implements OnModuleInit {
     // @Param('submissionId') submissionId: string,
     @Param('assignmentId') assignmentId: string,
     @Request() req,
-    @Query('limit', new DefaultValuePipe(10)) limit: number,
-    @Query('offset', new DefaultValuePipe(0)) offset: number,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const role = req.headers['role'];
     if (role === SubRole.TEACHER) {
