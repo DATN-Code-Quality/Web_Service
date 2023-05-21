@@ -73,8 +73,8 @@ export class UserCourseService extends BaseService<
     role: string,
     search: string,
     status: USER_STATUS,
-    limit: number,
-    offset: number,
+    // limit: number,
+    // offset: number,
   ): Promise<OperationResult<Array<UserResDto>>> {
     const usercourses = await this.usercourseRepository.find({
       order: {
@@ -99,8 +99,8 @@ export class UserCourseService extends BaseService<
       relations: {
         user: true,
       },
-      skip: offset,
-      take: limit,
+      // skip: offset,
+      // take: limit,
     });
 
     const users = [] as UserResDto[];
@@ -124,16 +124,16 @@ export class UserCourseService extends BaseService<
     name: string,
     startAt: Date,
     endAt: Date,
-    limit: number,
-    offset: number,
+    // limit: number,
+    // offset: number,
   ): Promise<OperationResult<Array<CourseResDto>>> {
     const usercourses = await this.usercourseRepository.find({
       where: {
         userId: userId,
         role: role,
       },
-      skip: offset,
-      take: limit,
+      // skip: offset,
+      // take: limit,
     });
 
     const courseIds = usercourses.map((usercourse) => usercourse.courseId);
