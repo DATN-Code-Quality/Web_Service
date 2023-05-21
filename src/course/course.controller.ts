@@ -113,16 +113,16 @@ export class CourseController implements OnModuleInit {
     @Query('search', new DefaultValuePipe('')) search: string,
     @Query('startAt', new DefaultValuePipe(null)) startAt: Date,
     @Query('endAt', new DefaultValuePipe(null)) endAt: Date,
-    @Query('limit', new DefaultValuePipe(null)) limit: number,
-    @Query('offset', new DefaultValuePipe(null)) offset: number,
+    // @Query('limit', new DefaultValuePipe(null)) limit: number,
+    // @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const result = await this.courseService.findAllCourses(
       categoryId,
       search,
       startAt,
       endAt,
-      limit,
-      offset,
+      // limit,
+      // offset,
     );
     return result;
   }

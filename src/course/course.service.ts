@@ -49,8 +49,8 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
     name: string,
     startAt: Date,
     endAt: Date,
-    limit: number,
-    offset: number,
+    // limit: number,
+    // offset: number,
   ): Promise<OperationResult<any>> {
     const [courseMin, courseMax] = await Promise.all([
       this.courseRepository.find({
@@ -91,8 +91,8 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
           startAt: startAt ? Between(startAt, dayMin) : null,
           endAt: endAt ? Between(dayMax, endAt) : null,
         },
-        skip: offset,
-        take: limit,
+        // skip: offset,
+        // take: limit,
       })
       .then((courses) => {
         return OperationResult.ok(
