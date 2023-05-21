@@ -33,6 +33,7 @@ import { AssignmentMiddleware } from './middleware/assignment.middleware';
 import { SubmissionMiddleware } from './middleware/submission.middleware';
 import { SonarqubeModule } from './sonarqube/sonarqube.module';
 import { RoleMiddleware } from './middleware/rule.middleware';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
   imports: [
@@ -89,6 +90,7 @@ import { RoleMiddleware } from './middleware/rule.middleware';
     // RuleModule,
     SonarqubeModule,
     AuthModule,
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

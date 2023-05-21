@@ -73,8 +73,8 @@ export class UserCourseService extends BaseService<
     role: string,
     search: string,
     status: USER_STATUS,
-    limit: number,
-    offset: number,
+    // limit: number,
+    // offset: number,
   ): Promise<OperationResult<Array<UserResDto>>> {
     const usercourses = await this.usercourseRepository.find({
       order: {
@@ -99,8 +99,8 @@ export class UserCourseService extends BaseService<
       relations: {
         user: true,
       },
-      skip: offset,
-      take: limit,
+      // skip: offset,
+      // take: limit,
     });
 
     const users = [] as UserResDto[];
@@ -124,16 +124,16 @@ export class UserCourseService extends BaseService<
     name: string,
     startAt: Date,
     endAt: Date,
-    limit: number,
-    offset: number,
+    // limit: number,
+    // offset: number,
   ): Promise<OperationResult<Array<CourseResDto>>> {
     const usercourses = await this.usercourseRepository.find({
       where: {
         userId: userId,
         role: role,
       },
-      skip: offset,
-      take: limit,
+      // skip: offset,
+      // take: limit,
     });
 
     const courseIds = usercourses.map((usercourse) => usercourse.courseId);
@@ -220,8 +220,8 @@ export class UserCourseService extends BaseService<
       },
     });
 
-    const insertUserCourses = [];
     if (savedUserCourses.length > 0) {
+      const insertUserCourses = [];
       for (let j = 0; j < usercourses.length; j++) {
         let isExist = false;
         for (let i = 0; i < savedUserCourses.length; i++) {
@@ -236,8 +236,10 @@ export class UserCourseService extends BaseService<
           insertUserCourses.push(usercourses[j]);
         }
       }
+      await this.createMany(UserCourseResDto, insertUserCourses);
+    } else {
+      await this.createMany(UserCourseResDto, usercourses);
     }
-    await this.createMany(UserCourseResDto, insertUserCourses);
     return await this.usercourseRepository
       .createQueryBuilder('user_course')
       .where(

@@ -104,16 +104,16 @@ export class UserController implements OnModuleInit {
     @Query('userId', new DefaultValuePipe('')) userId: string,
     @Query('role', new DefaultValuePipe(null)) role: string,
     @Query('status', new DefaultValuePipe(null)) status: USER_STATUS,
-    @Query('limit', new DefaultValuePipe(10)) limit: number,
-    @Query('offset', new DefaultValuePipe(0)) offset: number,
+    // @Query('limit', new DefaultValuePipe(null)) limit: number,
+    // @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const result = await this.userService.findAllUsers(
       search,
       userId,
       role,
       status,
-      limit,
-      offset,
+      // limit,
+      // offset,
     );
     return result;
   }
