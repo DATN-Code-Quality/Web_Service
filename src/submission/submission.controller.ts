@@ -16,6 +16,7 @@ import {
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
+  Logger,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { SubmissionResDto } from './res/submission-res.dto';
@@ -44,7 +45,7 @@ export class SubmissionController implements OnModuleInit {
   constructor(
     @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
     private readonly submissionService: SubmissionService,
-  ) {}
+  ) { }
   onModuleInit() {
     this.gSubmissionService =
       this.client.getService<GSubmissionService>('GSubmissionService');
@@ -101,6 +102,7 @@ export class SubmissionController implements OnModuleInit {
     submission.assignmentId = assignmentId;
     submission.userId = req.headers['userId'];
     submission.status = SUBMISSION_STATUS.SUBMITTED;
+    Logger.debug('Submission: ' + JSON.stringify(submission));
 
     const result = await this.submissionService.upsertSubmission(submission);
 
