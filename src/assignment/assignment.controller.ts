@@ -334,7 +334,7 @@ export class AssignmentController implements OnModuleInit {
         resultItem['submission'] = {
           submissionId: submissions.data.submissions[i].status,
           userId: submissions.data.submissions[i].user.id,
-          userNane: submissions.data.submissions[i].user.id,
+          userName: submissions.data.submissions[i].user.name,
           userMoodleId: submissions.data.submissions[i].user.userId,
           status: submissions.data.submissions[i].status,
         };
