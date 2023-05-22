@@ -14,6 +14,7 @@ npm run build
 echo "Sync dist directory to server..."
 rsync -auvr --delete $local_dir/dist $user@$server:$server_dir/
 rsync -auvr --delete package.json $user@$server:$server_dir/
+rsync -auvr --delete .env $user@$server:$server_dir/
 
 # install node_modules
 echo "Installing node_modules..."
