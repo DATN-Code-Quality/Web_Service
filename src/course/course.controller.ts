@@ -10,6 +10,7 @@ import {
   Post,
   Query,
   Request,
+  Logger,
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
@@ -212,7 +213,11 @@ export class CourseController implements OnModuleInit {
   @SubRoles(SubRole.ADMIN, SubRole.STUDENT, SubRole.TEACHER)
   @Get('/:courseId')
   async getCourseById(@Param('courseId') courseId: string, @Request() req) {
+    Logger.log('getCourseById: Input - courseId: ' + JSON.stringify(courseId));
+
     const result = await this.courseService.findOne(CourseResDto, courseId);
+    Logger.log('getCourseById: Result: ' + JSON.stringify(result));
+
     if (result.isOk()) {
       return OperationResult.ok({
         course: result.data,
