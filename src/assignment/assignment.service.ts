@@ -97,13 +97,15 @@ export class AssignmentService extends BaseService<
           assignments[j].assignmentMoodleId ==
           savedAssignments[i].assignmentMoodleId
         ) {
-          await this.assignmentRepository
-            .update(savedAssignments[i].id, assignments[j])
-            .catch((e) => {
-              return OperationResult.error(
-                new Error(`Can not import assignments: ${e.message}`),
-              );
-            });
+          const { configObject, ...updateAssignment } = assignments[j];
+          await this.update(
+            savedAssignments[i].id,
+            updateAssignment as any,
+          ).catch((e) => {
+            return OperationResult.error(
+              new Error(`Can not import assignments: ${e.message}`),
+            );
+          });
           isExist = true;
           updatedAssignmentIds.push(savedAssignments[i].id);
           break;
