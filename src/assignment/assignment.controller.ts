@@ -5,6 +5,7 @@ import {
   Inject,
   Logger,
   OnModuleInit,
+  DefaultValuePipe,
   Param,
   Post,
   Query,
@@ -228,16 +229,23 @@ export class AssignmentController implements OnModuleInit {
   @Get(':courseId')
   async getAssignmentsByCourseId(
     @Param('courseId') courseId: string,
+    @Query('search', new DefaultValuePipe('')) search: string,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
     @Request() req,
   ) {
     const result = await this.assignmentService.findAssignmentsByCourseId(
       // query['courseId'],
       courseId,
+      search,
+      limit,
+      offset,
     );
 
     if (result.isOk()) {
       return OperationResult.ok({
-        assignments: result.data,
+        total: result.data.total,
+        assignments: result.data.assignments,
         role: req.headers['role'],
       });
     }
