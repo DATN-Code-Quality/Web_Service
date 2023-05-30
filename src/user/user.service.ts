@@ -179,9 +179,25 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     userId: string,
     role: string,
     status: USER_STATUS,
-    // limit: number,
-    // offset: number,
+    limit: number,
+    offset: number,
   ) {
+    const total = await this.userRepository.count({
+      where: [
+        {
+          name: Like(`%${search}%`),
+          userId: Like(`%${userId}%`),
+          role: role,
+          status: status,
+        },
+        {
+          email: Like(`%${search}%`),
+          userId: Like(`%${userId}%`),
+          role: role,
+          status: status,
+        },
+      ],
+    });
     return await this.userRepository
       .find({
         order: {
@@ -202,16 +218,16 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
             status: status,
           },
         ],
-        // skip: offset,
-        // take: limit,
+        skip: offset,
+        take: limit,
       })
-
       .then((users) => {
-        return OperationResult.ok(
-          plainToInstance(UserResDto, users, {
+        return OperationResult.ok({
+          total: total,
+          users: plainToInstance(UserResDto, users, {
             excludeExtraneousValues: true,
           }),
-        );
+        });
       })
       .catch((err) => {
         return OperationResult.error(err);

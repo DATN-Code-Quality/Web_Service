@@ -60,8 +60,8 @@ export class UserCourseController {
     @Query('role', new DefaultValuePipe(null)) role: string,
     @Query('search', new DefaultValuePipe('')) search: string,
     @Query('status', new DefaultValuePipe(null)) status: USER_STATUS,
-    // @Query('limit', new DefaultValuePipe(null)) limit: number,
-    // @Query('offset', new DefaultValuePipe(null)) offset: number,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
     @Request() req,
   ) {
     const result = await this.userCourseService.findUsersByCourseId(
@@ -69,12 +69,13 @@ export class UserCourseController {
       role,
       search,
       status,
-      // limit,
-      // offset,
+      limit,
+      offset,
     );
     if (result.isOk()) {
       return OperationResult.ok({
-        users: result.data,
+        total: result.data['total'],
+        users: result.data['users'],
         role: req.headers['role'],
       });
     }
@@ -108,8 +109,8 @@ export class UserCourseController {
     @Query('name', new DefaultValuePipe('')) name: string,
     @Query('startAt', new DefaultValuePipe('')) startAt: Date,
     @Query('endAt', new DefaultValuePipe('')) endAt: Date,
-    // @Query('limit', new DefaultValuePipe(10)) limit: number,
-    // @Query('offset', new DefaultValuePipe(0)) offset: number,
+    @Query('limit', new DefaultValuePipe(10)) limit: number,
+    @Query('offset', new DefaultValuePipe(0)) offset: number,
   ) {
     const result = await this.userCourseService.findCoursesByUserId(
       userId,
@@ -117,8 +118,8 @@ export class UserCourseController {
       name,
       startAt,
       endAt,
-      // limit,
-      // offset,
+      limit,
+      offset,
     );
     return result;
   }
@@ -131,8 +132,8 @@ export class UserCourseController {
     @Query('search', new DefaultValuePipe('')) search: string,
     @Query('startAt', new DefaultValuePipe(null)) startAt: Date,
     @Query('endAt', new DefaultValuePipe(null)) endAt: Date,
-    // @Query('limit', new DefaultValuePipe(null)) limit: number,
-    // @Query('offset', new DefaultValuePipe(null)) offset: number,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const userId = req.headers['userId'];
     const result = await this.userCourseService.findCoursesByUserId(
@@ -141,8 +142,8 @@ export class UserCourseController {
       search,
       startAt,
       endAt,
-      // limit,
-      // offset,
+      limit,
+      offset,
     );
     return result;
   }

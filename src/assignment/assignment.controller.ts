@@ -322,8 +322,8 @@ export class AssignmentController implements OnModuleInit {
     const submissions =
       await this.submissionService.findSubmissionsByAssigmentId(
         assignmentId,
-        // null,
-        // null,
+        null,
+        null,
       );
 
     const data = [];

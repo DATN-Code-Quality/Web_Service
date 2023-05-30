@@ -180,15 +180,15 @@ export class SubmissionController implements OnModuleInit {
     // @Param('submissionId') submissionId: string,
     @Param('assignmentId') assignmentId: string,
     @Request() req,
-    // @Query('limit', new DefaultValuePipe(null)) limit: number,
-    // @Query('offset', new DefaultValuePipe(null)) offset: number,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const role = req.headers['role'];
     if (role === SubRole.TEACHER) {
       const result = await this.submissionService.findSubmissionsByAssigmentId(
         assignmentId,
-        // limit,
-        // offset,
+        limit,
+        offset,
       );
       return result;
     } else {
