@@ -1,4 +1,4 @@
-import { Body, Injectable } from '@nestjs/common';
+import { Body, Injectable, Logger } from '@nestjs/common';
 import { USER_STATUS, UserReqDto } from './req/user-req.dto';
 import { BaseService } from 'src/common/base.service';
 import { UserResDto } from './res/user-res.dto';
@@ -10,6 +10,8 @@ import bcrypt from 'bcrypt';
 import { SALTROUNDS } from './user.controller';
 import { Role } from 'src/auth/auth.const';
 import { User } from 'src/gRPc/interfaces/User';
+import nodemailer from 'nodemailer';
+import { templateHtml } from 'src/config/templateHtml';
 
 @Injectable()
 export class UserService extends BaseService<UserReqDto, UserResDto> {
@@ -71,6 +73,30 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         return OperationResult.error(err);
       });
   }
+  async sendEmail(user: User) {
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.USER_ACCOUNT,
+        pass: process.env.USER_PASSWORD,
+      },
+      from: process.env.USER_ACCOUNT,
+    });
+    const mainOptions = {
+      from: `<codequality2023@gmail.com>`,
+      to: user.email,
+      subject: 'You are invited into Code Quality Application',
+      text: 'Hello. This email is for your email verification.',
+      html: templateHtml(user),
+    };
+    transporter.sendMail(mainOptions, function (err, info) {
+      if (err) {
+        Logger.log('Send Email Error: ' + JSON.stringify(err));
+      } else {
+        Logger.log('Message sent: ' + JSON.stringify(info.response));
+      }
+    });
+  }
 
   async addUsers(users: UserReqDto[]): Promise<OperationResult<UserResDto[]>> {
     const salt = await bcrypt.genSalt(SALTROUNDS);
@@ -85,6 +111,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     for (let i = 0; i < hash.length; i++) {
       usersAdded.push(await hash[i]);
     }
+
     const result = await this.createMany(UserResDto, usersAdded);
     return result;
   }
