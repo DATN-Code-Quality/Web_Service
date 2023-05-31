@@ -7,6 +7,8 @@ import {
   Response,
   Get,
   Put,
+  Query,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiTags } from '@nestjs/swagger';
@@ -34,16 +36,7 @@ export class AuthController {
   @Public()
   signIn(@Request() req) {
     if (req.user.status === 0) {
-      if (req.user.data.status === USER_STATUS.INACTIVE) {
-        this.userService.sendEmail(req.user.data);
-        return OperationResult.fail(
-          new Error(
-            `Account has been actived. Please check your email to active account.`,
-          ),
-        );
-      } else {
-        return this.authService.generateToken(req.user);
-      }
+      return this.authService.generateToken(req.user);
     } else {
       return req.user;
     }
@@ -78,9 +71,9 @@ export class AuthController {
     return this.userService.changePassword(userId, data['password']);
   }
 
+  @Public()
   @Put('/active-account')
-  async activeAccount(@Request() req) {
-    const userId = req.headers['userId'];
-    return this.userService.activeAccount(userId);
+  async activeAccount(@Query('token', new DefaultValuePipe('')) token: string) {
+    return this.userService.activeAccount(token);
   }
 }

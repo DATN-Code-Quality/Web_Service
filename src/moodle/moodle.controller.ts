@@ -49,8 +49,6 @@ export class MoodleController implements OnModuleInit {
       }),
     );
 
-    console.log(result);
-
     if (result.error === 0) {
       return OperationResult.ok(result.message);
     } else {

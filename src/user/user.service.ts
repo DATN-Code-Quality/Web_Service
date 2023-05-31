@@ -12,12 +12,14 @@ import { Role } from 'src/auth/auth.const';
 import { User } from 'src/gRPc/interfaces/User';
 import nodemailer from 'nodemailer';
 import { templateHtml } from 'src/config/templateHtml';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService extends BaseService<UserReqDto, UserResDto> {
   constructor(
     @InjectRepository(UserReqDto)
     private readonly userRepository: Repository<UserReqDto>, // @Inject(UsersCoursesService) private readonly usersCoursesService: UsersCoursesService,
+    private jwtService: JwtService,
   ) {
     super(userRepository);
   }
@@ -42,22 +44,27 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
           return bcrypt
             .compare(password, savedDtos.password)
             .then((isValid) => {
+              const savedUserRes = plainToInstance(UserResDto, savedDtos, {
+                excludeExtraneousValues: true,
+              });
               if (isValid) {
-                if (savedDtos.status === USER_STATUS.BLOCK) {
+                if (savedUserRes.status === USER_STATUS.BLOCK) {
                   return OperationResult.error(
                     Error('Account has been blocked'),
                   );
                 }
-                // if (savedDtos.status === USER_STATUS.INACTIVE) {
-                //   return OperationResult.error(
-                //     Error('Account has not been actived'),
-                //   );
-                // }
-                return OperationResult.ok(
-                  plainToInstance(UserResDto, savedDtos, {
-                    excludeExtraneousValues: true,
-                  }),
-                );
+                if (savedUserRes.status === USER_STATUS.INACTIVE) {
+                  const token = this.jwtService.sign({
+                    userId: savedUserRes.id,
+                  });
+                  this.sendEmail(savedUserRes as any);
+                  return OperationResult.fail(
+                    new Error(
+                      `Account has been actived. Please check your email to active account.`,
+                    ),
+                  );
+                }
+                return OperationResult.ok(savedUserRes);
               } else {
                 return OperationResult.error(Error('Invalid password'));
               }
@@ -186,29 +193,41 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       });
   }
 
-  async activeAccount(userId: string) {
-    const user = await this.findOne(UserResDto, userId);
+  async activeAccount(token: string) {
+    try {
+      const payload = this.jwtService.decode(token);
 
-    if (user.isOk()) {
-      if (user.data.status === USER_STATUS.ACTIVE) {
-        return OperationResult.ok('Account has been actived');
-      }
-      if (user.data.status === USER_STATUS.BLOCK) {
-        return OperationResult.error(new Error('Account has been blocked. '));
+      if (payload['exp'] < Date.now()) {
+        return OperationResult.error(new Error('Token has expired'));
       }
 
-      return await this.userRepository
-        .createQueryBuilder()
-        .update(UserReqDto)
-        .set({ status: USER_STATUS.ACTIVE })
-        .where('user.id = :id and user.deletedAt is null', { id: userId })
-        .execute()
-        .then(() => {
-          return OperationResult.ok('Active account successfully');
-        })
-        .catch((e) => {
-          return OperationResult.error(e);
-        });
+      const user = await this.findOne(UserResDto, payload['userId']);
+
+      if (user.isOk()) {
+        if (user.data.status === USER_STATUS.ACTIVE) {
+          return OperationResult.ok('Account has been actived');
+        }
+        if (user.data.status === USER_STATUS.BLOCK) {
+          return OperationResult.error(new Error('Account has been blocked. '));
+        }
+
+        return await this.userRepository
+          .createQueryBuilder()
+          .update(UserReqDto)
+          .set({ status: USER_STATUS.ACTIVE })
+          .where('user.id = :id and user.deletedAt is null', {
+            id: payload['userId'],
+          })
+          .execute()
+          .then(() => {
+            return OperationResult.ok('Active account successfully');
+          })
+          .catch((e) => {
+            return OperationResult.error(e);
+          });
+      }
+    } catch (e) {
+      return OperationResult.error(new Error('Token is invalid'));
     }
   }
 
