@@ -18,7 +18,8 @@ import { use } from 'passport';
 import { main } from './outlook';
 import { UserService } from 'src/user/user.service';
 import { UserResDto } from 'src/user/res/user-res.dto';
-import { UserReqDto } from 'src/user/req/user-req.dto';
+import { USER_STATUS, UserReqDto } from 'src/user/req/user-req.dto';
+import { OperationResult } from 'src/common/operation-result';
 
 @ApiTags('auth')
 @Controller('/api/auth')
@@ -33,7 +34,16 @@ export class AuthController {
   @Public()
   signIn(@Request() req) {
     if (req.user.status === 0) {
-      return this.authService.generateToken(req.user);
+      if (req.user.data.status === USER_STATUS.INACTIVE) {
+        this.userService.sendEmail(req.user.data);
+        return OperationResult.fail(
+          new Error(
+            `Account has been actived. Please check your email to active account.`,
+          ),
+        );
+      } else {
+        return this.authService.generateToken(req.user);
+      }
     } else {
       return req.user;
     }

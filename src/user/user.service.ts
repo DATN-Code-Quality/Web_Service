@@ -48,11 +48,11 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
                     Error('Account has been blocked'),
                   );
                 }
-                if (savedDtos.status === USER_STATUS.INACTIVE) {
-                  return OperationResult.error(
-                    Error('Account has not been actived'),
-                  );
-                }
+                // if (savedDtos.status === USER_STATUS.INACTIVE) {
+                //   return OperationResult.error(
+                //     Error('Account has not been actived'),
+                //   );
+                // }
                 return OperationResult.ok(
                   plainToInstance(UserResDto, savedDtos, {
                     excludeExtraneousValues: true,
