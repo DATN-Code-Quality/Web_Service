@@ -155,12 +155,20 @@ export class UserCourseController {
     @Body() data: any,
     // @Body() teacherRoleIds: string[],
   ) {
-    const result = await this.userCourseService.addUsersIntoCourse(
-      courseId,
-      data['studentRoleIds'],
-      data['teacherRoleIds'],
-    );
-    return result;
+    const studentRoleIds =
+      data['studentRoleIds'] == null ? [] : data['studentRoleIds'];
+    const teacherRoleIds =
+      data['teacherRoleIds'] == null ? [] : data['teacherRoleIds'];
+    if (studentRoleIds.length !== 0 || teacherRoleIds.length != 0) {
+      const result = await this.userCourseService.addUsersIntoCourse(
+        courseId,
+        studentRoleIds,
+        teacherRoleIds,
+      );
+      return result;
+    } else {
+      return OperationResult.ok('No user has been added in to course');
+    }
   }
 
   @SubRoles(SubRole.TEACHER, SubRole.ADMIN)

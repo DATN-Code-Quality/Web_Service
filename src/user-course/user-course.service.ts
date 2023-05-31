@@ -246,7 +246,7 @@ export class UserCourseService extends BaseService<
     courseId: string,
     studentRoleIds: string[],
     teacherRoleIds: string[],
-  ): Promise<OperationResult<UserCourseResDto[]>> {
+  ): Promise<OperationResult<string>> {
     let usercourses = [] as UserCourseReqDto[];
 
     if (studentRoleIds) {
@@ -287,26 +287,8 @@ export class UserCourseService extends BaseService<
     } else {
       await this.createMany(UserCourseResDto, usercourses);
     }
-    return await this.usercourseRepository
-      .createQueryBuilder('user_course')
-      .where(
-        'user_course.userId IN (:...studentIds) OR user_course.userId IN (:...teacherIds)  and user_course.deletedAt is null',
-        {
-          studentIds: studentRoleIds,
-          teacherIds: teacherRoleIds,
-        },
-      )
-      .getMany()
-      .then((data) => {
-        return OperationResult.ok(
-          plainToInstance(UserCourseResDto, data, {
-            excludeExtraneousValues: true,
-          }),
-        );
-      })
-      .catch((e) => {
-        return OperationResult.error(new Error(e));
-      });
+
+    return OperationResult.ok('add users into course sucessfully');
   }
 
   async countStudentTotalByCourseId(courseId: string): Promise<number> {

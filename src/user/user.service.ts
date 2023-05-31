@@ -160,18 +160,29 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
   }
 
   async activeAccount(userId: string) {
-    return await this.userRepository
-      .createQueryBuilder()
-      .update(UserReqDto)
-      .set({ status: USER_STATUS.ACTIVE })
-      .where('user.id = :id and user.deletedAt is null', { id: userId })
-      .execute()
-      .then(() => {
-        return OperationResult.ok('Active account successfully');
-      })
-      .catch((e) => {
-        return OperationResult.error(e);
-      });
+    const user = await this.findOne(UserResDto, userId);
+
+    if (user.isOk()) {
+      if (user.data.status === USER_STATUS.ACTIVE) {
+        return OperationResult.ok('Account has been actived');
+      }
+      if (user.data.status === USER_STATUS.BLOCK) {
+        return OperationResult.error(new Error('Account has been blocked. '));
+      }
+
+      return await this.userRepository
+        .createQueryBuilder()
+        .update(UserReqDto)
+        .set({ status: USER_STATUS.ACTIVE })
+        .where('user.id = :id and user.deletedAt is null', { id: userId })
+        .execute()
+        .then(() => {
+          return OperationResult.ok('Active account successfully');
+        })
+        .catch((e) => {
+          return OperationResult.error(e);
+        });
+    }
   }
 
   async findAllUsers(
