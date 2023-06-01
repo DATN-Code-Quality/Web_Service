@@ -178,6 +178,7 @@ message ComponentDetail {
   string name = 4;
   string longName = 5;
   string path = 6;
+  string uuid = 7;
 }
 
 message RuleOverview {
@@ -205,8 +206,9 @@ message IssueRequest {
   string severity = 3;
   string rule = 4;
   string file = 5;
-  int32 page = 6;
-  int32 pageSize = 7;
+  string fileuuid = 6;
+  int32 page = 7;
+  int32 pageSize = 8;
 }
 
 message IssueResponse {
