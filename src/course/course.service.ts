@@ -49,8 +49,8 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
     name: string,
     startAt: Date,
     endAt: Date,
-    // limit: number,
-    // offset: number,
+    limit: number,
+    offset: number,
   ): Promise<OperationResult<any>> {
     const [courseMin, courseMax] = await Promise.all([
       this.courseRepository.find({
@@ -79,6 +79,14 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
       dayMin = endAt;
       dayMax = startAt;
     }
+    const total = await this.courseRepository.count({
+      where: {
+        name: Like(`%${name}%`),
+        categoryId: categoryId,
+        startAt: startAt ? Between(startAt, dayMin) : null,
+        endAt: endAt ? Between(dayMax, endAt) : null,
+      },
+    });
 
     return await this.courseRepository
       .find({
@@ -91,15 +99,16 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
           startAt: startAt ? Between(startAt, dayMin) : null,
           endAt: endAt ? Between(dayMax, endAt) : null,
         },
-        // skip: offset,
-        // take: limit,
+        skip: offset,
+        take: limit,
       })
       .then((courses) => {
-        return OperationResult.ok(
-          plainToInstance(CourseResDto, courses, {
+        return OperationResult.ok({
+          total: total,
+          courses: plainToInstance(CourseResDto, courses, {
             excludeExtraneousValues: true,
           }),
-        );
+        });
       })
       .catch((err) => {
         return OperationResult.error(err);
@@ -197,10 +206,10 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
       await this.userCourseService.countStudentTotalByCourseId(courseId);
 
     const assignments = await this.assignmentService
-      .findAssignmentsByCourseId(courseId)
+      .findAssignmentsByCourseId(courseId, null, null, null)
       .then((result) => {
         if (result.isOk()) {
-          return result.data;
+          return result.data.assignments;
         } else {
           return [];
         }

@@ -50,6 +50,9 @@ export class UserController implements OnModuleInit {
     @Body(new ParseArrayPipe({ items: UserReqDto })) users: User[],
   ) {
     const result = await this.userService.upsertUsers(users);
+    if (result.status === 0) {
+      users.forEach(async (user) => await this.userService.sendEmail(user));
+    }
     return result;
   }
 
@@ -58,6 +61,9 @@ export class UserController implements OnModuleInit {
   async addUser(@Body() user: UserReqDto) {
     user.status = USER_STATUS.ACTIVE;
     const result = await this.userService.addUsers([user]);
+    if (result.status === 0) {
+      await this.userService.sendEmail(user);
+    }
     return result;
   }
 
@@ -104,16 +110,16 @@ export class UserController implements OnModuleInit {
     @Query('userId', new DefaultValuePipe('')) userId: string,
     @Query('role', new DefaultValuePipe(null)) role: string,
     @Query('status', new DefaultValuePipe(null)) status: USER_STATUS,
-    // @Query('limit', new DefaultValuePipe(null)) limit: number,
-    // @Query('offset', new DefaultValuePipe(null)) offset: number,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const result = await this.userService.findAllUsers(
       search,
       userId,
       role,
       status,
-      // limit,
-      // offset,
+      limit,
+      offset,
     );
     return result;
   }

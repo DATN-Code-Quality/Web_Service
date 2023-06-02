@@ -36,6 +36,7 @@ export interface ComponentDetail {
   name: string;
   longName: string;
   path: string;
+  uuid: string;
 }
 
 export interface TextRange {
@@ -53,6 +54,7 @@ export interface IssueRequest {
   severity: string;
   rule: string;
   file: string;
+  fileuuid: string;
   page: number;
   pageSize: number;
 }
