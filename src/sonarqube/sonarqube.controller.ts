@@ -115,7 +115,7 @@ export class SonarqubeController implements OnModuleInit {
     @Query('severity', new DefaultValuePipe(null)) severity: string,
     @Query('rule', new DefaultValuePipe(null)) rule: string,
     @Query('file', new DefaultValuePipe(null)) file: string,
-
+    @Query('fileuuid', new DefaultValuePipe(null)) fileuuid: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('pageSize', new DefaultValuePipe(100), ParseIntPipe)
     pageSize: number,
@@ -128,6 +128,7 @@ export class SonarqubeController implements OnModuleInit {
       severity: severity,
       rule: rule,
       file: file,
+      fileuuid: fileuuid,
     });
 
     const issue = await firstValueFrom(result);
