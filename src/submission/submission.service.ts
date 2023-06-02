@@ -23,15 +23,9 @@ export class SubmissionService extends BaseService<
 
   async findSubmissionsByAssigmentId(
     assignmentId: string,
-    limit: number,
-    offset: number,
+    // limit: number,
+    // offset: number,
   ): Promise<OperationResult<any>> {
-    const total = await this.submissionRepository.count({
-      where: {
-        assignmentId: assignmentId,
-      },
-    });
-
     return await this.submissionRepository
       .find({
         where: {
@@ -43,8 +37,8 @@ export class SubmissionService extends BaseService<
         relations: {
           user: true,
         },
-        skip: offset,
-        take: limit,
+        // skip: offset,
+        // take: limit,
       })
       .then((submissions) => {
         for (let i = 0; i < submissions.length; i++) {
@@ -57,7 +51,6 @@ export class SubmissionService extends BaseService<
           );
         }
         return OperationResult.ok({
-          total: total,
           submissions: submissions,
           role: SubRole.TEACHER,
         });

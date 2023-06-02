@@ -73,9 +73,9 @@ export class UserCourseService extends BaseService<
     role: string,
     search: string,
     status: USER_STATUS,
-    limit: number,
-    offset: number,
-  ): Promise<OperationResult<any>> {
+    // limit: number,
+    // offset: number,
+  ): Promise<OperationResult<Array<UserResDto>>> {
     const usercourses = await this.usercourseRepository.find({
       order: {
         user: {
@@ -99,30 +99,8 @@ export class UserCourseService extends BaseService<
       relations: {
         user: true,
       },
-      skip: offset,
-      take: limit,
-    });
-
-    const total = await this.usercourseRepository.count({
-      order: {
-        user: {
-          userId: 'ASC',
-        },
-      },
-      where: {
-        courseId: courseId,
-        role: role,
-        user: [
-          {
-            status: status,
-            name: Like(`%${search}%`),
-          },
-          {
-            status: status,
-            email: Like(`%${search}%`),
-          },
-        ],
-      },
+      // skip: offset,
+      // take: limit,
     });
 
     const users = [] as UserResDto[];
@@ -137,10 +115,7 @@ export class UserCourseService extends BaseService<
       users.push(usercourses[i].user);
     }
 
-    return OperationResult.ok({
-      total: total,
-      users: users,
-    });
+    return OperationResult.ok(users);
   }
 
   async findCoursesByUserId(
@@ -149,42 +124,20 @@ export class UserCourseService extends BaseService<
     name: string,
     startAt: Date,
     endAt: Date,
-    limit: number,
-    offset: number,
-  ): Promise<OperationResult<any>> {
+    // limit: number,
+    // offset: number,
+  ): Promise<OperationResult<Array<CourseResDto>>> {
     const usercourses = await this.usercourseRepository.find({
       where: {
         userId: userId,
         role: role,
       },
-      skip: offset,
-      take: limit,
-    });
-
-    const total = await this.usercourseRepository.count({
-      where: {
-        userId: userId,
-        role: role,
-      },
+      // skip: offset,
+      // take: limit,
     });
 
     const courseIds = usercourses.map((usercourse) => usercourse.courseId);
-    // return await this.courseService.getCoursesByIds(courseIds, name, startAt, endAt);
-    const courses = await this.courseService.getCoursesByIds(
-      courseIds,
-      name,
-      startAt,
-      endAt,
-    );
-
-    if (courses.isOk()) {
-      return OperationResult.ok({
-        total: total,
-        courses: courses.data,
-      });
-    } else {
-      return courses;
-    }
+    return this.courseService.getCoursesByIds(courseIds, name, startAt, endAt);
     // const courses = await this.usercourseRepository.createQueryBuilder('course')
     // .where('course.id IN (:...ids) and course.deletedAt is null', {
     //   ids: courseIds,
@@ -246,7 +199,7 @@ export class UserCourseService extends BaseService<
     courseId: string,
     studentRoleIds: string[],
     teacherRoleIds: string[],
-  ): Promise<OperationResult<string>> {
+  ): Promise<OperationResult<UserCourseResDto[]>> {
     let usercourses = [] as UserCourseReqDto[];
 
     if (studentRoleIds) {
@@ -287,8 +240,26 @@ export class UserCourseService extends BaseService<
     } else {
       await this.createMany(UserCourseResDto, usercourses);
     }
-
-    return OperationResult.ok('add users into course sucessfully');
+    return await this.usercourseRepository
+      .createQueryBuilder('user_course')
+      .where(
+        'user_course.userId IN (:...studentIds) OR user_course.userId IN (:...teacherIds)  and user_course.deletedAt is null',
+        {
+          studentIds: studentRoleIds,
+          teacherIds: teacherRoleIds,
+        },
+      )
+      .getMany()
+      .then((data) => {
+        return OperationResult.ok(
+          plainToInstance(UserCourseResDto, data, {
+            excludeExtraneousValues: true,
+          }),
+        );
+      })
+      .catch((e) => {
+        return OperationResult.error(new Error(e));
+      });
   }
 
   async countStudentTotalByCourseId(courseId: string): Promise<number> {
