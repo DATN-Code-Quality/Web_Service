@@ -3,7 +3,7 @@ import { BaseService } from 'src/common/base.service';
 import { AssignmentReqDto } from './req/assignment-req.dto';
 import { AssignmentResDto } from './res/assignment-res.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { OperationResult } from 'src/common/operation-result';
 import { plainToInstance } from 'class-transformer';
 import { UserCourseService } from 'src/user-course/user-course.service';
@@ -27,27 +27,40 @@ export class AssignmentService extends BaseService<
 
   async findAssignmentsByCourseId(
     courseId: string,
-  ): Promise<OperationResult<Array<AssignmentResDto>>> {
-    let result: OperationResult<Array<AssignmentResDto>>;
+    search: string,
+    limit: number,
+    offset: number,
+  ): Promise<OperationResult<any>> {
+    const total = await this.assignmentRepository.count({
+      where: {
+        name: Like(`%${search}%`),
+        courseId: courseId,
+      },
+    });
 
-    await this.assignmentRepository
-      .createQueryBuilder('assignment')
-      .where(
-        'assignment.courseId = :courseId and assignment.deletedAt is null',
-        { courseId: courseId },
-      )
-      .getMany()
+    return await this.assignmentRepository
+      .find({
+        order: {
+          updatedAt: 'DESC',
+        },
+        where: {
+          name: Like(`%${search}%`),
+          courseId: courseId,
+        },
+        skip: offset,
+        take: limit,
+      })
       .then((assignments) => {
-        result = OperationResult.ok(
-          plainToInstance(AssignmentResDto, assignments, {
+        return OperationResult.ok({
+          total: total,
+          assignments: plainToInstance(AssignmentResDto, assignments, {
             excludeExtraneousValues: true,
           }),
-        );
+        });
       })
       .catch((err) => {
-        result = OperationResult.error(err);
+        return OperationResult.error(err);
       });
-    return result;
   }
 
   async getReport(courseId: string, assignmentId: string) {
@@ -97,13 +110,15 @@ export class AssignmentService extends BaseService<
           assignments[j].assignmentMoodleId ==
           savedAssignments[i].assignmentMoodleId
         ) {
-          await this.assignmentRepository
-            .update(savedAssignments[i].id, assignments[j])
-            .catch((e) => {
-              return OperationResult.error(
-                new Error(`Can not import assignments: ${e.message}`),
-              );
-            });
+          const { configObject, ...updateAssignment } = assignments[j];
+          await this.update(
+            savedAssignments[i].id,
+            updateAssignment as any,
+          ).catch((e) => {
+            return OperationResult.error(
+              new Error(`Can not import assignments: ${e.message}`),
+            );
+          });
           isExist = true;
           updatedAssignmentIds.push(savedAssignments[i].id);
           break;

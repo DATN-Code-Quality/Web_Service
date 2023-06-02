@@ -7,6 +7,8 @@ import {
   Response,
   Get,
   Put,
+  Query,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiTags } from '@nestjs/swagger';
@@ -18,7 +20,8 @@ import { use } from 'passport';
 import { main } from './outlook';
 import { UserService } from 'src/user/user.service';
 import { UserResDto } from 'src/user/res/user-res.dto';
-import { UserReqDto } from 'src/user/req/user-req.dto';
+import { USER_STATUS, UserReqDto } from 'src/user/req/user-req.dto';
+import { OperationResult } from 'src/common/operation-result';
 
 @ApiTags('auth')
 @Controller('/api/auth')
@@ -68,9 +71,9 @@ export class AuthController {
     return this.userService.changePassword(userId, data['password']);
   }
 
+  @Public()
   @Put('/active-account')
-  async activeAccount(@Request() req) {
-    const userId = req.headers['userId'];
-    return this.userService.activeAccount(userId);
+  async activeAccount(@Query('token', new DefaultValuePipe('')) token: string) {
+    return this.userService.activeAccount(token);
   }
 }
