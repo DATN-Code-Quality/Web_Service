@@ -50,7 +50,21 @@ export class MoodleController implements OnModuleInit {
     );
 
     if (result.error === 0) {
-      return OperationResult.ok(result.message);
+      return OperationResult.ok(result.data);
+    } else {
+      return OperationResult.error(new Error(result.message));
+    }
+  }
+
+  @Roles(Role.ADMIN)
+  @Get('/check-connect')
+  async checkConnect() {
+    const result = await firstValueFrom(
+      await this.gMoodleService.IsMoodleConnected({}),
+    );
+
+    if (result.error === 0) {
+      return OperationResult.ok(result.data);
     } else {
       return OperationResult.error(new Error(result.message));
     }

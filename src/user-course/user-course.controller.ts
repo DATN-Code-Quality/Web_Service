@@ -82,6 +82,24 @@ export class UserCourseController {
     return result;
   }
 
+  @SubRoles(SubRole.ADMIN)
+  @Get('/:courseId/user-not-in-course')
+  async getUserNotInCourse(
+    @Param('courseId') courseId: string,
+    @Query('search', new DefaultValuePipe('')) search: string,
+    @Query('status', new DefaultValuePipe(null)) status: USER_STATUS,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
+  ) {
+    return this.userCourseService.getUserNotInCourse(
+      courseId,
+      search,
+      status,
+      limit,
+      offset,
+    );
+  }
+
   @Roles(Role.ADMIN, Role.SUPERADMIN)
   @Get('/sync-users')
   async getUsersByCourseMoodleId(@Query() query: string) {
@@ -109,8 +127,8 @@ export class UserCourseController {
     @Query('name', new DefaultValuePipe('')) name: string,
     @Query('startAt', new DefaultValuePipe('')) startAt: Date,
     @Query('endAt', new DefaultValuePipe('')) endAt: Date,
-    @Query('limit', new DefaultValuePipe(10)) limit: number,
-    @Query('offset', new DefaultValuePipe(0)) offset: number,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const result = await this.userCourseService.findCoursesByUserId(
       userId,
@@ -216,5 +234,33 @@ export class UserCourseController {
       teacherIds,
     );
     return result;
+  }
+
+  @SubRoles(SubRole.ADMIN)
+  @Put('/:courseId/:userId')
+  async changeRole(
+    @Param('courseId') courseId: string,
+    @Param('userId') userId: string,
+    @Body() data: object,
+  ) {
+    const role = data['role'];
+    if (role !== SubRole.STUDENT && role !== SubRole.TEACHER) {
+      return OperationResult.error(new Error('Invalid role'));
+    }
+
+    return this.userCourseService.changeRole(courseId, userId, role);
+  }
+
+  @SubRoles(SubRole.ADMIN)
+  @Delete('/:courseId')
+  async removeUser(@Param('courseId') courseId: string, @Body() data: object) {
+    const userIds = data['userIds'];
+    if (userIds && typeof userIds === typeof [] && userIds.length > 0) {
+      return this.userCourseService.removeUsers(courseId, userIds);
+    } else {
+      return OperationResult.error(
+        new Error("field 'userIds' has to array of string"),
+      );
+    }
   }
 }

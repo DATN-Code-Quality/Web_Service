@@ -3,7 +3,7 @@ import { USER_STATUS, UserReqDto } from './req/user-req.dto';
 import { BaseService } from 'src/common/base.service';
 import { UserResDto } from './res/user-res.dto';
 import { OperationResult } from 'src/common/operation-result';
-import { Like, Repository } from 'typeorm';
+import { And, In, Like, Not, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcrypt';
@@ -367,5 +367,64 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         new Error(`Can not import users: ${insertResult.message}`),
       );
     }
+  }
+
+  async findAllUsersNotInIds(
+    userIds: string[],
+    search: string,
+    status: USER_STATUS,
+    limit: number,
+    offset: number,
+  ) {
+    const total = await this.userRepository.count({
+      where: [
+        {
+          name: Like(`%${search}%`),
+          id: Not(In(userIds)),
+          status: status,
+          role: And(Not(Role.ADMIN), Not(Role.SUPERADMIN)),
+        },
+        {
+          userId: Like(`%${search}%`),
+          id: Not(In(userIds)),
+          status: status,
+          role: And(Not(Role.ADMIN), Not(Role.SUPERADMIN)),
+        },
+      ],
+    });
+    return await this.userRepository
+      .find({
+        order: {
+          // updatedAt: 'DESC',
+          id: 'ASC',
+        },
+        where: [
+          {
+            name: Like(`%${search}%`),
+            id: Not(In(userIds)),
+            status: status,
+            role: And(Not(Role.ADMIN), Not(Role.SUPERADMIN)),
+          },
+          {
+            userId: Like(`%${search}%`),
+            id: Not(In(userIds)),
+            status: status,
+            role: And(Not(Role.ADMIN), Not(Role.SUPERADMIN)),
+          },
+        ],
+        skip: offset,
+        take: limit,
+      })
+      .then((users) => {
+        return OperationResult.ok({
+          total: total,
+          users: plainToInstance(UserResDto, users, {
+            excludeExtraneousValues: true,
+          }),
+        });
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
   }
 }

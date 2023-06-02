@@ -18,7 +18,7 @@ import { UserModule } from 'src/user/user.module';
     // AssignmentModule,
     // SubmissionModule,
     forwardRef(() => CourseModule),
-    UserModule,
+    forwardRef(() => UserModule),
   ],
   controllers: [UserCourseController],
   providers: [
