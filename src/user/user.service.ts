@@ -427,4 +427,30 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         return OperationResult.error(err);
       });
   }
+
+  async findUserByUsername(
+    userId: string,
+  ): Promise<OperationResult<UserResDto | any>> {
+    // let result: OperationResult<any>;
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.userId = :userId', {
+        userId: userId,
+      })
+      .getOne()
+      .then((savedDto) => {
+        if (savedDto) {
+          return OperationResult.ok(
+            plainToInstance(UserResDto, savedDto, {
+              excludeExtraneousValues: true,
+            }),
+          );
+        } else {
+          return OperationResult.error(new Error('No found'));
+        }
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
+  }
 }

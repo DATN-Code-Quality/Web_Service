@@ -45,7 +45,7 @@ export class SubmissionController implements OnModuleInit {
   constructor(
     @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
     private readonly submissionService: SubmissionService,
-  ) { }
+  ) {}
   onModuleInit() {
     this.gSubmissionService =
       this.client.getService<GSubmissionService>('GSubmissionService');
@@ -75,7 +75,7 @@ export class SubmissionController implements OnModuleInit {
         file: Express.Multer.File,
         callback: (error: Error, acceptFile: boolean) => void,
       ) => {
-        if (Boolean(file.mimetype.match(/(zip|rar)/))) {
+        if (Boolean(file.mimetype.match(/(zip)/))) {
           callback(null, true);
         } else {
           callback(null, false);

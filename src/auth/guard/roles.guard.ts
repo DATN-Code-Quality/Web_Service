@@ -40,6 +40,9 @@ export class RolesGuard implements CanActivate {
     } catch (error) {
       if (
         context.getArgByIndex(0).route.path.includes('/api/auth/login') ||
+        context
+          .getArgByIndex(0)
+          .route.path.includes('/api/auth/forgrt-password') ||
         context.getArgByIndex(0).route.path.includes('/api/auth/active-account')
       ) {
         return true;

@@ -150,15 +150,26 @@ export class AssignmentController implements OnModuleInit {
       );
 
       if (response.error === 0) {
+        const savedAssignment: AssignmentCronjobRequest = {
+          id: assignment.id,
+          assignmentMoodleId: assignment.assignmentMoodleId as any,
+          dueDate: new Date(assignment.dueDate).getTime() as any,
+        };
+
+        Logger.debug('Data: ' + JSON.stringify(savedAssignment));
+
+        firstValueFrom(
+          this.gAssignmentService
+            .addAssignmentCronjob({
+              assignments: [savedAssignment],
+            })
+            .pipe(),
+        );
+
         return OperationResult.ok({
           assignment: result.data,
           role: req.headers['role'],
         });
-        // await this.assignmentService.update(result.data.id, {
-        //   config: response.data,
-        // } as AssignmentResDto);
-
-        // result.data.config = response.data;
       } else {
         return OperationResult.error(new Error(response.message));
       }
