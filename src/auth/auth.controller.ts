@@ -112,7 +112,7 @@ export class AuthController {
 
   //Call this api when click button "Forget password" (then systen will send mail to user's mail)
   @Public()
-  @Put('/forgrt-password')
+  @Put('/forget-password')
   async forgetPassword(@Body() data) {
     const username = data['username'];
     const user = await this.userService.findUserByUsername(username);
