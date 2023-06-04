@@ -16,6 +16,7 @@ import { ServiceResponse } from 'src/common/service-response';
 import { CourseReqDto } from 'src/course/req/course-req.dto';
 import { CourseService } from 'src/course/course.service';
 import { USER_STATUS } from 'src/user/req/user-req.dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class UserCourseService extends BaseService<
@@ -29,6 +30,7 @@ export class UserCourseService extends BaseService<
     private readonly usercourseRepository: Repository<UserCourseReqDto>,
     @Inject(forwardRef(() => CourseService))
     private readonly courseService: CourseService,
+    private readonly userService: UserService,
   ) {
     super(usercourseRepository);
   }
@@ -94,9 +96,9 @@ export class UserCourseService extends BaseService<
     role: string,
     search: string,
     status: USER_STATUS,
-    // limit: number,
-    // offset: number,
-  ): Promise<OperationResult<Array<UserResDto>>> {
+    limit: number,
+    offset: number,
+  ): Promise<OperationResult<any>> {
     const usercourses = await this.usercourseRepository.find({
       order: {
         user: {
@@ -120,8 +122,30 @@ export class UserCourseService extends BaseService<
       relations: {
         user: true,
       },
-      // skip: offset,
-      // take: limit,
+      skip: offset,
+      take: limit,
+    });
+
+    const total = await this.usercourseRepository.count({
+      order: {
+        user: {
+          userId: 'ASC',
+        },
+      },
+      where: {
+        courseId: courseId,
+        role: role,
+        user: [
+          {
+            status: status,
+            name: Like(`%${search}%`),
+          },
+          {
+            status: status,
+            email: Like(`%${search}%`),
+          },
+        ],
+      },
     });
 
     const users = [] as UserResDto[];
@@ -136,7 +160,10 @@ export class UserCourseService extends BaseService<
       users.push(usercourses[i].user);
     }
 
-    return OperationResult.ok(users);
+    return OperationResult.ok({
+      total: total,
+      users: users,
+    });
   }
 
   async findCoursesByUserId(
@@ -145,20 +172,42 @@ export class UserCourseService extends BaseService<
     name: string,
     startAt: Date,
     endAt: Date,
-    // limit: number,
-    // offset: number,
-  ): Promise<OperationResult<Array<CourseResDto>>> {
+    limit: number,
+    offset: number,
+  ): Promise<OperationResult<any>> {
     const usercourses = await this.usercourseRepository.find({
       where: {
         userId: userId,
         role: role,
       },
-      // skip: offset,
-      // take: limit,
+      skip: offset,
+      take: limit,
+    });
+
+    const total = await this.usercourseRepository.count({
+      where: {
+        userId: userId,
+        role: role,
+      },
     });
 
     const courseIds = usercourses.map((usercourse) => usercourse.courseId);
-    return this.courseService.getCoursesByIds(courseIds, name, startAt, endAt);
+    // return await this.courseService.getCoursesByIds(courseIds, name, startAt, endAt);
+    const courses = await this.courseService.getCoursesByIds(
+      courseIds,
+      name,
+      startAt,
+      endAt,
+    );
+
+    if (courses.isOk()) {
+      return OperationResult.ok({
+        total: total,
+        courses: courses.data,
+      });
+    } else {
+      return courses;
+    }
     // const courses = await this.usercourseRepository.createQueryBuilder('course')
     // .where('course.id IN (:...ids) and course.deletedAt is null', {
     //   ids: courseIds,
@@ -261,26 +310,8 @@ export class UserCourseService extends BaseService<
     } else {
       await this.createMany(UserCourseResDto, usercourses);
     }
-    return await this.usercourseRepository
-      .createQueryBuilder('user_course')
-      .where(
-        'user_course.userId IN (:...studentIds) OR user_course.userId IN (:...teacherIds)  and user_course.deletedAt is null',
-        {
-          studentIds: studentRoleIds,
-          teacherIds: teacherRoleIds,
-        },
-      )
-      .getMany()
-      .then((data) => {
-        return OperationResult.ok(
-          plainToInstance(UserCourseResDto, data, {
-            excludeExtraneousValues: true,
-          }),
-        );
-      })
-      .catch((e) => {
-        return OperationResult.error(new Error(e));
-      });
+
+    return OperationResult.ok('add users into course sucessfully');
   }
 
   async countStudentTotalByCourseId(courseId: string): Promise<number> {
@@ -290,5 +321,84 @@ export class UserCourseService extends BaseService<
         role: SubRole.STUDENT,
       },
     });
+  }
+
+  async changeRole(
+    courseId: string,
+    userId: string,
+    role: string,
+  ): Promise<OperationResult<string>> {
+    return this.usercourseRepository
+      .createQueryBuilder()
+      .update(UserCourseReqDto)
+      .set({ role: role })
+      .where(
+        'user_course.userId = :userId and user_course.courseId = :courseId and user_course.deletedAt is null',
+        { userId: userId, courseId: courseId },
+      )
+      .execute()
+      .then(() => {
+        return OperationResult.ok('Update role successfully');
+      })
+      .catch((e) => {
+        return OperationResult.error(e);
+      });
+  }
+
+  async removeUsers(
+    courseId: string,
+    userIds: string[],
+  ): Promise<OperationResult<string>> {
+    return this.usercourseRepository
+      .createQueryBuilder('user_course')
+      .softDelete()
+      .where(
+        'user_course.courseId = :courseId and user_course.userId IN (:...ids)',
+        {
+          ids: userIds,
+          courseId: courseId,
+        },
+      )
+      .execute()
+      .then(() => {
+        return OperationResult.ok('Remove users successfully');
+      })
+      .catch((e) => {
+        return OperationResult.error(e);
+      });
+  }
+
+  async getUserNotInCourse(
+    courseId: string,
+    search: string,
+    status: USER_STATUS,
+    limit: number,
+    offset: number,
+  ): Promise<OperationResult<any>> {
+    return this.usercourseRepository
+      .createQueryBuilder('user_course')
+      .where(
+        'user_course.courseId = :courseId and user_course.deletedAt is null',
+        {
+          courseId: courseId,
+        },
+      )
+      .getMany()
+      .then((userCourses) => {
+        const userIds = userCourses.map((userCourse) => {
+          return userCourse.userId;
+        });
+
+        return this.userService.findAllUsersNotInIds(
+          userIds,
+          search,
+          status,
+          limit,
+          offset,
+        );
+      })
+      .catch((e) => {
+        return OperationResult.error(e);
+      });
   }
 }

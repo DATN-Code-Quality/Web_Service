@@ -1,21 +1,25 @@
-import { Body, Injectable } from '@nestjs/common';
+import { Body, Injectable, Logger } from '@nestjs/common';
 import { USER_STATUS, UserReqDto } from './req/user-req.dto';
 import { BaseService } from 'src/common/base.service';
 import { UserResDto } from './res/user-res.dto';
 import { OperationResult } from 'src/common/operation-result';
-import { Like, Repository } from 'typeorm';
+import { And, In, Like, Not, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcrypt';
 import { SALTROUNDS } from './user.controller';
 import { Role } from 'src/auth/auth.const';
 import { User } from 'src/gRPc/interfaces/User';
+import nodemailer from 'nodemailer';
+import { templateHtml } from 'src/config/templateHtml';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService extends BaseService<UserReqDto, UserResDto> {
   constructor(
     @InjectRepository(UserReqDto)
     private readonly userRepository: Repository<UserReqDto>, // @Inject(UsersCoursesService) private readonly usersCoursesService: UsersCoursesService,
+    private jwtService: JwtService,
   ) {
     super(userRepository);
   }
@@ -40,22 +44,27 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
           return bcrypt
             .compare(password, savedDtos.password)
             .then((isValid) => {
+              const savedUserRes = plainToInstance(UserResDto, savedDtos, {
+                excludeExtraneousValues: true,
+              });
               if (isValid) {
-                if (savedDtos.status === USER_STATUS.BLOCK) {
+                if (savedUserRes.status === USER_STATUS.BLOCK) {
                   return OperationResult.error(
                     Error('Account has been blocked'),
                   );
                 }
-                if (savedDtos.status === USER_STATUS.INACTIVE) {
-                  return OperationResult.error(
-                    Error('Account has not been actived'),
+                if (savedUserRes.status === USER_STATUS.INACTIVE) {
+                  const token = this.jwtService.sign({
+                    userId: savedUserRes.id,
+                  });
+                  this.sendEmail(savedUserRes as any);
+                  return OperationResult.fail(
+                    new Error(
+                      `Account has been actived. Please check your email to active account.`,
+                    ),
                   );
                 }
-                return OperationResult.ok(
-                  plainToInstance(UserResDto, savedDtos, {
-                    excludeExtraneousValues: true,
-                  }),
-                );
+                return OperationResult.ok(savedUserRes);
               } else {
                 return OperationResult.error(Error('Invalid password'));
               }
@@ -71,6 +80,30 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         return OperationResult.error(err);
       });
   }
+  async sendEmail(user: User) {
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.USER_ACCOUNT,
+        pass: process.env.USER_PASSWORD,
+      },
+      from: process.env.USER_ACCOUNT,
+    });
+    const mainOptions = {
+      from: `<codequality2023@gmail.com>`,
+      to: user.email,
+      subject: 'You are invited into Code Quality Application',
+      text: 'Hello. This email is for your email verification.',
+      html: templateHtml(user),
+    };
+    transporter.sendMail(mainOptions, function (err, info) {
+      if (err) {
+        Logger.log('Send Email Error: ' + JSON.stringify(err));
+      } else {
+        Logger.log('Message sent: ' + JSON.stringify(info.response));
+      }
+    });
+  }
 
   async addUsers(users: UserReqDto[]): Promise<OperationResult<UserResDto[]>> {
     const salt = await bcrypt.genSalt(SALTROUNDS);
@@ -85,6 +118,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     for (let i = 0; i < hash.length; i++) {
       usersAdded.push(await hash[i]);
     }
+
     const result = await this.createMany(UserResDto, usersAdded);
     return result;
   }
@@ -159,19 +193,42 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       });
   }
 
-  async activeAccount(userId: string) {
-    return await this.userRepository
-      .createQueryBuilder()
-      .update(UserReqDto)
-      .set({ status: USER_STATUS.ACTIVE })
-      .where('user.id = :id and user.deletedAt is null', { id: userId })
-      .execute()
-      .then(() => {
-        return OperationResult.ok('Active account successfully');
-      })
-      .catch((e) => {
-        return OperationResult.error(e);
-      });
+  async activeAccount(token: string) {
+    try {
+      const payload = this.jwtService.decode(token);
+
+      if (payload['exp'] < Date.now()) {
+        return OperationResult.error(new Error('Token has expired'));
+      }
+
+      const user = await this.findOne(UserResDto, payload['userId']);
+
+      if (user.isOk()) {
+        if (user.data.status === USER_STATUS.ACTIVE) {
+          return OperationResult.ok('Account has been actived');
+        }
+        if (user.data.status === USER_STATUS.BLOCK) {
+          return OperationResult.error(new Error('Account has been blocked. '));
+        }
+
+        return await this.userRepository
+          .createQueryBuilder()
+          .update(UserReqDto)
+          .set({ status: USER_STATUS.ACTIVE })
+          .where('user.id = :id and user.deletedAt is null', {
+            id: payload['userId'],
+          })
+          .execute()
+          .then(() => {
+            return OperationResult.ok('Active account successfully');
+          })
+          .catch((e) => {
+            return OperationResult.error(e);
+          });
+      }
+    } catch (e) {
+      return OperationResult.error(new Error('Token is invalid'));
+    }
   }
 
   async findAllUsers(
@@ -179,9 +236,25 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     userId: string,
     role: string,
     status: USER_STATUS,
-    // limit: number,
-    // offset: number,
+    limit: number,
+    offset: number,
   ) {
+    const total = await this.userRepository.count({
+      where: [
+        {
+          name: Like(`%${search}%`),
+          userId: Like(`%${userId}%`),
+          role: role,
+          status: status,
+        },
+        {
+          email: Like(`%${search}%`),
+          userId: Like(`%${userId}%`),
+          role: role,
+          status: status,
+        },
+      ],
+    });
     return await this.userRepository
       .find({
         order: {
@@ -202,16 +275,16 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
             status: status,
           },
         ],
-        // skip: offset,
-        // take: limit,
+        skip: offset,
+        take: limit,
       })
-
       .then((users) => {
-        return OperationResult.ok(
-          plainToInstance(UserResDto, users, {
+        return OperationResult.ok({
+          total: total,
+          users: plainToInstance(UserResDto, users, {
             excludeExtraneousValues: true,
           }),
-        );
+        });
       })
       .catch((err) => {
         return OperationResult.error(err);
@@ -294,5 +367,90 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         new Error(`Can not import users: ${insertResult.message}`),
       );
     }
+  }
+
+  async findAllUsersNotInIds(
+    userIds: string[],
+    search: string,
+    status: USER_STATUS,
+    limit: number,
+    offset: number,
+  ) {
+    const total = await this.userRepository.count({
+      where: [
+        {
+          name: Like(`%${search}%`),
+          id: Not(In(userIds)),
+          status: status,
+          role: And(Not(Role.ADMIN), Not(Role.SUPERADMIN)),
+        },
+        {
+          userId: Like(`%${search}%`),
+          id: Not(In(userIds)),
+          status: status,
+          role: And(Not(Role.ADMIN), Not(Role.SUPERADMIN)),
+        },
+      ],
+    });
+    return await this.userRepository
+      .find({
+        order: {
+          // updatedAt: 'DESC',
+          id: 'ASC',
+        },
+        where: [
+          {
+            name: Like(`%${search}%`),
+            id: Not(In(userIds)),
+            status: status,
+            role: And(Not(Role.ADMIN), Not(Role.SUPERADMIN)),
+          },
+          {
+            userId: Like(`%${search}%`),
+            id: Not(In(userIds)),
+            status: status,
+            role: And(Not(Role.ADMIN), Not(Role.SUPERADMIN)),
+          },
+        ],
+        skip: offset,
+        take: limit,
+      })
+      .then((users) => {
+        return OperationResult.ok({
+          total: total,
+          users: plainToInstance(UserResDto, users, {
+            excludeExtraneousValues: true,
+          }),
+        });
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
+  }
+
+  async findUserByUsername(
+    userId: string,
+  ): Promise<OperationResult<UserResDto | any>> {
+    // let result: OperationResult<any>;
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.userId = :userId', {
+        userId: userId,
+      })
+      .getOne()
+      .then((savedDto) => {
+        if (savedDto) {
+          return OperationResult.ok(
+            plainToInstance(UserResDto, savedDto, {
+              excludeExtraneousValues: true,
+            }),
+          );
+        } else {
+          return OperationResult.error(new Error('No found'));
+        }
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
   }
 }

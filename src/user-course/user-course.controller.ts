@@ -60,8 +60,8 @@ export class UserCourseController {
     @Query('role', new DefaultValuePipe(null)) role: string,
     @Query('search', new DefaultValuePipe('')) search: string,
     @Query('status', new DefaultValuePipe(null)) status: USER_STATUS,
-    // @Query('limit', new DefaultValuePipe(null)) limit: number,
-    // @Query('offset', new DefaultValuePipe(null)) offset: number,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
     @Request() req,
   ) {
     const result = await this.userCourseService.findUsersByCourseId(
@@ -69,16 +69,35 @@ export class UserCourseController {
       role,
       search,
       status,
-      // limit,
-      // offset,
+      limit,
+      offset,
     );
     if (result.isOk()) {
       return OperationResult.ok({
-        users: result.data,
+        total: result.data['total'],
+        users: result.data['users'],
         role: req.headers['role'],
       });
     }
     return result;
+  }
+
+  @SubRoles(SubRole.ADMIN)
+  @Get('/:courseId/user-not-in-course')
+  async getUserNotInCourse(
+    @Param('courseId') courseId: string,
+    @Query('search', new DefaultValuePipe('')) search: string,
+    @Query('status', new DefaultValuePipe(null)) status: USER_STATUS,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
+  ) {
+    return this.userCourseService.getUserNotInCourse(
+      courseId,
+      search,
+      status,
+      limit,
+      offset,
+    );
   }
 
   @Roles(Role.ADMIN, Role.SUPERADMIN)
@@ -107,8 +126,8 @@ export class UserCourseController {
     @Query('name', new DefaultValuePipe('')) name: string,
     @Query('startAt', new DefaultValuePipe('')) startAt: Date,
     @Query('endAt', new DefaultValuePipe('')) endAt: Date,
-    // @Query('limit', new DefaultValuePipe(10)) limit: number,
-    // @Query('offset', new DefaultValuePipe(0)) offset: number,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const result = await this.userCourseService.findCoursesByUserId(
       userId,
@@ -116,8 +135,8 @@ export class UserCourseController {
       name,
       startAt,
       endAt,
-      // limit,
-      // offset,
+      limit,
+      offset,
     );
     return result;
   }
@@ -146,8 +165,8 @@ export class UserCourseController {
     @Query('search', new DefaultValuePipe('')) search: string,
     @Query('startAt', new DefaultValuePipe(null)) startAt: Date,
     @Query('endAt', new DefaultValuePipe(null)) endAt: Date,
-    // @Query('limit', new DefaultValuePipe(null)) limit: number,
-    // @Query('offset', new DefaultValuePipe(null)) offset: number,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const userId = req.headers['userId'];
     const result = await this.userCourseService.findCoursesByUserId(
@@ -156,8 +175,8 @@ export class UserCourseController {
       search,
       startAt,
       endAt,
-      // limit,
-      // offset,
+      limit,
+      offset,
     );
     return result;
   }
@@ -169,12 +188,20 @@ export class UserCourseController {
     @Body() data: any,
     // @Body() teacherRoleIds: string[],
   ) {
-    const result = await this.userCourseService.addUsersIntoCourse(
-      courseId,
-      data['studentRoleIds'],
-      data['teacherRoleIds'],
-    );
-    return result;
+    const studentRoleIds =
+      data['studentRoleIds'] == null ? [] : data['studentRoleIds'];
+    const teacherRoleIds =
+      data['teacherRoleIds'] == null ? [] : data['teacherRoleIds'];
+    if (studentRoleIds.length !== 0 || teacherRoleIds.length != 0) {
+      const result = await this.userCourseService.addUsersIntoCourse(
+        courseId,
+        studentRoleIds,
+        teacherRoleIds,
+      );
+      return result;
+    } else {
+      return OperationResult.ok('No user has been added in to course');
+    }
   }
 
   @SubRoles(SubRole.TEACHER, SubRole.ADMIN)
@@ -222,5 +249,33 @@ export class UserCourseController {
       teacherIds,
     );
     return result;
+  }
+
+  @SubRoles(SubRole.ADMIN)
+  @Put('/:courseId/:userId')
+  async changeRole(
+    @Param('courseId') courseId: string,
+    @Param('userId') userId: string,
+    @Body() data: object,
+  ) {
+    const role = data['role'];
+    if (role !== SubRole.STUDENT && role !== SubRole.TEACHER) {
+      return OperationResult.error(new Error('Invalid role'));
+    }
+
+    return this.userCourseService.changeRole(courseId, userId, role);
+  }
+
+  @SubRoles(SubRole.ADMIN)
+  @Delete('/:courseId')
+  async removeUser(@Param('courseId') courseId: string, @Body() data: object) {
+    const userIds = data['userIds'];
+    if (userIds && typeof userIds === typeof [] && userIds.length > 0) {
+      return this.userCourseService.removeUsers(courseId, userIds);
+    } else {
+      return OperationResult.error(
+        new Error("field 'userIds' has to array of string"),
+      );
+    }
   }
 }

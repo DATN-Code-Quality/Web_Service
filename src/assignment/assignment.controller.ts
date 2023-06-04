@@ -5,6 +5,7 @@ import {
   Inject,
   Logger,
   OnModuleInit,
+  DefaultValuePipe,
   Param,
   Post,
   Query,
@@ -149,15 +150,26 @@ export class AssignmentController implements OnModuleInit {
       );
 
       if (response.error === 0) {
+        const savedAssignment: AssignmentCronjobRequest = {
+          id: assignment.id,
+          assignmentMoodleId: assignment.assignmentMoodleId as any,
+          dueDate: new Date(assignment.dueDate).getTime() as any,
+        };
+
+        Logger.debug('Data: ' + JSON.stringify(savedAssignment));
+
+        firstValueFrom(
+          this.gAssignmentService
+            .addAssignmentCronjob({
+              assignments: [savedAssignment],
+            })
+            .pipe(),
+        );
+
         return OperationResult.ok({
           assignment: result.data,
           role: req.headers['role'],
         });
-        // await this.assignmentService.update(result.data.id, {
-        //   config: response.data,
-        // } as AssignmentResDto);
-
-        // result.data.config = response.data;
       } else {
         return OperationResult.error(new Error(response.message));
       }
@@ -228,16 +240,23 @@ export class AssignmentController implements OnModuleInit {
   @Get(':courseId')
   async getAssignmentsByCourseId(
     @Param('courseId') courseId: string,
+    @Query('search', new DefaultValuePipe('')) search: string,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
     @Request() req,
   ) {
     const result = await this.assignmentService.findAssignmentsByCourseId(
       // query['courseId'],
       courseId,
+      search,
+      limit,
+      offset,
     );
 
     if (result.isOk()) {
       return OperationResult.ok({
-        assignments: result.data,
+        total: result.data.total,
+        assignments: result.data.assignments,
         role: req.headers['role'],
       });
     }
@@ -322,8 +341,8 @@ export class AssignmentController implements OnModuleInit {
     const submissions =
       await this.submissionService.findSubmissionsByAssigmentId(
         assignmentId,
-        // null,
-        // null,
+        null,
+        null,
       );
 
     const data = [];
