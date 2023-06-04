@@ -99,7 +99,6 @@ export class UserCourseController {
     return result;
   }
 
-  // @Roles(Role.ADMIN, Role.USER)
   @Roles(Role.ADMIN)
   @Get('/:userId/courses')
   async getAllCoursesByUserId(
@@ -120,6 +119,22 @@ export class UserCourseController {
       // limit,
       // offset,
     );
+    return result;
+  }
+
+  @SubRoles(SubRole.ADMIN)
+  @Delete('/:userId/courses')
+  async deleteUserInCourse(@Param('userId') userId: string) {
+    const result = await this.userCourseService.deleteUserInCourse(userId);
+    return result;
+  }
+  @SubRoles(SubRole.ADMIN)
+  @Put('/:userId/courses')
+  async updateRoleUser(
+    @Param('userId') userId: string,
+    @Query('role', new DefaultValuePipe(null)) role: SubRole,
+  ) {
+    const result = await this.userCourseService.deleteUserInCourse(userId);
     return result;
   }
 
