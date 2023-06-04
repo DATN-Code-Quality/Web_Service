@@ -269,7 +269,7 @@ export class UserCourseService extends BaseService<
     courseId: string,
     studentRoleIds: string[],
     teacherRoleIds: string[],
-  ): Promise<OperationResult<UserCourseResDto[]>> {
+  ): Promise<OperationResult<string>> {
     const usercourses = [] as UserCourseReqDto[];
 
     if (studentRoleIds) {
