@@ -16,6 +16,7 @@ import {
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
+  Logger,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { SubmissionResDto } from './res/submission-res.dto';
@@ -74,7 +75,7 @@ export class SubmissionController implements OnModuleInit {
         file: Express.Multer.File,
         callback: (error: Error, acceptFile: boolean) => void,
       ) => {
-        if (Boolean(file.mimetype.match(/(zip|rar)/))) {
+        if (Boolean(file.mimetype.match(/(zip)/))) {
           callback(null, true);
         } else {
           callback(null, false);
@@ -101,6 +102,7 @@ export class SubmissionController implements OnModuleInit {
     submission.assignmentId = assignmentId;
     submission.userId = req.headers['userId'];
     submission.status = SUBMISSION_STATUS.SUBMITTED;
+    Logger.debug('Submission: ' + JSON.stringify(submission));
 
     const result = await this.submissionService.upsertSubmission(submission);
 

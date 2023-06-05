@@ -206,7 +206,7 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
       await this.userCourseService.countStudentTotalByCourseId(courseId);
 
     const assignments = await this.assignmentService
-      .findAssignmentsByCourseId(courseId, null, null, null)
+      .findAssignmentsByCourseId(courseId, '', null, null)
       .then((result) => {
         if (result.isOk()) {
           return result.data.assignments;

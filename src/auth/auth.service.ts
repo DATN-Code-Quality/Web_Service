@@ -10,6 +10,8 @@ import {
 } from './outlook/graphHelper';
 import settings, { AppSettings } from './outlook/appSettings';
 import { DeviceCodeInfo } from '@azure/identity';
+import { UserResDto } from 'src/user/res/user-res.dto';
+import { USER_STATUS, UserReqDto } from 'src/user/req/user-req.dto';
 
 @Injectable()
 export class AuthService {
@@ -55,6 +57,41 @@ export class AuthService {
     try {
       const userToken = await getUserTokenAsync();
     } catch (err) {
+    }
+  }
+
+  async changePassword(token: string, newPassword: string) {
+    try {
+      const payload = this.jwtService.decode(token);
+
+      if (payload['exp'] < Date.now()) {
+        return OperationResult.error(new Error('Token has expired'));
+      }
+
+      const user = await this.usersService.findOne(
+        UserResDto,
+        payload['userId'],
+      );
+
+      if (user.isOk()) {
+        if (user.data.status === USER_STATUS.INACTIVE) {
+          return OperationResult.ok(
+            'Account has not been actived, can not change password',
+          );
+        }
+        if (user.data.status === USER_STATUS.BLOCK) {
+          return OperationResult.error(
+            new Error('Account has been blocked, can not change password'),
+          );
+        }
+
+        return await this.usersService.changePassword(
+          payload['userId'],
+          newPassword,
+        );
+      }
+    } catch (e) {
+      return OperationResult.error(new Error('Token is invalid'));
     }
   }
 }

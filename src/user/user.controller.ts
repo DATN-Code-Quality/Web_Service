@@ -26,6 +26,7 @@ import { Public, Roles } from 'src/auth/auth.decorator';
 import { Role } from 'src/auth/auth.const';
 import { User } from 'src/gRPc/interfaces/User';
 import { USER_STATUS } from './req/user-req.dto';
+import { templateHtml } from 'src/config/templateHtml';
 export const SALTROUNDS = 10;
 @ApiTags('User')
 @Controller('/api/user')
@@ -51,7 +52,14 @@ export class UserController implements OnModuleInit {
   ) {
     const result = await this.userService.upsertUsers(users);
     if (result.status === 0) {
-      users.forEach(async (user) => await this.userService.sendEmail(user));
+      users.forEach(
+        async (user) =>
+          await this.userService.sendEmail(
+            user,
+            templateHtml(user),
+            'You are invited into Code Quality Application',
+          ),
+      );
     }
     return result;
   }
@@ -62,7 +70,11 @@ export class UserController implements OnModuleInit {
     user.status = USER_STATUS.ACTIVE;
     const result = await this.userService.addUsers([user]);
     if (result.status === 0) {
-      await this.userService.sendEmail(user);
+      await this.userService.sendEmail(
+        user,
+        templateHtml(user),
+        'You are invited into Code Quality Application',
+      );
     }
     return result;
   }

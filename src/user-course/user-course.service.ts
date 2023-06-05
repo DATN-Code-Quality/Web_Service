@@ -16,6 +16,7 @@ import { ServiceResponse } from 'src/common/service-response';
 import { CourseReqDto } from 'src/course/req/course-req.dto';
 import { CourseService } from 'src/course/course.service';
 import { USER_STATUS } from 'src/user/req/user-req.dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class UserCourseService extends BaseService<
@@ -29,6 +30,7 @@ export class UserCourseService extends BaseService<
     private readonly usercourseRepository: Repository<UserCourseReqDto>,
     @Inject(forwardRef(() => CourseService))
     private readonly courseService: CourseService,
+    private readonly userService: UserService,
   ) {
     super(usercourseRepository);
   }
@@ -66,6 +68,27 @@ export class UserCourseService extends BaseService<
     return plainToInstance(UserCourseResDto, courses, {
       excludeExtraneousValues: true,
     });
+  }
+  async deleteUserInCourse(userId: string) {
+    return await this.remove(userId);
+  }
+  async updateRoleUser(userId: string, role: SubRole) {
+    if (!role) {
+      OperationResult.error(new Error('Can not import update role'));
+    }
+
+    return await this.usercourseRepository
+      .createQueryBuilder()
+      .update(UserCourseReqDto)
+      .set({ role: role })
+      .where('user.id IN (:...ids) and user.deletedAt is null', { id: userId })
+      .execute()
+      .then(() => {
+        return OperationResult.ok('Update status successfully');
+      })
+      .catch((e) => {
+        return OperationResult.error(e);
+      });
   }
 
   async findUsersByCourseId(
@@ -247,7 +270,7 @@ export class UserCourseService extends BaseService<
     studentRoleIds: string[],
     teacherRoleIds: string[],
   ): Promise<OperationResult<string>> {
-    let usercourses = [] as UserCourseReqDto[];
+    const usercourses = [] as UserCourseReqDto[];
 
     if (studentRoleIds) {
       studentRoleIds.forEach((studentId) => {
@@ -298,5 +321,84 @@ export class UserCourseService extends BaseService<
         role: SubRole.STUDENT,
       },
     });
+  }
+
+  async changeRole(
+    courseId: string,
+    userId: string,
+    role: string,
+  ): Promise<OperationResult<string>> {
+    return this.usercourseRepository
+      .createQueryBuilder()
+      .update(UserCourseReqDto)
+      .set({ role: role })
+      .where(
+        'user_course.userId = :userId and user_course.courseId = :courseId and user_course.deletedAt is null',
+        { userId: userId, courseId: courseId },
+      )
+      .execute()
+      .then(() => {
+        return OperationResult.ok('Update role successfully');
+      })
+      .catch((e) => {
+        return OperationResult.error(e);
+      });
+  }
+
+  async removeUsers(
+    courseId: string,
+    userIds: string[],
+  ): Promise<OperationResult<string>> {
+    return this.usercourseRepository
+      .createQueryBuilder('user_course')
+      .softDelete()
+      .where(
+        'user_course.courseId = :courseId and user_course.userId IN (:...ids)',
+        {
+          ids: userIds,
+          courseId: courseId,
+        },
+      )
+      .execute()
+      .then(() => {
+        return OperationResult.ok('Remove users successfully');
+      })
+      .catch((e) => {
+        return OperationResult.error(e);
+      });
+  }
+
+  async getUserNotInCourse(
+    courseId: string,
+    search: string,
+    status: USER_STATUS,
+    limit: number,
+    offset: number,
+  ): Promise<OperationResult<any>> {
+    return this.usercourseRepository
+      .createQueryBuilder('user_course')
+      .where(
+        'user_course.courseId = :courseId and user_course.deletedAt is null',
+        {
+          courseId: courseId,
+        },
+      )
+      .getMany()
+      .then((userCourses) => {
+        const userIds = userCourses.map((userCourse) => {
+          return userCourse.userId;
+        });
+
+        return this.userService.findAllUsersNotInIds(
+          userIds,
+          search,
+          status,
+          limit,
+          offset,
+        );
+      })
+      .catch((e) => {
+        return OperationResult.error(e);
+      });
   }
 }

@@ -3,7 +3,7 @@ import { USER_STATUS, UserReqDto } from './req/user-req.dto';
 import { BaseService } from 'src/common/base.service';
 import { UserResDto } from './res/user-res.dto';
 import { OperationResult } from 'src/common/operation-result';
-import { Like, Repository } from 'typeorm';
+import { And, In, Like, Not, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcrypt';
@@ -13,6 +13,7 @@ import { User } from 'src/gRPc/interfaces/User';
 import nodemailer from 'nodemailer';
 import { templateHtml } from 'src/config/templateHtml';
 import { JwtService } from '@nestjs/jwt';
+import { templatePasswordHtml } from 'src/config/templatePasswordHtml';
 
 @Injectable()
 export class UserService extends BaseService<UserReqDto, UserResDto> {
@@ -57,7 +58,11 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
                   const token = this.jwtService.sign({
                     userId: savedUserRes.id,
                   });
-                  this.sendEmail(savedUserRes as any);
+                  this.sendEmail(
+                    savedUserRes as any,
+                    templatePasswordHtml(savedUserRes, token, true),
+                    'Active Account',
+                  );
                   return OperationResult.fail(
                     new Error(
                       `Account has been actived. Please check your email to active account.`,
@@ -80,7 +85,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         return OperationResult.error(err);
       });
   }
-  async sendEmail(user: User) {
+  async sendEmail(user: User, templateHtml: string, subject: string) {
     const transporter = nodemailer.createTransport({
       service: 'Gmail',
       auth: {
@@ -92,9 +97,9 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     const mainOptions = {
       from: `<codequality2023@gmail.com>`,
       to: user.email,
-      subject: 'You are invited into Code Quality Application',
+      subject: subject,
       text: 'Hello. This email is for your email verification.',
-      html: templateHtml(user),
+      html: templateHtml,
     };
     transporter.sendMail(mainOptions, function (err, info) {
       if (err) {
@@ -367,5 +372,90 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         new Error(`Can not import users: ${insertResult.message}`),
       );
     }
+  }
+
+  async findAllUsersNotInIds(
+    userIds: string[],
+    search: string,
+    status: USER_STATUS,
+    limit: number,
+    offset: number,
+  ) {
+    const total = await this.userRepository.count({
+      where: [
+        {
+          name: Like(`%${search}%`),
+          id: Not(In(userIds)),
+          status: status,
+          role: And(Not(Role.ADMIN), Not(Role.SUPERADMIN)),
+        },
+        {
+          userId: Like(`%${search}%`),
+          id: Not(In(userIds)),
+          status: status,
+          role: And(Not(Role.ADMIN), Not(Role.SUPERADMIN)),
+        },
+      ],
+    });
+    return await this.userRepository
+      .find({
+        order: {
+          // updatedAt: 'DESC',
+          id: 'ASC',
+        },
+        where: [
+          {
+            name: Like(`%${search}%`),
+            id: Not(In(userIds)),
+            status: status,
+            role: And(Not(Role.ADMIN), Not(Role.SUPERADMIN)),
+          },
+          {
+            userId: Like(`%${search}%`),
+            id: Not(In(userIds)),
+            status: status,
+            role: And(Not(Role.ADMIN), Not(Role.SUPERADMIN)),
+          },
+        ],
+        skip: offset,
+        take: limit,
+      })
+      .then((users) => {
+        return OperationResult.ok({
+          total: total,
+          users: plainToInstance(UserResDto, users, {
+            excludeExtraneousValues: true,
+          }),
+        });
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
+  }
+
+  async findUserByUsername(
+    userId: string,
+  ): Promise<OperationResult<UserResDto | any>> {
+    // let result: OperationResult<any>;
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.userId = :userId', {
+        userId: userId,
+      })
+      .getOne()
+      .then((savedDto) => {
+        if (savedDto) {
+          return OperationResult.ok(
+            plainToInstance(UserResDto, savedDto, {
+              excludeExtraneousValues: true,
+            }),
+          );
+        } else {
+          return OperationResult.error(new Error('No found'));
+        }
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
   }
 }

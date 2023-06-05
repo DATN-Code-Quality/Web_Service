@@ -22,6 +22,8 @@ import { UserService } from 'src/user/user.service';
 import { UserResDto } from 'src/user/res/user-res.dto';
 import { USER_STATUS, UserReqDto } from 'src/user/req/user-req.dto';
 import { OperationResult } from 'src/common/operation-result';
+import { JwtService } from '@nestjs/jwt';
+import { templatePasswordHtml } from 'src/config/templatePasswordHtml';
 
 @ApiTags('auth')
 @Controller('/api/auth')
@@ -29,6 +31,7 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private readonly userService: UserService,
+    private jwtService: JwtService,
   ) {}
 
   @Post('/login')
@@ -65,15 +68,82 @@ export class AuthController {
     return result;
   }
 
+  // Call this api when user has logged and want change password
   @Put('/change-password')
   async changePassword(@Body() data, @Request() req) {
     const userId = req.headers['userId'];
-    return this.userService.changePassword(userId, data['password']);
+    const oldPassword = data['oldPassword'];
+    const newPassword = data['newPassword'];
+
+    const user = await this.userService.findUserByUsernameAndPassword(
+      userId,
+      oldPassword,
+    );
+    if (user.isOk()) {
+      if (newPassword && this.isInValidPassword(newPassword) === 0) {
+        return this.userService.changePassword(userId, newPassword);
+      }
+      return OperationResult.error(
+        new Error(
+          'The new password is not valid. Password length must be longer than 8',
+        ),
+      );
+    } else {
+      return user;
+    }
   }
 
+  // Call this api when first login or forget password (after user click into link attached in mail and change password)
+  @Put('/change-password-without-old-password')
+  async changePasswordVithoutOldPassword(
+    @Body() data,
+    @Query('token', new DefaultValuePipe('')) token: string,
+  ) {
+    const newPassword = data['newPassword'];
+    if (newPassword && this.isInValidPassword(newPassword) === 0) {
+      return this.authService.changePassword(token, newPassword);
+    }
+    return OperationResult.error(
+      new Error(
+        'The new password is not valid. Password length must be longer than 8',
+      ),
+    );
+  }
+
+  //Call this api when click button "Forget password" (then systen will send mail to user's mail)
+  @Public()
+  @Put('/forget-password')
+  async forgetPassword(@Body() data) {
+    const username = data['username'];
+    const user = await this.userService.findUserByUsername(username);
+    if (user.isOk()) {
+      const token = this.jwtService.sign({
+        userId: user.data.id,
+      });
+      // Hàm send mail chỗ này
+
+      this.userService.sendEmail(
+        user.data,
+        templatePasswordHtml(user.data, token, false),
+        'Reset Password',
+      );
+      return OperationResult.ok('Please check mail to set new password');
+    } else {
+      return user;
+    }
+  }
+
+  //Call this api when active account
   @Public()
   @Put('/active-account')
   async activeAccount(@Query('token', new DefaultValuePipe('')) token: string) {
     return this.userService.activeAccount(token);
+  }
+
+  isInValidPassword(password: string): number {
+    if (password.length < 8) {
+      return 1;
+    }
+    return 0;
   }
 }
