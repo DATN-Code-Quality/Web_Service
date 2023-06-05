@@ -1,5 +1,12 @@
 export const templatePasswordHtml = (user, token, isActive) => {
-  const url = `${process.env.DEFAULT_URL}/`;
+  let url = `${process.env.DEFAULT_URL}`;
+
+  if (isActive) {
+    url += `/active-account?token=${token}`;
+  } else {
+    url += `/profile/change-password?token=${token}`;
+  }
+
   const stringLink = isActive ? 'ACTIVE ACCOUNT' : 'RESET PASSWORD';
   return `<!DOCTYPE HTML
     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
