@@ -69,6 +69,27 @@ export class UserCourseService extends BaseService<
       excludeExtraneousValues: true,
     });
   }
+  async deleteUserInCourse(userId: string) {
+    return await this.remove(userId);
+  }
+  async updateRoleUser(userId: string, role: SubRole) {
+    if (!role) {
+      OperationResult.error(new Error('Can not import update role'));
+    }
+
+    return await this.usercourseRepository
+      .createQueryBuilder()
+      .update(UserCourseReqDto)
+      .set({ role: role })
+      .where('user.id IN (:...ids) and user.deletedAt is null', { id: userId })
+      .execute()
+      .then(() => {
+        return OperationResult.ok('Update status successfully');
+      })
+      .catch((e) => {
+        return OperationResult.error(e);
+      });
+  }
 
   async findUsersByCourseId(
     courseId: string,
@@ -249,7 +270,7 @@ export class UserCourseService extends BaseService<
     studentRoleIds: string[],
     teacherRoleIds: string[],
   ): Promise<OperationResult<string>> {
-    let usercourses = [] as UserCourseReqDto[];
+    const usercourses = [] as UserCourseReqDto[];
 
     if (studentRoleIds) {
       studentRoleIds.forEach((studentId) => {

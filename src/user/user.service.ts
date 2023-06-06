@@ -13,6 +13,7 @@ import { User } from 'src/gRPc/interfaces/User';
 import nodemailer from 'nodemailer';
 import { templateHtml } from 'src/config/templateHtml';
 import { JwtService } from '@nestjs/jwt';
+import { templatePasswordHtml } from 'src/config/templatePasswordHtml';
 
 @Injectable()
 export class UserService extends BaseService<UserReqDto, UserResDto> {
@@ -57,7 +58,11 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
                   const token = this.jwtService.sign({
                     userId: savedUserRes.id,
                   });
-                  this.sendEmail(savedUserRes as any);
+                  this.sendEmail(
+                    savedUserRes as any,
+                    templatePasswordHtml(savedUserRes, token, true),
+                    'Active Account',
+                  );
                   return OperationResult.fail(
                     new Error(
                       `Account has been actived. Please check your email to active account.`,
@@ -80,7 +85,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         return OperationResult.error(err);
       });
   }
-  async sendEmail(user: User) {
+  async sendEmail(user: User, templateHtml: string, subject: string) {
     const transporter = nodemailer.createTransport({
       service: 'Gmail',
       auth: {
@@ -92,9 +97,9 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     const mainOptions = {
       from: `<codequality2023@gmail.com>`,
       to: user.email,
-      subject: 'You are invited into Code Quality Application',
+      subject: subject,
       text: 'Hello. This email is for your email verification.',
-      html: templateHtml(user),
+      html: templateHtml,
     };
     transporter.sendMail(mainOptions, function (err, info) {
       if (err) {

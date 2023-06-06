@@ -23,6 +23,7 @@ import { UserResDto } from 'src/user/res/user-res.dto';
 import { USER_STATUS, UserReqDto } from 'src/user/req/user-req.dto';
 import { OperationResult } from 'src/common/operation-result';
 import { JwtService } from '@nestjs/jwt';
+import { templatePasswordHtml } from 'src/config/templatePasswordHtml';
 
 @ApiTags('auth')
 @Controller('/api/auth')
@@ -116,7 +117,7 @@ export class AuthController {
 
   //Call this api when click button "Forget password" (then systen will send mail to user's mail)
   @Public()
-  @Put('/forgrt-password')
+  @Put('/forget-password')
   async forgetPassword(@Body() data) {
     const username = data['username'];
     const user = await this.userService.findUserByUsername(username);
@@ -124,10 +125,14 @@ export class AuthController {
       const token = this.jwtService.sign({
         userId: user.data.id,
       });
-
-      return OperationResult.ok('Please check mail to set new password');
       // Hàm send mail chỗ này
-      // sendEmail(savedUserRes as any);
+
+      this.userService.sendEmail(
+        user.data,
+        templatePasswordHtml(user.data, token, false),
+        'Reset Password',
+      );
+      return OperationResult.ok('Please check mail to set new password');
     } else {
       return user;
     }
