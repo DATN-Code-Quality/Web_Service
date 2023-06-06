@@ -478,7 +478,11 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
             const token = this.jwtService.sign({
               userId: savedDto.id,
             });
-            this.sendEmail(savedDto as any);
+            this.sendEmail(
+              savedDto as any,
+              templatePasswordHtml(savedDto, token, true),
+              'Active Account',
+            );
             return OperationResult.fail(
               new Error(
                 `Account has been actived. Please check your email to active account.`,
