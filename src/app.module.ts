@@ -44,8 +44,8 @@ import { MoodleModule } from './moodle/moodle.module';
       type: 'mysql',
       host: 'localhost',
       port: 3306,
-      username: 'sonarqube',
-      password: 'sonarqube',
+      username: 'root',
+      password: '04042001',
       database: 'sonarqube',
       entities: [
         UserReqDto,

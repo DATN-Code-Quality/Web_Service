@@ -44,36 +44,65 @@ export class AuthService {
     });
   }
 
-  async loginWithOutlook() {
-    // Khởi tạo app
-    initializeGraphForUserAuth(settings, (info: DeviceCodeInfo) => {
-      console.log('Call to init app');
-      console.log(info.verificationUri);
-      console.log(info.userCode);
-    });
-    console.log('-------------------------------------------------');
+  async loginWithOutlook(token: string) {
+    // // Khởi tạo app
+    // initializeGraphForUserAuth(settings, (info: DeviceCodeInfo) => {
+    //   console.log('Call to init app');
+    //   console.log(info.verificationUri);
+    //   console.log(info.userCode);
+    // });
+    // console.log('-------------------------------------------------');
+    // //Get user
+    // try {
+    //   console.log('Call to get user');
+    //   const user = await getUserAsync();
+    //   console.log(user);
+    // } catch (err) {
+    //   console.log(`Error getting user: ${err}`);
+    // }
+    // console.log('-------------------------------------------------');
+    // // Get token
+    // try {
+    //   console.log('Call to get token');
+    //   const userToken = await getUserTokenAsync();
+    //   console.log(`User token: ${userToken}`);
+    // } catch (err) {
+    //   console.log(`Error getting user access token: ${err}`);
+    // }
+    // console.log('-------------------------------------------------');
 
-    //Get user
     try {
-      console.log('Call to get user');
+      const payload = this.jwtService.decode(token);
+      const email = payload['upn'];
 
-      const user = await getUserAsync();
-      console.log(user);
-    } catch (err) {
-      console.log(`Error getting user: ${err}`);
+      if (payload['exp'] < Date.now()) {
+        return OperationResult.error(new Error('token has expired'));
+      }
+
+      if (email) {
+        const user = await this.usersService.findUserByEmail(email);
+
+        if (user.isOk()) {
+          const accessToken = await this.jwtService.signAsync({
+            user: user.data,
+          });
+          return OperationResult.ok({
+            user: user.data,
+            accessToken: {
+              token: accessToken,
+              expiredAt: this.jwtService.decode(accessToken)['exp'],
+            },
+          });
+        } else {
+          return user;
+        }
+      }
+    } catch (e) {
+      return OperationResult.error(new Error('invalid token'));
     }
-    console.log('-------------------------------------------------');
+    return OperationResult.error(new Error('login fail'));
 
-    // Get token
-    try {
-      console.log('Call to get token');
-
-      const userToken = await getUserTokenAsync();
-      console.log(`User token: ${userToken}`);
-    } catch (err) {
-      console.log(`Error getting user access token: ${err}`);
-    }
-    console.log('-------------------------------------------------');
+    // if(payload)
   }
 
   async changePassword(token: string, newPassword: string) {

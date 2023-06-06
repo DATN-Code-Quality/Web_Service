@@ -453,4 +453,44 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         return OperationResult.error(err);
       });
   }
+
+  async findUserByEmail(
+    email: string,
+  ): Promise<OperationResult<UserResDto | any>> {
+    // let result: OperationResult<any>;
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.email = :email', {
+        email: email,
+      })
+      .getOne()
+      .then((savedDto) => {
+        if (savedDto) {
+          if (savedDto.status === USER_STATUS.BLOCK) {
+            return OperationResult.error(Error('Account has been blocked'));
+          }
+          if (savedDto.status === USER_STATUS.INACTIVE) {
+            const token = this.jwtService.sign({
+              userId: savedDto.id,
+            });
+            this.sendEmail(savedDto as any);
+            return OperationResult.fail(
+              new Error(
+                `Account has been actived. Please check your email to active account.`,
+              ),
+            );
+          }
+          return OperationResult.ok(
+            plainToInstance(UserResDto, savedDto, {
+              excludeExtraneousValues: true,
+            }),
+          );
+        } else {
+          return OperationResult.error(new Error('No found'));
+        }
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
+  }
 }
