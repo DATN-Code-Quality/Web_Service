@@ -48,8 +48,13 @@ export class AuthController {
   @Post('/login/outlook')
   // @UseGuards(LocalAuthGuard)
   @Public()
-  async loginWithOutlook() {
-    return await this.authService.loginWithOutlook();
+  async loginWithOutlook(@Body() data: object) {
+    const token = data['token'];
+    if (token) {
+      return await this.authService.loginWithOutlook(token);
+    } else {
+      return OperationResult.error(new Error("field 'token' is missed"));
+    }
   }
 
   @Get('/profile')

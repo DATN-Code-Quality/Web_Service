@@ -65,11 +65,12 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
       }),
     ]);
     if (!courseMin[0]?.startAt || !courseMax[0]?.endAt) {
-      return OperationResult.ok(
-        plainToInstance(CourseResDto, [], {
+      return OperationResult.ok({
+        total: 0,
+        courses: plainToInstance(CourseResDto, [], {
           excludeExtraneousValues: true,
         }),
-      );
+      });
     }
 
     let dayMin = courseMin[0].startAt;
