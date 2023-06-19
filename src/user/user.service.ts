@@ -1,7 +1,7 @@
 import { Body, Injectable, Logger } from '@nestjs/common';
 import { USER_STATUS, UserReqDto } from './req/user-req.dto';
 import { BaseService } from 'src/common/base.service';
-import { UserResDto } from './res/user-res.dto';
+import { PasswordKey, UserResDto } from './res/user-res.dto';
 import { OperationResult } from 'src/common/operation-result';
 import { And, In, Like, Not, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
@@ -113,7 +113,10 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
   async addUsers(users: UserReqDto[]): Promise<OperationResult<UserResDto[]>> {
     const salt = await bcrypt.genSalt(SALTROUNDS);
     const hash = users.map(async (user) => {
-      const hashedPassword = await bcrypt.hash(user.password || '1234', salt);
+      const hashedPassword = await bcrypt.hash(
+        user.password || user.userId + PasswordKey,
+        salt,
+      );
       return {
         ...user,
         password: hashedPassword,
@@ -134,7 +137,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
   ): Promise<OperationResult<UserResDto>> {
     const salt = await bcrypt.genSalt(SALTROUNDS);
     if (user.password !== null && user.password !== '') {
-      user.password = await bcrypt.hash(user.password || '1234', salt);
+      user.password = await bcrypt.hash(user.password, salt);
     }
 
     const result = await this.update(userId, user);
@@ -168,7 +171,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
 
   async changePassword(userId: string, password: string) {
     const salt = await bcrypt.genSalt(SALTROUNDS);
-    const hashedPassword = await bcrypt.hash(password || '1234', salt);
+    const hashedPassword = await bcrypt.hash(password, salt);
     return await this.userRepository
       .update(userId, { password: hashedPassword })
       .then((result) => {

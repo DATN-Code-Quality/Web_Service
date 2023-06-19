@@ -14,6 +14,8 @@ import { Expose } from 'class-transformer';
 import { UserCourseReqDto } from 'src/user-course/req/user-course-req.dto';
 import { USER_STATUS } from '../req/user-req.dto';
 
+export const PasswordKey = 'Hcmus#';
+
 export class UserResDto extends BaseDto {
   @ApiProperty()
   @IsString()

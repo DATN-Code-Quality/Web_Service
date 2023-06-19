@@ -12,8 +12,13 @@ export class CourseReqDto extends BaseEntity {
   name: string;
 
   @ApiProperty()
-  @IsString()
-  @Column('varchar', { name: 'moodleId', length: 255 })
+  // @IsString()
+  @Column('varchar', {
+    name: 'moodleId',
+    length: 255,
+    nullable: true,
+    unique: true,
+  })
   moodleId: string;
 
   @ApiProperty()
@@ -47,8 +52,8 @@ export class CourseReqDto extends BaseEntity {
   summary: string | null;
 
   @ApiProperty()
-  @IsString()
-  @Column('varchar', { name: 'categoryId', length: 255 })
+  // @IsString()
+  @Column('varchar', { name: 'categoryId', length: 255, nullable: true })
   categoryId: string;
 
   @OneToMany(() => UserCourseReqDto, (userCourse) => userCourse.user)

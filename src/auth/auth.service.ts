@@ -75,7 +75,7 @@ export class AuthService {
       const payload = this.jwtService.decode(token);
       const email = payload['upn'];
 
-      if (payload['exp'] < Date.now()) {
+      if (payload['exp'] * 1000 < Date.now()) {
         return OperationResult.error(new Error('token has expired'));
       }
 
