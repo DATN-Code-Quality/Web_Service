@@ -505,4 +505,23 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         return OperationResult.error(err);
       });
   }
+
+  async findUsersByUsername(
+    userIds: string[],
+  ): Promise<OperationResult<UserResDto[]>> {
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.userId IN (:...userIds) and user.deletedAt is null', {
+        userIds: userIds,
+      })
+      .getMany()
+      .then((users) => {
+        return OperationResult.ok(
+          plainToInstance(UserResDto, users, { excludeExtraneousValues: true }),
+        );
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
+  }
 }
