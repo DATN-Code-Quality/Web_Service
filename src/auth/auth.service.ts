@@ -109,7 +109,7 @@ export class AuthService {
     try {
       const payload = this.jwtService.decode(token);
 
-      if (payload['exp'] < Date.now()) {
+      if (payload['exp'] * 1000 < Date.now()) {
         return OperationResult.error(new Error('Token has expired'));
       }
 
