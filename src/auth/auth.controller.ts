@@ -100,6 +100,7 @@ export class AuthController {
 
   // Call this api when first login or forget password (after user click into link attached in mail and change password)
   @Put('/change-password-without-old-password')
+  @Public()
   async changePasswordVithoutOldPassword(
     @Body() data,
     @Query('token', new DefaultValuePipe('')) token: string,
