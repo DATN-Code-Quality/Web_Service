@@ -67,7 +67,7 @@ export class UserController implements OnModuleInit {
   @Roles(Role.SUPERADMIN, Role.ADMIN)
   @Post('/')
   async addUser(@Body() user: UserReqDto) {
-    user.status = USER_STATUS.ACTIVE;
+    user.status = USER_STATUS.INACTIVE;
     const result = await this.userService.addUsers([user]);
     if (result.status === 0) {
       await this.userService.sendEmail(
@@ -85,7 +85,7 @@ export class UserController implements OnModuleInit {
     @Body(new ParseArrayPipe({ items: UserReqDto })) users: UserReqDto[],
   ) {
     for (let i = 0; i < users.length; i++) {
-      users[i].status = USER_STATUS.ACTIVE;
+      users[i].status = USER_STATUS.INACTIVE;
     }
     const result = await this.userService.addUsers(users);
     return result;

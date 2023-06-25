@@ -221,7 +221,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     try {
       const payload = this.jwtService.decode(token);
 
-      if (payload['exp'] < Date.now()) {
+      if (payload['exp'] * 1000 < Date.now()) {
         return OperationResult.error(new Error('Token has expired'));
       }
 
@@ -342,8 +342,6 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
 
       for (let i = 0; i < savedUsers.length; i++) {
         if (users[j].moodleId == savedUsers[i].moodleId) {
-          users[j].status = USER_STATUS.ACTIVE;
-
           await this.userRepository
             .update(savedUsers[i].id, users[j])
             .catch((e) => {
@@ -357,6 +355,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         }
       }
       if (!isExist) {
+        users[j].status = USER_STATUS.INACTIVE;
         insertUser.push(users[j]);
       }
     }
