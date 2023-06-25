@@ -16,6 +16,7 @@ import {
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
+  Logger,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { SubmissionResDto } from './res/submission-res.dto';
@@ -74,7 +75,7 @@ export class SubmissionController implements OnModuleInit {
         file: Express.Multer.File,
         callback: (error: Error, acceptFile: boolean) => void,
       ) => {
-        if (Boolean(file.mimetype.match(/(zip|rar)/))) {
+        if (Boolean(file.mimetype.match(/(zip)/))) {
           callback(null, true);
         } else {
           callback(null, false);
@@ -94,13 +95,14 @@ export class SubmissionController implements OnModuleInit {
       if (!file) {
         return OperationResult.error(new Error('Invalid file extension'));
       }
-      if (file.size > 10 * 1024 * 1024) {
+      if (file.size > 50 * 1024 * 1024) {
         return OperationResult.error(new Error('File too large'));
       }
     }
     submission.assignmentId = assignmentId;
     submission.userId = req.headers['userId'];
     submission.status = SUBMISSION_STATUS.SUBMITTED;
+    Logger.debug('Submission: ' + JSON.stringify(submission));
 
     const result = await this.submissionService.upsertSubmission(submission);
 
@@ -180,8 +182,8 @@ export class SubmissionController implements OnModuleInit {
     // @Param('submissionId') submissionId: string,
     @Param('assignmentId') assignmentId: string,
     @Request() req,
-    @Query('limit', new DefaultValuePipe(10)) limit: number,
-    @Query('offset', new DefaultValuePipe(0)) offset: number,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const role = req.headers['role'];
     if (role === SubRole.TEACHER) {

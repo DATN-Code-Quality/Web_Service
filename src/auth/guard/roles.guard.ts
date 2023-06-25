@@ -38,7 +38,18 @@ export class RolesGuard implements CanActivate {
 
       return;
     } catch (error) {
-      if (context.getArgByIndex(0).route.path.includes('/api/auth/login')) {
+      if (
+        context.getArgByIndex(0).route.path.includes('/api/auth/login') ||
+        context
+          .getArgByIndex(0)
+          .route.path.includes('/api/auth/forget-password') ||
+        context
+          .getArgByIndex(0)
+          .route.path.includes('/api/auth/active-account') ||
+        context
+          .getArgByIndex(0)
+          .route.path.includes('api/auth/change-password-without-old-password')
+      ) {
         return true;
       }
       return context.getArgByIndex(1).status(200).json({

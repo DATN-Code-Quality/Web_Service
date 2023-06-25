@@ -33,6 +33,9 @@ import { AssignmentMiddleware } from './middleware/assignment.middleware';
 import { SubmissionMiddleware } from './middleware/submission.middleware';
 import { SonarqubeModule } from './sonarqube/sonarqube.module';
 import { RoleMiddleware } from './middleware/rule.middleware';
+import { LoggerModule } from './logger/logger.module';
+import { MoodleMiddleware } from './middleware/moodle.middleware';
+import { MoodleModule } from './moodle/moodle.module';
 
 @Module({
   imports: [
@@ -69,6 +72,7 @@ import { RoleMiddleware } from './middleware/rule.middleware';
     CourseMoodleModule,
     SubmissionMoodleModule,
     AssignmentMoodleModule,
+    MoodleModule,
     {
       ...ClientsModule.register([
         {
@@ -89,6 +93,7 @@ import { RoleMiddleware } from './middleware/rule.middleware';
     // RuleModule,
     SonarqubeModule,
     AuthModule,
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -105,7 +110,7 @@ export class AppModule implements NestModule {
         method: RequestMethod.GET,
       },
       {
-        path: '/api/assignment/:courseId/:assignmentId/config',
+        path: '/api/assignment/:courseId/:assignmentId',
         method: RequestMethod.PUT,
       },
       {
@@ -139,5 +144,35 @@ export class AppModule implements NestModule {
           method: RequestMethod.GET,
         },
       );
+    consumer.apply(MoodleMiddleware).forRoutes(
+      {
+        path: '/api/course/sync-courses',
+        method: RequestMethod.GET,
+      },
+      {
+        path: '/api/course/sync-categories',
+        method: RequestMethod.GET,
+      },
+      {
+        path: '/api/course/sync-courses-by-category',
+        method: RequestMethod.GET,
+      },
+      {
+        path: '/api/course/sync-courses-detail-by-course-moodle-id',
+        method: RequestMethod.GET,
+      },
+      {
+        path: '/api/user/sync-users-by-email',
+        method: RequestMethod.GET,
+      },
+      {
+        path: '/api/user/sync-users',
+        method: RequestMethod.GET,
+      },
+      {
+        path: '/api/user-course/sync-users',
+        method: RequestMethod.GET,
+      },
+    );
   }
 }

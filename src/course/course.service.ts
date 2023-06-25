@@ -65,11 +65,12 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
       }),
     ]);
     if (!courseMin[0]?.startAt || !courseMax[0]?.endAt) {
-      return OperationResult.ok(
-        plainToInstance(CourseResDto, [], {
+      return OperationResult.ok({
+        total: 0,
+        courses: plainToInstance(CourseResDto, [], {
           excludeExtraneousValues: true,
         }),
-      );
+      });
     }
 
     let dayMin = courseMin[0].startAt;
@@ -79,6 +80,14 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
       dayMin = endAt;
       dayMax = startAt;
     }
+    const total = await this.courseRepository.count({
+      where: {
+        name: Like(`%${name}%`),
+        categoryId: categoryId,
+        startAt: startAt ? Between(startAt, dayMin) : null,
+        endAt: endAt ? Between(dayMax, endAt) : null,
+      },
+    });
 
     return await this.courseRepository
       .find({
@@ -95,11 +104,12 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
         take: limit,
       })
       .then((courses) => {
-        return OperationResult.ok(
-          plainToInstance(CourseResDto, courses, {
+        return OperationResult.ok({
+          total: total,
+          courses: plainToInstance(CourseResDto, courses, {
             excludeExtraneousValues: true,
           }),
-        );
+        });
       })
       .catch((err) => {
         return OperationResult.error(err);
@@ -197,10 +207,10 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
       await this.userCourseService.countStudentTotalByCourseId(courseId);
 
     const assignments = await this.assignmentService
-      .findAssignmentsByCourseId(courseId)
+      .findAssignmentsByCourseId(courseId, '', null, null)
       .then((result) => {
         if (result.isOk()) {
-          return result.data;
+          return result.data.assignments;
         } else {
           return [];
         }

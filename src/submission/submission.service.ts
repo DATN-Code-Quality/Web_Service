@@ -26,6 +26,12 @@ export class SubmissionService extends BaseService<
     limit: number,
     offset: number,
   ): Promise<OperationResult<any>> {
+    const total = await this.submissionRepository.count({
+      where: {
+        assignmentId: assignmentId,
+      },
+    });
+
     return await this.submissionRepository
       .find({
         where: {
@@ -51,6 +57,7 @@ export class SubmissionService extends BaseService<
           );
         }
         return OperationResult.ok({
+          total: total,
           submissions: submissions,
           role: SubRole.TEACHER,
         });

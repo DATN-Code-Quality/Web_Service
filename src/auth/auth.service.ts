@@ -10,6 +10,8 @@ import {
 } from './outlook/graphHelper';
 import settings, { AppSettings } from './outlook/appSettings';
 import { DeviceCodeInfo } from '@azure/identity';
+import { UserResDto } from 'src/user/res/user-res.dto';
+import { USER_STATUS, UserReqDto } from 'src/user/req/user-req.dto';
 
 @Injectable()
 export class AuthService {
@@ -42,35 +44,99 @@ export class AuthService {
     });
   }
 
-  async loginWithOutlook() {
-    // Khởi tạo app
-    initializeGraphForUserAuth(settings, (info: DeviceCodeInfo) => {
-      console.log('Call to init app');
-      console.log(info.verificationUri);
-      console.log(info.userCode);
-    });
-    console.log('-------------------------------------------------');
+  async loginWithOutlook(token: string) {
+    // // Khởi tạo app
+    // initializeGraphForUserAuth(settings, (info: DeviceCodeInfo) => {
+    //   console.log('Call to init app');
+    //   console.log(info.verificationUri);
+    //   console.log(info.userCode);
+    // });
+    // console.log('-------------------------------------------------');
+    // //Get user
+    // try {
+    //   console.log('Call to get user');
+    //   const user = await getUserAsync();
+    //   console.log(user);
+    // } catch (err) {
+    //   console.log(`Error getting user: ${err}`);
+    // }
+    // console.log('-------------------------------------------------');
+    // // Get token
+    // try {
+    //   console.log('Call to get token');
+    //   const userToken = await getUserTokenAsync();
+    //   console.log(`User token: ${userToken}`);
+    // } catch (err) {
+    //   console.log(`Error getting user access token: ${err}`);
+    // }
+    // console.log('-------------------------------------------------');
 
-    //Get user
     try {
-      console.log('Call to get user');
+      const payload = this.jwtService.decode(token);
+      const email = payload['upn'];
 
-      const user = await getUserAsync();
-      console.log(user);
-    } catch (err) {
-      console.log(`Error getting user: ${err}`);
+      if (payload['exp'] * 1000 < Date.now()) {
+        return OperationResult.error(new Error('token has expired'));
+      }
+
+      if (email) {
+        const user = await this.usersService.findUserByEmail(email);
+
+        if (user.isOk()) {
+          const accessToken = await this.jwtService.signAsync({
+            user: user.data,
+          });
+          return OperationResult.ok({
+            user: user.data,
+            accessToken: {
+              token: accessToken,
+              expiredAt: this.jwtService.decode(accessToken)['exp'],
+            },
+          });
+        } else {
+          return user;
+        }
+      }
+    } catch (e) {
+      return OperationResult.error(new Error('invalid token'));
     }
-    console.log('-------------------------------------------------');
+    return OperationResult.error(new Error('login fail'));
 
-    // Get token
+    // if(payload)
+  }
+
+  async changePassword(token: string, newPassword: string) {
     try {
-      console.log('Call to get token');
+      const payload = this.jwtService.decode(token);
 
-      const userToken = await getUserTokenAsync();
-      console.log(`User token: ${userToken}`);
-    } catch (err) {
-      console.log(`Error getting user access token: ${err}`);
+      if (payload['exp'] < Date.now()) {
+        return OperationResult.error(new Error('Token has expired'));
+      }
+
+      const user = await this.usersService.findOne(
+        UserResDto,
+        payload['userId'],
+      );
+
+      if (user.isOk()) {
+        if (user.data.status === USER_STATUS.INACTIVE) {
+          return OperationResult.ok(
+            'Account has not been actived, can not change password',
+          );
+        }
+        if (user.data.status === USER_STATUS.BLOCK) {
+          return OperationResult.error(
+            new Error('Account has been blocked, can not change password'),
+          );
+        }
+
+        return await this.usersService.changePassword(
+          payload['userId'],
+          newPassword,
+        );
+      }
+    } catch (e) {
+      return OperationResult.error(new Error('Token is invalid'));
     }
-    console.log('-------------------------------------------------');
   }
 }

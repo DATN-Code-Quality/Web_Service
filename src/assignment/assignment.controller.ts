@@ -5,6 +5,7 @@ import {
   Inject,
   Logger,
   OnModuleInit,
+  DefaultValuePipe,
   Param,
   Post,
   Query,
@@ -32,6 +33,9 @@ import { OperationResult } from 'src/common/operation-result';
 import { GSonarqubeService } from 'src/gRPc/services/sonarqube';
 import { createCondition } from 'src/gRPc/interfaces/sonarqube/QulaityGate';
 import { UserReqDto } from 'src/user/req/user-req.dto';
+import { GSubmissionService } from 'src/gRPc/services/submission';
+import { SubmissionService } from 'src/submission/submission.service';
+import { SUBMISSION_STATUS } from 'src/submission/req/submission-req.dto';
 
 @ApiTags('Assignment')
 @Controller('/api/assignment')
@@ -41,6 +45,7 @@ export class AssignmentController implements OnModuleInit {
 
   constructor(
     private readonly assignmentService: AssignmentService,
+    private readonly submissionService: SubmissionService,
     @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
   ) {}
 
@@ -69,10 +74,7 @@ export class AssignmentController implements OnModuleInit {
       assignment.courseId = courseId;
       assignment.config = JSON.stringify(assignment.configObject);
     });
-    const result = await this.assignmentService.createMany(
-      AssignmentResDto,
-      assignments,
-    );
+    const result = await this.assignmentService.upsertAssignments(assignments);
 
     if (result.isOk()) {
       for (let i = 0; i < result.data.length; i++) {
@@ -83,13 +85,13 @@ export class AssignmentController implements OnModuleInit {
           }),
         );
 
-        if (response.error === 0) {
-          await this.assignmentService.update(result.data[i].id, {
-            config: response.data,
-          } as AssignmentResDto);
+        // if (response.error === 0) {
+        //   await this.assignmentService.update(result.data[i].id, {
+        //     config: response.data,
+        //   } as AssignmentResDto);
 
-          result.data[i].config = response.data;
-        }
+        //   result.data[i].config = response.data;
+        // }
       }
 
       Logger.debug('Result: ' + JSON.stringify(result));
@@ -148,15 +150,26 @@ export class AssignmentController implements OnModuleInit {
       );
 
       if (response.error === 0) {
+        const savedAssignment: AssignmentCronjobRequest = {
+          id: assignment.id,
+          assignmentMoodleId: assignment.assignmentMoodleId as any,
+          dueDate: new Date(assignment.dueDate).getTime() as any,
+        };
+
+        Logger.debug('Data: ' + JSON.stringify(savedAssignment));
+
+        firstValueFrom(
+          this.gAssignmentService
+            .addAssignmentCronjob({
+              assignments: [savedAssignment],
+            })
+            .pipe(),
+        );
+
         return OperationResult.ok({
           assignment: result.data,
           role: req.headers['role'],
         });
-        // await this.assignmentService.update(result.data.id, {
-        //   config: response.data,
-        // } as AssignmentResDto);
-
-        // result.data.config = response.data;
       } else {
         return OperationResult.error(new Error(response.message));
       }
@@ -227,16 +240,23 @@ export class AssignmentController implements OnModuleInit {
   @Get(':courseId')
   async getAssignmentsByCourseId(
     @Param('courseId') courseId: string,
+    @Query('search', new DefaultValuePipe('')) search: string,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
     @Request() req,
   ) {
     const result = await this.assignmentService.findAssignmentsByCourseId(
       // query['courseId'],
       courseId,
+      search,
+      limit,
+      offset,
     );
 
     if (result.isOk()) {
       return OperationResult.ok({
-        assignments: result.data,
+        total: result.data.total,
+        assignments: result.data.assignments,
         role: req.headers['role'],
       });
     }
@@ -310,4 +330,62 @@ export class AssignmentController implements OnModuleInit {
   // async importuser(@Body() assignments: AssignmentReqDto[]) {
   //   return this.assignmentService.upsertAssignments(assignments);
   // }
+
+  @SubRoles(SubRole.TEACHER)
+  @Get(':courseId/:assignmentId/export')
+  async exportResult(
+    @Param('courseId') courseId: string,
+    @Param('assignmentId') assignmentId: string,
+    @Request() req,
+  ) {
+    const submissions =
+      await this.submissionService.findSubmissionsByAssigmentId(
+        assignmentId,
+        null,
+        null,
+      );
+
+    const data = [];
+
+    if (submissions.isOk()) {
+      for (let i = 0; i < submissions.data.submissions.length; i++) {
+        const resultItem = {};
+        resultItem['submission'] = {
+          submissionId: submissions.data.submissions[i].status,
+          userId: submissions.data.submissions[i].user.id,
+          userName: submissions.data.submissions[i].user.name,
+          userMoodleId: submissions.data.submissions[i].user.userId,
+          status: submissions.data.submissions[i].status,
+        };
+
+        if (
+          submissions.data.submissions[i].status == SUBMISSION_STATUS.PASS ||
+          submissions.data.submissions[i].status == SUBMISSION_STATUS.FAIL
+        ) {
+          const results = await firstValueFrom(
+            await this.gSonarqubeService.getResultsBySubmissionId({
+              submissionId: submissions.data.submissions[i].id,
+              page: null,
+              pageSize: null,
+            }),
+          );
+
+          if (results.error == 0) {
+            const metricItem = {};
+            results.data.measures.forEach((measure) => {
+              metricItem[`${measure.metric}`] =
+                measure['history'][measure['history'].length - 1]['value'];
+            });
+            resultItem['result'] = metricItem;
+          }
+        }
+        data.push(resultItem);
+      }
+    }
+
+    return OperationResult.ok({
+      results: data,
+      role: SubRole.TEACHER,
+    });
+  }
 }
