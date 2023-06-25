@@ -80,8 +80,19 @@ export class AuthController {
     const oldPassword = data['oldPassword'];
     const newPassword = data['newPassword'];
 
+    const userById = await this.userService.findOne(UserResDto, userId);
+    console.log(userById);
+
+    if (!userById.isOk()) {
+      return OperationResult.error(
+        new Error(
+          'Cannot find user by id. Please check your token or contact admin',
+        ),
+      );
+    }
+
     const user = await this.userService.findUserByUsernameAndPassword(
-      userId,
+      userById.data.userId,
       oldPassword,
     );
     if (user.isOk()) {
