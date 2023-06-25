@@ -95,7 +95,7 @@ export class SubmissionController implements OnModuleInit {
       if (!file) {
         return OperationResult.error(new Error('Invalid file extension'));
       }
-      if (file.size > 10 * 1024 * 1024) {
+      if (file.size > 50 * 1024 * 1024) {
         return OperationResult.error(new Error('File too large'));
       }
     }
