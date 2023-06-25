@@ -342,6 +342,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
 
       for (let i = 0; i < savedUsers.length; i++) {
         if (users[j].moodleId == savedUsers[i].moodleId) {
+          users[j].status = savedUsers[i].status;
           await this.userRepository
             .update(savedUsers[i].id, users[j])
             .catch((e) => {
