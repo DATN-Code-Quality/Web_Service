@@ -51,6 +51,11 @@ export class CourseController implements OnModuleInit {
     @Body(new ParseArrayPipe({ items: CourseReqDto }))
     courses: CourseReqDto[],
   ) {
+    for (let i = 0; i < courses.length; i++) {
+      if (courses[i].startAt > courses[i].endAt) {
+        return OperationResult.error(new Error('startAt must be before endAt'));
+      }
+    }
     // const result = await this.courseService.createMany(CourseResDto, courses);
     const result = await this.courseService.upsertCourses(courses);
     const a = result.data.map((course, index) => {

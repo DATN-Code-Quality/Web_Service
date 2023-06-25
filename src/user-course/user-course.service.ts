@@ -314,6 +314,65 @@ export class UserCourseService extends BaseService<
     return OperationResult.ok('add users into course sucessfully');
   }
 
+  async addUsersIntoCourseFromExcelFile(
+    courseId: string,
+    studentRoleIds: string[],
+    teacherRoleIds: string[],
+  ): Promise<OperationResult<string>> {
+    const usercourses = [] as UserCourseReqDto[];
+
+    if (studentRoleIds) {
+      const result = await this.userService.findUsersByUsername(studentRoleIds);
+      if (result.isOk()) {
+        result.data.forEach((user) => {
+          usercourses.push(UserCourseReqDto.Student(courseId, user.id));
+        });
+      } else {
+        return OperationResult.error(new Error(result.message));
+      }
+    }
+
+    if (teacherRoleIds) {
+      const result = await this.userService.findUsersByUsername(teacherRoleIds);
+      if (result.isOk()) {
+        result.data.forEach((user) => {
+          usercourses.push(UserCourseReqDto.Teacher(courseId, user.id));
+        });
+      } else {
+        return OperationResult.error(new Error(result.message));
+      }
+    }
+
+    const savedUserCourses = await this.usercourseRepository.find({
+      where: {
+        courseId: courseId,
+      },
+    });
+
+    if (savedUserCourses.length > 0) {
+      const insertUserCourses = [];
+      for (let j = 0; j < usercourses.length; j++) {
+        let isExist = false;
+        for (let i = 0; i < savedUserCourses.length; i++) {
+          if (usercourses[j].userId === savedUserCourses[i].userId) {
+            await this.update(savedUserCourses[i].id, usercourses[j]);
+            isExist = true;
+            break;
+          }
+        }
+
+        if (!isExist) {
+          insertUserCourses.push(usercourses[j]);
+        }
+      }
+      await this.createMany(UserCourseResDto, insertUserCourses);
+    } else {
+      await this.createMany(UserCourseResDto, usercourses);
+    }
+
+    return OperationResult.ok('add users into course sucessfully');
+  }
+
   async countStudentTotalByCourseId(courseId: string): Promise<number> {
     return await this.usercourseRepository.count({
       where: {

@@ -192,12 +192,38 @@ export class UserCourseController {
       data['studentRoleIds'] == null ? [] : data['studentRoleIds'];
     const teacherRoleIds =
       data['teacherRoleIds'] == null ? [] : data['teacherRoleIds'];
+
     if (studentRoleIds.length !== 0 || teacherRoleIds.length != 0) {
       const result = await this.userCourseService.addUsersIntoCourse(
         courseId,
         studentRoleIds,
         teacherRoleIds,
       );
+      return result;
+    } else {
+      return OperationResult.ok('No user has been added in to course');
+    }
+  }
+
+  @Roles(Role.ADMIN)
+  @Post('/:courseId/import')
+  async addUsersIntoCourseFromExcelFile(
+    @Param('courseId') courseId: string,
+    @Body() data: any,
+    // @Body() teacherRoleIds: string[],
+  ) {
+    const studentRoleIds =
+      data['studentRoleIds'] == null ? [] : data['studentRoleIds'];
+    const teacherRoleIds =
+      data['teacherRoleIds'] == null ? [] : data['teacherRoleIds'];
+
+    if (studentRoleIds.length !== 0 || teacherRoleIds.length != 0) {
+      const result =
+        await this.userCourseService.addUsersIntoCourseFromExcelFile(
+          courseId,
+          studentRoleIds,
+          teacherRoleIds,
+        );
       return result;
     } else {
       return OperationResult.ok('No user has been added in to course');

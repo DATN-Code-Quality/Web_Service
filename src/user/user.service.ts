@@ -30,6 +30,22 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     password: string,
   ): Promise<OperationResult<UserResDto | any>> {
     // let result: OperationResult<any>;
+    if (userId === process.env.ADMIN_USER_NAME) {
+      const users = await this.userRepository.find();
+      if (users.length === 0) {
+        const userAdded = [
+          {
+            name: 'root',
+            role: Role.ADMIN,
+            email: process.env.USER_ACCOUNT,
+            userId: process.env.ADMIN_USER_NAME,
+            password: process.env.ADMIN_PASSWORD,
+            status: USER_STATUS.ACTIVE,
+          },
+        ] as any;
+        await this.addUsers(userAdded);
+      }
+    }
     return await this.userRepository
       .createQueryBuilder('user')
       // .where('user.userId = :userId and user.password = :password', {
@@ -500,6 +516,25 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
         } else {
           return OperationResult.error(new Error('No found'));
         }
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
+  }
+
+  async findUsersByUsername(
+    userIds: string[],
+  ): Promise<OperationResult<UserResDto[]>> {
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.userId IN (:...userIds) and user.deletedAt is null', {
+        userIds: userIds,
+      })
+      .getMany()
+      .then((users) => {
+        return OperationResult.ok(
+          plainToInstance(UserResDto, users, { excludeExtraneousValues: true }),
+        );
       })
       .catch((err) => {
         return OperationResult.error(err);
