@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package third_party_service;
 import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
 
 message Empty {}
 
@@ -11,13 +12,13 @@ message User {
   string role = 3;
   string userId = 4;
   string moodleId = 5;
-  bool status = 6;
+  int32 status = 6;
 }
 
 message Course {    
   string name = 1;
   string moodleId =2;
-  int32 courseMoodleId =3 ;
+  string courseMoodleId =3 ;
   string startAt =4;
   string endAt = 5;
   string detail = 6;
@@ -49,6 +50,23 @@ message Submission {
   string submissionMoodleId=10;
 }
 
+message ScanSubmissionRequest {    
+  string id = 1;
+  string assignmentId = 2;
+  string link = 3;
+  string note = 4;
+  string submitType = 5;
+  string timemodified = 6;
+  string userId = 7;
+  string origin = 8;
+  int32 status = 9;
+  int32 grade = 10;
+  string submissionMoodleId = 11;
+  string createdAt = 12;
+  string updatedAt = 13;
+  string deletedAt = 14;
+}
+
 message GetUsersRequest {
   repeated string emails = 1;
 }
@@ -61,6 +79,10 @@ message UsersResponse {
 
 message GetCourseOfUserRequest {
   int32 userMoodleId = 1;
+}
+
+message CourseUserRequest {
+  int32 courseMoodleId = 1;
 }
 
 message GetAssignmentsOfCourseRequest {
@@ -117,6 +139,12 @@ message AssignmentsCronjobRequest {
   repeated AssignmentCronjobRequest assignments = 1;
 }
 
+message CourseCronjobRequest {
+  string id = 1;
+  int32 moodleId = 2;
+  int64 endAt = 3;
+}
+
 message TextRange {
   int32 startLine = 1;
   int32 endLine = 2;
@@ -150,6 +178,15 @@ message ComponentDetail {
   string name = 4;
   string longName = 5;
   string path = 6;
+  string uuid = 7;
+}
+
+message RuleOverview {
+  string key = 1;
+  string lang = 2;
+  string langName = 3;
+  string name = 4;
+  string status = 5;
 }
 
 message Issue {
@@ -159,18 +196,25 @@ message Issue {
   int32 effortTotal = 4;
   repeated IssueDetail issues = 5;
   repeated ComponentDetail components = 6;
+  repeated RuleOverview rules = 7;
+
 }
 
 message IssueRequest {
   string submissionId = 1;
   string type = 2;
-  int32 page = 3;
-  int32 pageSize = 4;
+  string severity = 3;
+  string rule = 4;
+  string file = 5;
+  string fileuuid = 6;
+  int32 page = 7;
+  int32 pageSize = 8;
 }
 
 message IssueResponse {
   int32 error = 1;
-  Issue issues = 2;
+  Issue data = 2;
+  string message = 3;
 }
 
 message Source {
@@ -184,16 +228,114 @@ message SourceRequest {
 
 message SourceResponse {
   int32 error = 1;
-  repeated Source sources = 2;
+  repeated Source data = 2;
+  string message = 3;
 }
 
-service GIssueService {
-  rpc getIssuesBySubmissionId(IssueRequest) returns (IssueResponse);
+message RuleDetail{
+  string key = 1;
+  string repo = 2;
+  string lang = 3;
+  string langName = 4;
+  string name = 5;
+  string type = 6;
+  string severity = 7;
+  string debtRemFnOffset = 8;
+  string htmlDesc = 9;
+  string mdDesc = 10;
+  string status = 11;
+  string scope = 12;
+  string createdAt = 13;
 }
 
-service GSourceService {
+message RuleRequest {
+  string key = 1;
+}
+
+message RuleResponse {
+  int32 error = 1;
+  RuleDetail data = 2;
+  string message = 3;
+}
+
+message History {
+  string date = 1;
+  string value = 2;
+}
+
+message Measure {
+  string metric = 1;
+  repeated History history = 2;
+}
+
+message Paging {
+  int32  pageIndex = 1;
+  int32  pageSize = 2;
+  int32  total = 3;
+}
+
+message Result {
+  Paging paging = 1;
+  repeated Measure measures = 2;
+}
+
+message ResultRequest {
+  string submissionId = 1;
+  int32 page = 2;
+  int32 pageSize = 3;
+}
+
+message ResultResponse {
+  int32 error = 1;
+  Result data = 2;
+  string message = 3;
+
+}
+
+message Condition {
+  string key = 1;
+  int32 error = 2;
+}
+
+message QualityGateRequest {
+  string assignmentId = 1;
+  repeated Condition conditions = 2;
+}
+
+message QualityGateResponse {
+  int32 error = 1;
+  string data = 2;
+  string message = 3;
+}
+
+message ConnectMoodleRequest {
+  string username = 1;
+  string password = 2;
+  string serviceName = 3;
+  string host = 4;
+}
+
+message ConnectMoodleResponse {
+  int32 error = 1;
+  string data = 2;
+  string message = 3;
+}
+
+message IsMoodleConnectedResponse {
+  int32 error = 1;
+  bool data = 2;
+  string message = 3;
+}
+
+service GSonarqubeService{
+  rpc getRuleDetailByKey(RuleRequest) returns (RuleResponse);
+  rpc getResultsBySubmissionId(ResultRequest) returns (ResultResponse);
   rpc getSourcesByKey(SourceRequest) returns (SourceResponse);
+  rpc getIssuesBySubmissionId(IssueRequest) returns (IssueResponse);
+  rpc createQualityGate(QualityGateRequest) returns (QualityGateResponse);
+  rpc updateConditions(QualityGateRequest) returns (QualityGateResponse);
 }
+
 service GCategoryService {
   rpc GetAllCategories(Empty) returns (CategoriesResponse);
 }
@@ -205,11 +347,13 @@ service GAssignmentService {
 
 service GSubmissionService {
   rpc GetSubmissionsByAssignmentId(GetSubmissionsOfAssignmentMoodleIdRequest) returns (SubmissionsResponse);
+  rpc ScanSubmission(ScanSubmissionRequest) returns (Empty);
 }
 
 service GUserService {
   rpc GetUsersByEmails(GetUsersRequest) returns (UsersResponse);
   rpc GetAllUsers(Empty) returns (UsersResponse);
+  rpc GetUsersByCourseMoodleId(CourseUserRequest) returns (UsersResponse);
 }
 
 service GCourseService {
@@ -217,4 +361,10 @@ service GCourseService {
   rpc GetUsersCourse(GetCourseOfUserRequest) returns (CoursesResponse);
   rpc GetCoursesByCategory(GetCourseOfCategoryRequest) returns (CoursesResponse);
   rpc GetCoursesByMoodleId(GetCourseOfMoodleIdRequest) returns (CoursesResponse);
+  rpc AddCourseCronjob(CourseCronjobRequest) returns (Empty);
+}
+
+service GMoodleService { 
+  rpc ConnectMoodle(ConnectMoodleRequest) returns (ConnectMoodleResponse);
+  rpc IsMoodleConnected(Empty) returns (IsMoodleConnectedResponse);
 }

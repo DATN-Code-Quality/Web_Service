@@ -1,5 +1,6 @@
 import { Observable } from 'rxjs';
 import {
+  CourseCronjobRequest,
   CoursesResponce,
   GetCourseOfCategoryRequest,
   GetCourseOfMoodleIdRequest,
@@ -20,4 +21,6 @@ export interface GCourseService {
   getCoursesByMoodleId(
     courseMoodleId: GetCourseOfMoodleIdRequest,
   ): Observable<CoursesResponce>;
+
+  addCourseCronjob(data: CourseCronjobRequest): Observable<{}>;
 }

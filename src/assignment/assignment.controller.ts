@@ -5,12 +5,16 @@ import {
   Inject,
   Logger,
   OnModuleInit,
+  DefaultValuePipe,
   Param,
   Post,
   Query,
   UsePipes,
   UseFilters,
   ParseArrayPipe,
+  Request,
+  Put,
+  Response,
 } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
@@ -23,92 +27,167 @@ import { AssignmentResDto } from './res/assignment-res.dto';
 import { ServiceResponse } from 'src/common/service-response';
 import { ValidationPipe } from 'src/common/validation.pipe';
 import { ValidationErrorFilter } from 'src/common/validate-exception.filter';
+import { Public, Roles, SubRoles } from 'src/auth/auth.decorator';
+import { Role, SubRole } from 'src/auth/auth.const';
+import { OperationResult } from 'src/common/operation-result';
+import { GSonarqubeService } from 'src/gRPc/services/sonarqube';
+import { createCondition } from 'src/gRPc/interfaces/sonarqube/QulaityGate';
+import { UserReqDto } from 'src/user/req/user-req.dto';
+import { GSubmissionService } from 'src/gRPc/services/submission';
+import { SubmissionService } from 'src/submission/submission.service';
+import { SUBMISSION_STATUS } from 'src/submission/req/submission-req.dto';
 
 @ApiTags('Assignment')
 @Controller('/api/assignment')
 export class AssignmentController implements OnModuleInit {
   private gAssignmentService: GAssignmentService;
+  private gSonarqubeService: GSonarqubeService;
 
   constructor(
     private readonly assignmentService: AssignmentService,
+    private readonly submissionService: SubmissionService,
     @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
   ) {}
 
   onModuleInit() {
     this.gAssignmentService =
       this.client.getService<GAssignmentService>('GAssignmentService');
+    this.gSonarqubeService =
+      this.client.getService<GSonarqubeService>('GSonarqubeService');
   }
 
-  @Get('/assignments')
-  async getAllCategorys() {
-    const result = await this.assignmentService.findAll(AssignmentResDto);
-    return result;
-  }
+  // @Get('/assignments')
+  // async getAllAssignments() {
+  //   const result = await this.assignmentService.findAll(AssignmentResDto);
+  //   return result;
+  // }
 
-  @Post('/assignments')
+  @SubRoles(SubRole.TEACHER)
+  @Post(':courseId/assignments')
   async addAssignments(
     @Body(new ParseArrayPipe({ items: AssignmentReqDto }))
     assignments: AssignmentReqDto[],
+    @Param('courseId') courseId: string,
+    @Request() req,
   ) {
-    const result = await this.assignmentService.createMany(
-      AssignmentReqDto,
-      assignments,
-    );
+    assignments.forEach((assignment) => {
+      assignment.courseId = courseId;
+      assignment.config = JSON.stringify(assignment.configObject);
+    });
+    const result = await this.assignmentService.upsertAssignments(assignments);
 
-    Logger.debug('Result: ' + JSON.stringify(result));
+    if (result.isOk()) {
+      for (let i = 0; i < result.data.length; i++) {
+        const response = await firstValueFrom(
+          this.gSonarqubeService.createQualityGate({
+            assignmentId: result.data[i].id,
+            conditions: createCondition(JSON.parse(result.data[i].config)),
+          }),
+        );
 
-    const savedAssignments: AssignmentCronjobRequest[] = result.data.map(
-      (assignment) => ({
-        id: assignment.id,
-        assignmentMoodleId: assignment.assignmentMoodleId,
-        dueDate: new Date(assignment.dueDate).getTime(),
-      }),
-    );
+        // if (response.error === 0) {
+        //   await this.assignmentService.update(result.data[i].id, {
+        //     config: response.data,
+        //   } as AssignmentResDto);
 
-    Logger.debug('Data: ' + JSON.stringify(savedAssignments));
+        //   result.data[i].config = response.data;
+        // }
+      }
 
-    firstValueFrom(
-      this.gAssignmentService
-        .addAssignmentCronjob({
-          assignments: savedAssignments,
-        })
-        .pipe(),
-    );
+      Logger.debug('Result: ' + JSON.stringify(result));
+
+      const savedAssignments: AssignmentCronjobRequest[] = result.data.map(
+        (assignment) => ({
+          id: assignment.id,
+          assignmentMoodleId: assignment.assignmentMoodleId,
+          dueDate: new Date(assignment.dueDate).getTime(),
+        }),
+      );
+
+      Logger.debug('Data: ' + JSON.stringify(savedAssignments));
+
+      firstValueFrom(
+        this.gAssignmentService
+          .addAssignmentCronjob({
+            assignments: savedAssignments,
+          })
+          .pipe(),
+      );
+
+      return OperationResult.ok({
+        assignments: result.data,
+        role: req.headers['role'],
+      });
+    }
 
     return result;
   }
 
-  @Post('')
+  @SubRoles(SubRole.TEACHER)
+  @Post(':courseId')
   @UsePipes(new ValidationPipe())
   @UseFilters(new ValidationErrorFilter())
-  async addAssignment(@Body() assignment: AssignmentReqDto) {
+  async addAssignment(
+    @Body() assignment: AssignmentReqDto,
+    @Param('courseId') courseId: string,
+    @Request() req,
+  ) {
+    assignment.courseId = courseId;
+    assignment.config = JSON.stringify(assignment.configObject);
+
     const result = await this.assignmentService.create(
       AssignmentReqDto,
       assignment,
     );
-    return result;
-  }
 
-  @Get('/:assignmentId')
-  async getAssignmentById(@Param('assignmentId') assignmentId: string) {
-    const result = await this.assignmentService.findOne(
-      AssignmentResDto,
-      assignmentId,
-    );
-    return result;
-  }
+    const conditions = createCondition(assignment.configObject);
+    if (result.isOk()) {
+      const response = await firstValueFrom(
+        this.gSonarqubeService.createQualityGate({
+          assignmentId: result.data.id,
+          conditions: conditions, //createCondition(assignment.configObject),
+        }),
+      );
 
-  @Get('')
-  async getAssignmentsByCourseId(@Query() query: string) {
-    const result = await this.assignmentService.findAssignmentsByCourseId(
-      query['courseId'],
-    );
+      if (response.error === 0) {
+        const savedAssignment: AssignmentCronjobRequest = {
+          id: assignment.id,
+          assignmentMoodleId: assignment.assignmentMoodleId as any,
+          dueDate: new Date(assignment.dueDate).getTime() as any,
+        };
+
+        Logger.debug('Data: ' + JSON.stringify(savedAssignment));
+
+        firstValueFrom(
+          this.gAssignmentService
+            .addAssignmentCronjob({
+              assignments: [savedAssignment],
+            })
+            .pipe(),
+        );
+
+        return OperationResult.ok({
+          assignment: result.data,
+          role: req.headers['role'],
+        });
+      } else {
+        return OperationResult.error(new Error(response.message));
+      }
+    }
+
+    // const result = await firstValueFrom(
+    //   this.gSonarqubeService.createQualityGate(
+    //     defaultConfig(`${Date.now().toString()}`),
+    //   ),
+    // );
+
     return result;
   }
 
   //Moodle:
-  @Get('/sync-assignments-by-course-id')
-  async getMoodleAssignmentsByCourseId(@Query() query: string) {
+  @SubRoles(SubRole.TEACHER)
+  @Get(':courseId/sync-assignments-by-course-id')
+  async getMoodleAssignmentsByCourseId(@Query() query: string, @Request() req) {
     const response$ = this.gAssignmentService
       .getAllAssignmentsByCourseId({
         courseMoodleId: query['courseMoodleId'],
@@ -127,6 +206,186 @@ export class AssignmentController implements OnModuleInit {
       newResultDTO,
       'data',
     );
+
+    if (result.isOk()) {
+      return OperationResult.ok({
+        assignments: result.data,
+        role: req.headers['role'],
+      });
+    }
     return result;
+  }
+
+  @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
+  @Get(':courseId/:assignmentId')
+  async getAssignmentById(
+    @Param('assignmentId') assignmentId: string,
+    @Request() req,
+  ) {
+    const result = await this.assignmentService.findOne(
+      AssignmentResDto,
+      assignmentId,
+    );
+
+    if (result.isOk()) {
+      return OperationResult.ok({
+        assignment: result.data,
+        role: req.headers['role'],
+      });
+    }
+    return result;
+  }
+
+  @SubRoles(SubRole.TEACHER, SubRole.STUDENT)
+  @Get(':courseId')
+  async getAssignmentsByCourseId(
+    @Param('courseId') courseId: string,
+    @Query('search', new DefaultValuePipe('')) search: string,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
+    @Request() req,
+  ) {
+    const result = await this.assignmentService.findAssignmentsByCourseId(
+      // query['courseId'],
+      courseId,
+      search,
+      limit,
+      offset,
+    );
+
+    if (result.isOk()) {
+      return OperationResult.ok({
+        total: result.data.total,
+        assignments: result.data.assignments,
+        role: req.headers['role'],
+      });
+    }
+    return result;
+  }
+
+  @SubRoles(SubRole.TEACHER)
+  @Get(':courseId/:assignmentId/report')
+  async getReport(
+    @Param('courseId') courseId: string,
+    @Param('assignmentId') assignmentId: string,
+    @Request() req,
+  ) {
+    const result = await this.assignmentService.getReport(
+      courseId,
+      assignmentId,
+    );
+    if (result.isOk()) {
+      return OperationResult.ok({
+        report: result.data,
+        role: req.headers['role'],
+      });
+    }
+    return result;
+  }
+
+  @SubRoles(SubRole.TEACHER)
+  @Put(':courseId/:assignmentId')
+  async updateCongig(
+    @Param('assignmentId') assignmentId: string,
+    @Body() data,
+    @Request() req,
+  ) {
+    const payload = {
+      name: data['name'],
+      dueDate: data['dueDate'],
+      description: data['description'],
+      config: JSON.stringify(data['configObject']),
+    };
+
+    //parse config thành 1 list các điều kiện
+    const conditions = createCondition(data['configObject']);
+
+    const result = await firstValueFrom(
+      this.gSonarqubeService.updateConditions({
+        assignmentId: assignmentId,
+        conditions: conditions,
+      }),
+    );
+
+    if (result.error === 0) {
+      //Lưu payload vào db
+      const assignment = await this.assignmentService.update(
+        assignmentId,
+        payload as any,
+      );
+      if (assignment.isOk()) {
+        return OperationResult.ok({
+          assignment: result.data,
+          role: req.headers['role'],
+        });
+      }
+      return assignment;
+    } else {
+      return OperationResult.error(new Error(result.message));
+    }
+  }
+
+  // @SubRoles(SubRole.TEACHER)
+  // @Post('/:courseId/import')
+  // async importuser(@Body() assignments: AssignmentReqDto[]) {
+  //   return this.assignmentService.upsertAssignments(assignments);
+  // }
+
+  @SubRoles(SubRole.TEACHER)
+  @Get(':courseId/:assignmentId/export')
+  async exportResult(
+    @Param('courseId') courseId: string,
+    @Param('assignmentId') assignmentId: string,
+    @Request() req,
+  ) {
+    const submissions =
+      await this.submissionService.findSubmissionsByAssigmentId(
+        assignmentId,
+        null,
+        null,
+      );
+
+    const data = [];
+
+    if (submissions.isOk()) {
+      for (let i = 0; i < submissions.data.submissions.length; i++) {
+        const resultItem = {};
+        resultItem['submission'] = {
+          submissionId: submissions.data.submissions[i].status,
+          userId: submissions.data.submissions[i].user.id,
+          userName: submissions.data.submissions[i].user.name,
+          userMoodleId: submissions.data.submissions[i].user.userId,
+          status: submissions.data.submissions[i].status,
+        };
+
+        if (
+          submissions.data.submissions[i].status == SUBMISSION_STATUS.PASS ||
+          submissions.data.submissions[i].status == SUBMISSION_STATUS.FAIL
+        ) {
+          const results = await firstValueFrom(
+            await this.gSonarqubeService.getResultsBySubmissionId({
+              submissionId: submissions.data.submissions[i].id,
+              page: null,
+              pageSize: null,
+            }),
+          );
+
+          if (results.error == 0) {
+            const metricItem = {};
+            results.data.measures.forEach((measure) => {
+              metricItem[`${measure.metric}`] =
+                measure['history'][measure['history'].length - 1]['value'];
+            });
+            resultItem['result'] = metricItem;
+          }
+        }
+        data.push(resultItem);
+      }
+    }
+
+    return OperationResult.ok({
+      results: data,
+      role: SubRole.TEACHER,
+    });
   }
 }

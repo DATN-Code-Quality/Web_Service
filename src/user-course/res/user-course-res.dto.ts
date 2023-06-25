@@ -3,6 +3,8 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   UpdateDateColumn,
 } from 'typeorm';
@@ -11,6 +13,9 @@ import { IsBooleanString, IsString } from 'class-validator';
 import { BaseEntity } from 'src/common/base.entity';
 import { BaseDto } from 'src/common/base.dto';
 import { Expose } from 'class-transformer';
+import { UserReqDto } from 'src/user/req/user-req.dto';
+import { UserResDto } from 'src/user/res/user-res.dto';
+import { CourseResDto } from 'src/course/res/course-res.dto';
 
 export class UserCourseResDto extends BaseDto {
   @ApiProperty()
@@ -32,4 +37,10 @@ export class UserCourseResDto extends BaseDto {
   @IsBooleanString()
   @Expose()
   status: boolean;
+
+  @Expose()
+  user: UserResDto;
+
+  @Expose()
+  course: CourseResDto;
 }

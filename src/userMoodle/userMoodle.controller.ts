@@ -9,6 +9,8 @@ import {
 import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
+import { Role } from 'src/auth/auth.const';
+import { Roles } from 'src/auth/auth.decorator';
 import { ServiceResponse } from 'src/common/service-response';
 import { GCourseService } from 'src/gRPc/services/course';
 import { GUserService } from 'src/gRPc/services/user';
@@ -30,6 +32,7 @@ export class UserMoodleController implements OnModuleInit {
       this.client.getService<GCourseService>('GCourseService');
   }
 
+  @Roles(Role.ADMIN)
   @Get('/get-user-by-email')
   async getUserByEmail(@Body() emails: string[]) {
     const response$ = this.userMoodleService.getUsersByEmails({ emails });
@@ -41,6 +44,7 @@ export class UserMoodleController implements OnModuleInit {
     return result;
   }
 
+  @Roles(Role.ADMIN)
   @Get('/get-all-users')
   async getAllUsers() {
     const response$ = this.userMoodleService.getAllUsers({}).pipe();
@@ -52,6 +56,7 @@ export class UserMoodleController implements OnModuleInit {
     return result;
   }
 
+  @Roles(Role.ADMIN)
   @Get('/get-user-course')
   async getUserCourse(@Query() query: { userMoodleId: number }) {
     // ban đầu nhờ client truyền id dùm, nhưng sau thì thông tin này phải lấy từ session

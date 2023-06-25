@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 import { BaseEntity } from 'src/common/base.entity';
-import { Column, Entity } from 'typeorm';
+import { UserCourseReqDto } from 'src/user-course/req/user-course-req.dto';
+import { Column, Entity, OneToMany } from 'typeorm';
 
 @Entity('course', { schema: 'sonarqube' })
 export class CourseReqDto extends BaseEntity {
@@ -11,13 +12,23 @@ export class CourseReqDto extends BaseEntity {
   name: string;
 
   @ApiProperty()
-  @IsString()
-  @Column('varchar', { name: 'moodleId', length: 255 })
+  // @IsString()
+  @Column('varchar', {
+    name: 'moodleId',
+    length: 255,
+    nullable: true,
+    unique: true,
+  })
   moodleId: string;
 
   @ApiProperty()
-  @IsString()
-  @Column('varchar', { name: 'courseMoodleId', length: 255 })
+  // @IsString()
+  @Column('varchar', {
+    name: 'courseMoodleId',
+    length: 255,
+    nullable: true,
+    unique: true,
+  })
   courseMoodleId: string;
 
   @ApiProperty()
@@ -31,17 +42,20 @@ export class CourseReqDto extends BaseEntity {
   endAt: Date;
 
   @ApiProperty()
-  @IsString()
+  // @IsString()
   @Column('varchar', { name: 'detail', nullable: true, length: 255 })
   detail: string | null;
 
   @ApiProperty()
-  @IsString()
+  // @IsString()
   @Column('varchar', { name: 'summary', nullable: true, length: 255 })
   summary: string | null;
 
   @ApiProperty()
-  @IsString()
-  @Column('varchar', { name: 'categoryId', length: 255 })
+  // @IsString()
+  @Column('varchar', { name: 'categoryId', length: 255, nullable: true })
   categoryId: string;
+
+  @OneToMany(() => UserCourseReqDto, (userCourse) => userCourse.user)
+  userCourses: UserCourseReqDto[];
 }

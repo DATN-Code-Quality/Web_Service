@@ -1,7 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 import { BaseEntity } from 'src/common/base.entity';
-import { Column, Entity } from 'typeorm';
+import { SubmissionReqDto } from 'src/submission/req/submission-req.dto';
+import { SubmissionResDto } from 'src/submission/res/submission-res.dto';
+import { UserCourseReqDto } from 'src/user-course/req/user-course-req.dto';
+import { Column, Entity, OneToMany } from 'typeorm';
+
+export enum USER_STATUS {
+  INACTIVE = 0,
+  ACTIVE = 1,
+  BLOCK = 2,
+}
 
 @Entity('user', { schema: 'sonarqube' })
 export class UserReqDto extends BaseEntity {
@@ -26,18 +35,32 @@ export class UserReqDto extends BaseEntity {
   userId: string;
 
   @ApiProperty()
-  @IsString()
-  @Column('varchar', { name: 'moodleId', length: 255 })
+  // @IsString()
+  @Column('varchar', {
+    name: 'moodleId',
+    length: 255,
+    nullable: true,
+    unique: true,
+  })
   moodleId: string;
 
   @ApiProperty()
-  @IsString()
+  // @IsString()
   @IsOptional()
   @Column('varchar', { name: 'password', length: 255 })
   password: string;
 
   @ApiProperty()
-  @IsString()
+  // @IsBoolean()
   @Column('tinyint', { name: 'status', width: 1 })
-  status: boolean;
+  status: USER_STATUS;
+
+  // @OneToMany(() => Project, (project) => project.user)
+  // projects: Project[];
+
+  @OneToMany(() => SubmissionReqDto, (submission) => submission.user)
+  submissions: SubmissionReqDto[];
+
+  @OneToMany(() => UserCourseReqDto, (userCourse) => userCourse.user)
+  userCourses: UserCourseReqDto[];
 }
