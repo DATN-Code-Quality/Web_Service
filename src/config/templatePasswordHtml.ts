@@ -4,7 +4,7 @@ export const templatePasswordHtml = (user, token, isActive) => {
   if (isActive) {
     url += `/active-account?token=${token}`;
   } else {
-    url += `/profile/change-password?token=${token}`;
+    url += `/change-forgot-password?token=${token}`;
   }
 
   const stringLink = isActive ? 'ACTIVE ACCOUNT' : 'RESET PASSWORD';
