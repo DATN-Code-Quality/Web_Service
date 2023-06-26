@@ -173,6 +173,10 @@ export class AppModule implements NestModule {
         path: '/api/user-course/sync-users',
         method: RequestMethod.GET,
       },
+      {
+        path: '/api/assignment/:courseId/sync-assignments-by-course-id',
+        method: RequestMethod.GET,
+      },
     );
   }
 }
