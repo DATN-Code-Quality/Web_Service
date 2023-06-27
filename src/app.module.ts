@@ -143,6 +143,10 @@ export class AppModule implements NestModule {
           path: '/api/sonarqube/result/:courseId/:assignmentId/:submissionId',
           method: RequestMethod.GET,
         },
+        {
+          path: '/api/sonarqube/component/:courseId/:assignmentId/:submissionId',
+          method: RequestMethod.GET,
+        },
       );
     consumer.apply(MoodleMiddleware).forRoutes(
       {
