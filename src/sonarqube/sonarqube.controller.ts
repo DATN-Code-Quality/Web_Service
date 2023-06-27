@@ -159,4 +159,25 @@ export class SonarqubeController implements OnModuleInit {
       message: issue.message,
     };
   }
+
+  @Roles(Role.USER)
+  @Get('component/:courseId/:assignmentId/:submissionId')
+  async getComponentsBySubmissionId(
+    @Param('submissionId') submissionId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(100), ParseIntPipe)
+    pageSize: number,
+  ) {
+    const result = await this.clientService.getComponentsBySubmissionId({
+      submissionId: submissionId,
+      page: page,
+      pageSize: pageSize,
+    });
+    const issue = await firstValueFrom(result);
+    return {
+      status: issue.error,
+      data: issue.data,
+      message: issue.message,
+    };
+  }
 }
