@@ -14,12 +14,13 @@ export interface Component {
   name: string;
   qualifier: string;
   path: string;
+  uuid: string;
 }
 
 export interface ComponentRequest {
   submissionId: string;
-  page: number;
-  pageSize: number;
+  // page: number;
+  // pageSize: number;
 }
 
 export interface ComponentResponse {

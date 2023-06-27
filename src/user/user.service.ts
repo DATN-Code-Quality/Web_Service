@@ -152,7 +152,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     user: UserReqDto,
   ): Promise<OperationResult<UserResDto>> {
     const salt = await bcrypt.genSalt(SALTROUNDS);
-    if (user.password !== null && user.password !== '') {
+    if (user.password && user.password !== '') {
       user.password = await bcrypt.hash(user.password, salt);
     }
 
