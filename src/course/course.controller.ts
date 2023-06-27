@@ -67,8 +67,6 @@ export class CourseController implements OnModuleInit {
             endAt: course.endAt,
           };
 
-          this.gCourseMoodleService.addCourseCronjob(cronJobData);
-
           const users = (
             await this.userCourseService.getUsersByCourseMoodleId(
               parseInt(course.courseMoodleId),

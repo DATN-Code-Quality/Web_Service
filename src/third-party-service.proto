@@ -292,6 +292,31 @@ message ResultResponse {
 
 }
 
+message Component {
+  string key = 1;
+  string name = 2;
+  string qualifier = 3;
+  string path = 4;
+
+}
+
+message Components {
+  Paging paging = 1;
+  repeated Component components = 2;
+}
+
+message ComponentRequest {
+  string submissionId = 1;
+  int32 page = 2;
+  int32 pageSize = 3;
+}
+
+message ComponentResponse {
+  int32 error = 1;
+  Components data = 2;
+  string message = 3;
+}
+
 message Condition {
   string key = 1;
   int32 error = 2;
@@ -334,6 +359,7 @@ service GSonarqubeService{
   rpc getIssuesBySubmissionId(IssueRequest) returns (IssueResponse);
   rpc createQualityGate(QualityGateRequest) returns (QualityGateResponse);
   rpc updateConditions(QualityGateRequest) returns (QualityGateResponse);
+  rpc getComponentsBySubmissionId(ComponentRequest) returns (ComponentResponse);
 }
 
 service GCategoryService {

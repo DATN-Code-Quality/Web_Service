@@ -7,6 +7,10 @@ import {
   QualityGateRequest,
   QualityGateResponse,
 } from '../interfaces/sonarqube/QulaityGate';
+import {
+  ComponentRequest,
+  ComponentResponse,
+} from '../interfaces/sonarqube/Component';
 
 export interface GSonarqubeService {
   getIssuesBySubmissionId(
@@ -16,6 +20,9 @@ export interface GSonarqubeService {
   getResultsBySubmissionId(
     resultRequest: ResultRequest,
   ): Observable<ResultResponse>;
+  getComponentsBySubmissionId(
+    componentRequest: ComponentRequest,
+  ): Observable<ComponentResponse>;
   getSourcesByKey(sourceRequest: SourceRequest): Observable<SourceResponse>;
   createQualityGate(
     qualityGateRequest: QualityGateRequest,
