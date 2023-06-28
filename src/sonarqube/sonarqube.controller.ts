@@ -116,8 +116,8 @@ export class SonarqubeController implements OnModuleInit {
     @Query('rule', new DefaultValuePipe(null)) rule: string,
     @Query('file', new DefaultValuePipe(null)) file: string,
     @Query('fileuuid', new DefaultValuePipe(null)) fileuuid: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('pageSize', new DefaultValuePipe(100), ParseIntPipe)
+    @Query('page', new DefaultValuePipe(0), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(0), ParseIntPipe)
     pageSize: number,
   ) {
     const result = await this.clientService.getIssuesBySubmissionId({
@@ -164,14 +164,14 @@ export class SonarqubeController implements OnModuleInit {
   @Get('component/:courseId/:assignmentId/:submissionId')
   async getComponentsBySubmissionId(
     @Param('submissionId') submissionId: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('pageSize', new DefaultValuePipe(100), ParseIntPipe)
+    // @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    // @Query('pageSize', new DefaultValuePipe(100), ParseIntPipe)
     pageSize: number,
   ) {
     const result = await this.clientService.getComponentsBySubmissionId({
       submissionId: submissionId,
-      page: page,
-      pageSize: pageSize,
+      // page: page,
+      // pageSize: pageSize,
     });
     const issue = await firstValueFrom(result);
     return {

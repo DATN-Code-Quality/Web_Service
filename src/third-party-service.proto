@@ -297,6 +297,7 @@ message Component {
   string name = 2;
   string qualifier = 3;
   string path = 4;
+  string uuid = 5;
 
 }
 
@@ -307,8 +308,6 @@ message Components {
 
 message ComponentRequest {
   string submissionId = 1;
-  int32 page = 2;
-  int32 pageSize = 3;
 }
 
 message ComponentResponse {

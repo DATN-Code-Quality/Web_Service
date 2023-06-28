@@ -60,7 +60,9 @@ export class SubmissionController implements OnModuleInit {
           const assignmentId = req.params['assignmentId'];
           const userId = req.headers['userId'];
           const path = `${process.env.DESTINATION_PATH}/${courseId}/${assignmentId}/${userId}`;
-          req.body['link'] = `${path}/${file.originalname}`;
+          req.body[
+            'link'
+          ] = `/${courseId}/${assignmentId}/${userId}/${file.originalname}`;
           if (!fs.existsSync(path)) {
             fs.mkdirSync(path, { recursive: true });
           }

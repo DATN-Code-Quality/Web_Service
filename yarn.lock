@@ -1076,7 +1076,7 @@ __metadata:
     webpack "5.75.0"
     webpack-node-externals "3.0.0"
 
-"@nestjs/common@^7.0.0 || ^8.0.0 || ^9.0.0", "@nestjs/common@^7.0.8 || ^8.0.0 || ^9.0.0", "@nestjs/common@^8.0.0 || ^9.0.0", "@nestjs/common@^9.0.0", "@nestjs/common@>=6.10.11":
+"@nestjs/common@^7.0.0 || ^8.0.0 || ^9.0.0", "@nestjs/common@^7.0.8 || ^8.0.0 || ^9.0.0", "@nestjs/common@^8.0.0 || ^9.0.0", "@nestjs/common@^9.0.0", "@nestjs/common@^9.0.0 || ^10.0.0", "@nestjs/common@>=6.10.11":
   version "9.3.9"
   resolved "https://registry.npmjs.org/@nestjs/common/-/common-9.3.9.tgz"
   integrity sha512-GshTD9Xz+wD2em6NyzU4NXw5IXMUmapgDgD+iuj6XL0258hvDwODmNk37mBBnZvTZlqER+krvIUKnS34etqF/A==
@@ -1095,7 +1095,7 @@ __metadata:
     lodash "4.17.21"
     uuid "9.0.0"
 
-"@nestjs/core@^8.0.0 || ^9.0.0", "@nestjs/core@^9.0.0", "@nestjs/core@>=6.10.11":
+"@nestjs/core@^8.0.0 || ^9.0.0", "@nestjs/core@^9.0.0", "@nestjs/core@^9.0.0 || ^10.0.0", "@nestjs/core@>=6.10.11":
   version "9.3.9"
   resolved "https://registry.npmjs.org/@nestjs/core/-/core-9.3.9.tgz"
   integrity sha512-9g1A1G9eirLXEpH21rc6dKb08zHc2+adhCRz8NW39hbejcsxxD72FApJzt4QBQAKvu862ixt/tdpStnFT7lOSw==
@@ -1167,6 +1167,13 @@ __metadata:
     fs-extra "11.1.0"
     jsonc-parser "3.2.0"
     pluralize "8.0.0"
+
+"@nestjs/serve-static@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.npmjs.org/@nestjs/serve-static/-/serve-static-4.0.0.tgz"
+  integrity sha512-8cTrNV2ngdHIjiLNsXePnw0+KY1ThrZGz/WeyAG5gIvmZNDbnZBOrPoYlKL+MOzlXlQStxR5jKLYmn+nJeoncQ==
+  dependencies:
+    path-to-regexp "0.2.5"
 
 "@nestjs/swagger@^6.2.1":
   version "6.2.1"
@@ -3950,7 +3957,7 @@ expect@^29.0.0, expect@^29.4.3:
     jest-message-util "^29.4.3"
     jest-util "^29.4.3"
 
-express@4.18.2:
+express@^4.18.1, express@4.18.2:
   version "4.18.2"
   resolved "https://registry.npmjs.org/express/-/express-4.18.2.tgz"
   integrity sha512-5/PsL6iGPdfQ/lKM1UuielYgv3BUoJfz1aUwU9vHZ+J7gyvwdQXFEBIEIaxeGf0GIcreATNyBExtalisDbuMqQ==
@@ -4076,7 +4083,7 @@ fastify-plugin@^4.0.0:
   resolved "https://registry.npmjs.org/fastify-plugin/-/fastify-plugin-4.5.0.tgz"
   integrity sha512-79ak0JxddO0utAXAQ5ccKhvs6vX2MGyHHMMsmZkBANrq3hXc1CHzvNPHOcvTsVMEPl5I+NT+RO4YKMGehOfSIg==
 
-fastify@4.13.0:
+fastify@^4.7.0, fastify@4.13.0:
   version "4.13.0"
   resolved "https://registry.npmjs.org/fastify/-/fastify-4.13.0.tgz"
   integrity sha512-p9ibdFWH3pZ7KPgmfHPKGUy2W4EWU2TEpwlcu58w4CwGyU3ARFfh2kwq6zpZ5W2ZGVbufi4tZbqHIHAlX/9Z/A==
@@ -6726,6 +6733,11 @@ path-to-regexp@0.1.7:
   version "0.1.7"
   resolved "https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-0.1.7.tgz"
   integrity sha512-5DFkuoqlv1uYQKxy8omFBeJPQcdoE07Kv2sferDCrAq1ohOU+MSDswDIbnx3YAM60qIOnYa53wBhXW0EbMonrQ==
+
+path-to-regexp@0.2.5:
+  version "0.2.5"
+  resolved "https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-0.2.5.tgz"
+  integrity sha512-l6qtdDPIkmAmzEO6egquYDfqQGPMRNGjYtrU13HAXb3YSRrt7HSb1sJY0pKp6o2bAa86tSB6iwaW2JbthPKr7Q==
 
 path-to-regexp@3.2.0:
   version "3.2.0"
