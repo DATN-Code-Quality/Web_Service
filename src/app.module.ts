@@ -36,6 +36,7 @@ import { RoleMiddleware } from './middleware/rule.middleware';
 import { LoggerModule } from './logger/logger.module';
 import { MoodleMiddleware } from './middleware/moodle.middleware';
 import { MoodleModule } from './moodle/moodle.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
@@ -59,6 +60,10 @@ import { MoodleModule } from './moodle/moodle.module';
 
       // logging: 'all',
       synchronize: true,
+    }),
+
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, process.env.STATIC_SERVICE_DEPLOY),
     }),
     UserModule,
     CategoryModule,
