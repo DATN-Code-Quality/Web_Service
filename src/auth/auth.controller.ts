@@ -109,7 +109,7 @@ export class AuthController {
     }
   }
 
-  // Call this api when first login or forget password (after user click into link attached in mail and change password)
+  // Call this api when forget password (after user click into link attached in mail and change password)
   @Put('/change-password-without-old-password')
   @Public()
   async changePasswordVithoutOldPassword(
@@ -148,6 +148,26 @@ export class AuthController {
     } else {
       return user;
     }
+  }
+  //Call this api when first time login
+  @Put('/change-password-first-time-login')
+  async changePassFirstTimeLogin(@Body() data, @Request() req) {
+    const userId = req.headers['userId'];
+    const newPassword = data['newPassword'];
+
+    const userById = await this.userService.findOne(UserResDto, userId);
+
+    if (!userById.isOk()) {
+      return OperationResult.error(new Error('Cannot find user'));
+    }
+    if (newPassword && this.isInValidPassword(newPassword) === 0) {
+      return this.userService.changePassword(userId, newPassword);
+    }
+    return OperationResult.error(
+      new Error(
+        'The new password is not valid. Password length must be longer than 8',
+      ),
+    );
   }
 
   //Call this api when active account

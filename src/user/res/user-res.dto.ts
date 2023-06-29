@@ -16,6 +16,13 @@ import { USER_STATUS } from '../req/user-req.dto';
 
 export const PasswordKey = '227Hcmus#';
 
+export const DEFAULSTR = [
+  '0123456789',
+  'abcdefghijklmnopqrstuvwxyz',
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  '#?!@$%^&*-',
+];
+
 export class UserResDto extends BaseDto {
   @ApiProperty()
   @IsString()

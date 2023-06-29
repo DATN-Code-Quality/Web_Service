@@ -1,7 +1,7 @@
 import { Body, Injectable, Logger } from '@nestjs/common';
 import { USER_STATUS, UserReqDto } from './req/user-req.dto';
 import { BaseService } from 'src/common/base.service';
-import { PasswordKey, UserResDto } from './res/user-res.dto';
+import { DEFAULSTR, UserResDto } from './res/user-res.dto';
 import { OperationResult } from 'src/common/operation-result';
 import { And, In, Like, Not, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
@@ -70,21 +70,21 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
                     Error('Account has been blocked'),
                   );
                 }
-                if (savedUserRes.status === USER_STATUS.INACTIVE) {
-                  const token = this.jwtService.sign({
-                    userId: savedUserRes.id,
-                  });
-                  this.sendEmail(
-                    savedUserRes as any,
-                    templatePasswordHtml(savedUserRes, token, true),
-                    'Active Account',
-                  );
-                  return OperationResult.fail(
-                    new Error(
-                      `Account has been actived. Please check your email to active account.`,
-                    ),
-                  );
-                }
+                // if (savedUserRes.status === USER_STATUS.INACTIVE) {
+                //   const token = this.jwtService.sign({
+                //     userId: savedUserRes.id,
+                //   });
+                //   this.sendEmail(
+                //     savedUserRes as any,
+                //     templatePasswordHtml(savedUserRes, token, true),
+                //     'Active Account',
+                //   );
+                //   return OperationResult.fail(
+                //     new Error(
+                //       `Account has been actived. Please check your email to active account.`,
+                //     ),
+                //   );
+                // }
                 return OperationResult.ok(savedUserRes);
               } else {
                 return OperationResult.error(Error('Invalid password'));
@@ -128,9 +128,12 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
 
   async addUsers(users: UserReqDto[]): Promise<OperationResult<UserResDto[]>> {
     const salt = await bcrypt.genSalt(SALTROUNDS);
+    const account = [];
     const hash = users.map(async (user) => {
+      const generatedPassword = this.generatePassword();
+      account.push({ user: user, password: generatedPassword });
       const hashedPassword = await bcrypt.hash(
-        user.password || user.userId + PasswordKey,
+        user.password || generatedPassword,
         salt,
       );
       return {
@@ -144,6 +147,16 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     }
 
     const result = await this.createMany(UserResDto, usersAdded);
+
+    if (result.isOk()) {
+      for (let i = 0; i < account.length; i++) {
+        await this.sendEmail(
+          account.at(i).user,
+          templateHtml(account.at(i).user, account.at(i).password),
+          'You are invited into Code Quality Application',
+        );
+      }
+    }
     return result;
   }
 
@@ -493,21 +506,21 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
           if (savedDto.status === USER_STATUS.BLOCK) {
             return OperationResult.error(Error('Account has been blocked'));
           }
-          if (savedDto.status === USER_STATUS.INACTIVE) {
-            const token = this.jwtService.sign({
-              userId: savedDto.id,
-            });
-            this.sendEmail(
-              savedDto as any,
-              templatePasswordHtml(savedDto, token, true),
-              'Active Account',
-            );
-            return OperationResult.fail(
-              new Error(
-                `Account has been actived. Please check your email to active account.`,
-              ),
-            );
-          }
+          // if (savedDto.status === USER_STATUS.INACTIVE) {
+          //   const token = this.jwtService.sign({
+          //     userId: savedDto.id,
+          //   });
+          //   this.sendEmail(
+          //     savedDto as any,
+          //     templatePasswordHtml(savedDto, token, true),
+          //     'Active Account',
+          //   );
+          //   return OperationResult.fail(
+          //     new Error(
+          //       `Account has been actived. Please check your email to active account.`,
+          //     ),
+          //   );
+          // }
           return OperationResult.ok(
             plainToInstance(UserResDto, savedDto, {
               excludeExtraneousValues: true,
@@ -539,5 +552,26 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       .catch((err) => {
         return OperationResult.error(err);
       });
+  }
+
+  generatePassword(): string {
+    const password = [];
+
+    DEFAULSTR.forEach((str) => {
+      password.push(str.at(Math.floor(Math.random() * str.length)));
+    });
+
+    for (let i = 0; i < 4; i++) {
+      const randStr = DEFAULSTR.at(
+        Math.floor(Math.random() * DEFAULSTR.length),
+      );
+      password.push(randStr.at(Math.floor(Math.random() * randStr.length)));
+    }
+
+    return password
+      .sort(function () {
+        return 0.5 - Math.random();
+      })
+      .join('');
   }
 }

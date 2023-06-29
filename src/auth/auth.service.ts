@@ -35,42 +35,23 @@ export class AuthService {
   async generateToken(user: any) {
     const payload = { user: user.data };
     const token = await this.jwtService.signAsync(payload);
+
+    let isFirstTime = 0;
+    if (user.data.status === USER_STATUS.INACTIVE) {
+      await this.usersService.changeStatus([user.data.id], USER_STATUS.ACTIVE);
+      isFirstTime = 1;
+    }
     return OperationResult.ok({
       user: user.data,
       accessToken: {
         token: token,
         expiredAt: this.jwtService.decode(token)['exp'],
       },
+      isFirstTime: isFirstTime,
     });
   }
 
   async loginWithOutlook(token: string) {
-    // // Khởi tạo app
-    // initializeGraphForUserAuth(settings, (info: DeviceCodeInfo) => {
-    //   console.log('Call to init app');
-    //   console.log(info.verificationUri);
-    //   console.log(info.userCode);
-    // });
-    // console.log('-------------------------------------------------');
-    // //Get user
-    // try {
-    //   console.log('Call to get user');
-    //   const user = await getUserAsync();
-    //   console.log(user);
-    // } catch (err) {
-    //   console.log(`Error getting user: ${err}`);
-    // }
-    // console.log('-------------------------------------------------');
-    // // Get token
-    // try {
-    //   console.log('Call to get token');
-    //   const userToken = await getUserTokenAsync();
-    //   console.log(`User token: ${userToken}`);
-    // } catch (err) {
-    //   console.log(`Error getting user access token: ${err}`);
-    // }
-    // console.log('-------------------------------------------------');
-
     try {
       const payload = this.jwtService.decode(token);
       const email = payload['upn'];
@@ -86,12 +67,23 @@ export class AuthService {
           const accessToken = await this.jwtService.signAsync({
             user: user.data,
           });
+
+          let isFirstTime = 0;
+          if (user.data.status === USER_STATUS.INACTIVE) {
+            await this.usersService.changeStatus(
+              [user.data.id],
+              USER_STATUS.ACTIVE,
+            );
+            isFirstTime = 1;
+          }
+
           return OperationResult.ok({
             user: user.data,
             accessToken: {
               token: accessToken,
               expiredAt: this.jwtService.decode(accessToken)['exp'],
             },
+            isFirstTime: isFirstTime,
           });
         } else {
           return user;
