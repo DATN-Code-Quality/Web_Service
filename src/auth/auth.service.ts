@@ -36,10 +36,10 @@ export class AuthService {
     const payload = { user: user.data };
     const token = await this.jwtService.signAsync(payload);
 
-    let isFirstTime = 0;
+    let isFirstTime = false;
     if (user.data.status === USER_STATUS.INACTIVE) {
       await this.usersService.changeStatus([user.data.id], USER_STATUS.ACTIVE);
-      isFirstTime = 1;
+      isFirstTime = true;
     }
     return OperationResult.ok({
       user: user.data,
@@ -68,13 +68,13 @@ export class AuthService {
             user: user.data,
           });
 
-          let isFirstTime = 0;
+          let isFirstTime = false;
           if (user.data.status === USER_STATUS.INACTIVE) {
             await this.usersService.changeStatus(
               [user.data.id],
               USER_STATUS.ACTIVE,
             );
-            isFirstTime = 1;
+            isFirstTime = true;
           }
 
           return OperationResult.ok({
