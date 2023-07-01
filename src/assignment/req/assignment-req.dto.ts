@@ -58,7 +58,7 @@ export class AssignmentReqDto extends BaseEntity {
 
   @ApiProperty()
   // @IsString()
-  @Column('varchar', { name: 'description', nullable: true, length: 255 })
+  @Column('varchar', { name: 'description', nullable: true, length: 5000 })
   description: string | null;
 
   @ApiProperty()

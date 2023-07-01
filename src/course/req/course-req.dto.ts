@@ -43,12 +43,12 @@ export class CourseReqDto extends BaseEntity {
 
   @ApiProperty()
   // @IsString()
-  @Column('varchar', { name: 'detail', nullable: true, length: 255 })
+  @Column('varchar', { name: 'detail', nullable: true, length: 5000 })
   detail: string | null;
 
   @ApiProperty()
   // @IsString()
-  @Column('varchar', { name: 'summary', nullable: true, length: 255 })
+  @Column('varchar', { name: 'summary', nullable: true, length: 5000 })
   summary: string | null;
 
   @ApiProperty()

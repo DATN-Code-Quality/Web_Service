@@ -8,7 +8,8 @@ export enum PROJECT_TYPE {
   JAVA_GRADLE = 1,
   C_SHARP = 2,
   C_CPP = 3,
-  OTHERS = 4,
+  C = 4,
+  OTHERS = 5,
 }
 
 @Entity('project', { schema: 'sonarqube' })
