@@ -81,7 +81,6 @@ export class AuthController {
     const newPassword = data['newPassword'];
 
     const userById = await this.userService.findOne(UserResDto, userId);
-    console.log(userById);
 
     if (!userById.isOk()) {
       return OperationResult.error(
