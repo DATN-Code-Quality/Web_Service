@@ -11,6 +11,7 @@ import { UserCourseModule } from 'src/user-course/user-course.module';
 import { AssignmentModule } from 'src/assignment/assignment.module';
 import { SubmissionModule } from 'src/submission/submission.module';
 import { UserModule } from 'src/user/user.module';
+import { ResultModule } from 'src/result/project.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UserModule } from 'src/user/user.module';
     SubmissionModule,
     forwardRef(() => UserCourseModule),
     UserModule,
+    ResultModule,
   ],
   controllers: [CourseController],
   providers: [

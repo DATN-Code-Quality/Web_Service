@@ -9,6 +9,8 @@ import { CourseReqDto } from './req/course-req.dto';
 import { UserCourseService } from 'src/user-course/user-course.service';
 import { AssignmentService } from 'src/assignment/assignment.service';
 import { SubmissionService } from 'src/submission/submission.service';
+import { ResultService } from 'src/result/result.service';
+import { Role, SubRole } from 'src/auth/auth.const';
 
 @Injectable()
 export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
@@ -19,6 +21,7 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
     private readonly userCourseService: UserCourseService,
     private readonly assignmentService: AssignmentService,
     private readonly submissionService: SubmissionService,
+    private readonly resultService: ResultService,
   ) {
     super(courseRepository);
   }
@@ -382,5 +385,144 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
       .catch((err) => {
         return OperationResult.error(err);
       });
+  }
+
+  async getAvgResultInCourse(courseId: string): Promise<OperationResult<any>> {
+    const assignments = await this.assignmentService.findAssignmentsByCourseId(
+      courseId,
+      '',
+      null,
+      null,
+    );
+
+    if (assignments.isOk()) {
+      const assignmentIds = assignments.data.assignments.map((assignment) => {
+        return assignment.id;
+      });
+
+      const submissions =
+        await this.submissionService.getSubmissionsByAssignmentIds(
+          assignmentIds,
+        );
+
+      if (submissions.isOk()) {
+        const submissionIds = submissions.data.map((submission) => {
+          return submission.id;
+        });
+
+        const result = await this.resultService.getAvgResultsBySubmissionIds(
+          submissionIds,
+        );
+
+        if (result.isOk()) {
+          return OperationResult.ok(result.data);
+        } else {
+          return OperationResult.error(new Error(`${result.message}`));
+        }
+      }
+    }
+
+    return OperationResult.error(new Error(`${assignments.message}`));
+  }
+
+  async getAvgUserResultInCourse(
+    courseId: string,
+    name: string,
+    userName: string,
+    email: string,
+  ): Promise<OperationResult<any>> {
+    const users = await this.userCourseService.findStudentByCourseId(
+      courseId,
+      name,
+      userName,
+      email,
+      null,
+      null,
+    );
+    const assignments = await this.assignmentService.findAssignmentsByCourseId(
+      courseId,
+      '',
+      null,
+      null,
+    );
+
+    if (users.isOk() && assignments.isOk()) {
+      const assignmentIds = assignments.data.assignments.map((assignment) => {
+        return assignment.id;
+      });
+
+      const res = [];
+
+      for (let i = 0; i < users.data.length; i++) {
+        const submissions =
+          await this.submissionService.getSubmissionsByAssignmentIdsAndUserId(
+            assignmentIds,
+            users.data[i].id,
+          );
+
+        if (submissions.isOk()) {
+          const submissionIds = submissions.data.map((submission) => {
+            return submission.id;
+          });
+
+          const result = await this.resultService.getAvgResultsBySubmissionIds(
+            submissionIds,
+          );
+
+          if (result.isOk()) {
+            res.push({
+              user: users.data[i],
+              result: result.data,
+            });
+          }
+        }
+      }
+
+      return OperationResult.ok(res);
+    }
+
+    return OperationResult.error(
+      new Error(`${users.message}, ${assignments.message}`),
+    );
+  }
+
+  async getAssignmentResultInCourse(
+    courseId: string,
+    userId: string,
+  ): Promise<OperationResult<any>> {
+    const assignments = await this.assignmentService.findAssignmentsByCourseId(
+      courseId,
+      '',
+      null,
+      null,
+    );
+
+    if (assignments.isOk()) {
+      const res = [];
+
+      for (let i = 0; i < assignments.data.total; i++) {
+        const submission =
+          await this.submissionService.findSubmissionsByAssigmentIdAndUserId(
+            assignments.data.assignments[i].id,
+            userId,
+          );
+
+        if (submission.isOk() && submission.data.submissions.length > 0) {
+          const result = await this.resultService.getResultBySubmissionId(
+            submission.data.submissions[0].id,
+          );
+
+          if (result.isOk() && result.data) {
+            res.push({
+              assignment: assignments.data.assignments[i],
+              result: result.data,
+            });
+          }
+        }
+      }
+      return OperationResult.ok(res);
+    }
+
+    return OperationResult.error(new Error(`${assignments.message}`));
   }
 }

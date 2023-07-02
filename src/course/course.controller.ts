@@ -217,6 +217,17 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
+  // @Roles(Role.ADMIN)
+  // @Put('/:courseId')
+  // async updateCourse(
+  //   @Param('courseId') courseId: string,
+  //   @Body() course: CourseReqDto,
+  // ) {
+  //   const {updateCourse, id }= {...course};
+  //   const result = await this.courseService.update(courseId, course);
+  //   return result;
+  // }
+
   // @Roles(Role.ADMIN, Role.USER)
   @SubRoles(SubRole.ADMIN, SubRole.STUDENT, SubRole.TEACHER)
   @Get('/:courseId')
@@ -253,4 +264,61 @@ export class CourseController implements OnModuleInit {
   // async importuser(@Body() courses: CourseReqDto[]) {
   //   return this.courseService.upsertCourses(courses);
   // }
+
+  @SubRoles(SubRole.TEACHER)
+  @Get('/:courseId/result')
+  async getResultInCourse(@Param('courseId') courseId: string, @Request() req) {
+    const result = await this.courseService.getAvgResultInCourse(courseId);
+    if (result.isOk()) {
+      return OperationResult.ok({
+        result: result.data,
+        role: req.headers['role'],
+      });
+    }
+    return result;
+  }
+
+  @SubRoles(SubRole.TEACHER)
+  @Get('/:courseId/user-result')
+  async getResult(
+    @Param('courseId') courseId: string,
+    @Request() req,
+    @Query('name', new DefaultValuePipe('')) name: string,
+    @Query('userName', new DefaultValuePipe('')) userName: string,
+    @Query('email', new DefaultValuePipe('')) email: string,
+  ) {
+    const result = await this.courseService.getAvgUserResultInCourse(
+      courseId,
+      name,
+      userName,
+      email,
+    );
+    if (result.isOk()) {
+      return OperationResult.ok({
+        results: result.data,
+        role: req.headers['role'],
+      });
+    }
+    return result;
+  }
+
+  @SubRoles(SubRole.TEACHER)
+  @Get('/:courseId/:userId/assignment-result')
+  async getAssignmentResult(
+    @Param('courseId') courseId: string,
+    @Param('userId') userId: string,
+    @Request() req,
+  ) {
+    const result = await this.courseService.getAssignmentResultInCourse(
+      courseId,
+      userId,
+    );
+    if (result.isOk()) {
+      return OperationResult.ok({
+        results: result.data,
+        role: req.headers['role'],
+      });
+    }
+    return result;
+  }
 }

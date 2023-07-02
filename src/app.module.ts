@@ -37,6 +37,8 @@ import { LoggerModule } from './logger/logger.module';
 import { MoodleMiddleware } from './middleware/moodle.middleware';
 import { MoodleModule } from './moodle/moodle.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ResultModule } from './result/project.module';
+import { ResultReqDto } from './result/req/result-req.dto';
 
 @Module({
   imports: [
@@ -56,6 +58,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
         AssignmentReqDto,
         SubmissionReqDto,
         ProjectReqDto,
+        ResultReqDto,
       ],
 
       // logging: 'all',
@@ -72,7 +75,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     AssignmentModule,
     SubmissionModule,
     ProjectModule,
-    // ResultModule,
+    ResultModule,
     UserMoodleModule,
     CourseMoodleModule,
     SubmissionMoodleModule,
