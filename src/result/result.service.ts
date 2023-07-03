@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BaseService } from 'src/common/base.service';
 import { OperationResult } from 'src/common/operation-result';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ResultReqDto } from './req/result-req.dto';
@@ -82,5 +82,13 @@ export class ResultService extends BaseService<ResultReqDto, ResultResDto> {
           return OperationResult.error(new Error(e));
         })
     );
+  }
+
+  async getResultsBySubmissionIds(submissionIds: string[]) {
+    return await this.resultRepository.find({
+      where: {
+        submissionId: In(submissionIds),
+      },
+    });
   }
 }

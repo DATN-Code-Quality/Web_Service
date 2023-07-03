@@ -3,7 +3,7 @@ import { BaseService } from 'src/common/base.service';
 import { AssignmentReqDto } from './req/assignment-req.dto';
 import { AssignmentResDto } from './res/assignment-res.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { In, Like, Repository } from 'typeorm';
 import { OperationResult } from 'src/common/operation-result';
 import { plainToInstance } from 'class-transformer';
 import { UserCourseService } from 'src/user-course/user-course.service';
@@ -61,6 +61,15 @@ export class AssignmentService extends BaseService<
       .catch((err) => {
         return OperationResult.error(err);
       });
+  }
+
+  async findAssignmentsByCourseIds(courseIds: string[]): Promise<any> {
+    const res = await this.assignmentRepository.find({
+      where: {
+        courseId: In(courseIds),
+      },
+    });
+    return res;
   }
 
   async getReport(courseId: string, assignmentId: string) {

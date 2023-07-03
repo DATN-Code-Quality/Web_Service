@@ -16,10 +16,10 @@ import { FacultyService } from './faculty.service';
 export class FacultyController {
   constructor(private readonly facultyService: FacultyService) {}
 
-  // @Roles(Role.ADMIN)
-  // @Get('/facultys')
-  // async getAllFacultys() {
-  //   const result = await this.facultyService.findAll(FacultyResDto);
-  //   return result;
-  // }
+  @Roles(Role.ADMIN)
+  @Get('/:userId/detailed-result')
+  async getDetailResult(@Param('userId') userId: string) {
+    const result = await this.facultyService.getResultbyUserId(userId);
+    return result;
+  }
 }
