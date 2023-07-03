@@ -11,6 +11,7 @@ import { AssignmentService } from 'src/assignment/assignment.service';
 import { SubmissionService } from 'src/submission/submission.service';
 import { ResultService } from 'src/result/result.service';
 import { Role, SubRole } from 'src/auth/auth.const';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
@@ -22,6 +23,7 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
     private readonly assignmentService: AssignmentService,
     private readonly submissionService: SubmissionService,
     private readonly resultService: ResultService,
+    private readonly userService: UserService,
   ) {
     super(courseRepository);
   }
@@ -396,6 +398,23 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
     );
 
     if (assignments.isOk()) {
+      if (assignments.data.assignments.length <= 0) {
+        return OperationResult.ok(null);
+        //   {
+        //   violations: 0,
+        //   code_smells: 0,
+        //   bugs: 0,
+        //   vulnerabilities: 0,
+        //   blocker_violations: 0,
+        //   critical_violations: 0,
+        //   major_violations: 0,
+        //   minor_violations: 0,
+        //   info_violations: 0,
+        //   duplicated_lines_density: 0,
+        //   coverage: 0,
+        // });
+      }
+
       const assignmentIds = assignments.data.assignments.map((assignment) => {
         return assignment.id;
       });
@@ -427,65 +446,51 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
 
   async getAvgUserResultInCourse(
     courseId: string,
-    name: string,
-    userName: string,
-    email: string,
+    search: string,
     limit: number,
     offset: number,
   ): Promise<OperationResult<any>> {
-    const users = await this.userCourseService.findStudentByCourseId(
+    const users = await this.userService.findUserHasSubmissionByCourseId(
       courseId,
-      name,
-      userName,
-      email,
+      search,
       limit,
       offset,
     );
-    const assignments = await this.assignmentService.findAssignmentsByCourseId(
-      courseId,
-      '',
-      null,
-      null,
-    );
 
-    if (users.isOk() && assignments.isOk()) {
-      const assignmentIds = assignments.data.assignments.map((assignment) => {
-        return assignment.id;
-      });
-
+    if (users.isOk()) {
       const res = [];
 
-      for (let i = 0; i < users.data.length; i++) {
-        const submissions =
-          await this.submissionService.getSubmissionsByAssignmentIdsAndUserId(
-            assignmentIds,
-            users.data[i].id,
-          );
-
-        if (submissions.isOk()) {
-          const submissionIds = submissions.data.map((submission) => {
+      for (let i = 0; i < users.data['users'].length; i++) {
+        const submissionIds = users.data['users'][i].submissions.map(
+          (submission) => {
             return submission.id;
+          },
+        );
+
+        const result = await this.resultService.getAvgResultsBySubmissionIds(
+          submissionIds,
+        );
+
+        if (result.isOk()) {
+          res.push({
+            user: {
+              id: users.data['users'][i].id,
+              name: users.data['users'][i].name,
+              userId: users.data['users'][i].userId,
+              email: users.data['users'][i].email,
+            },
+            result: result.data,
           });
-
-          const result = await this.resultService.getAvgResultsBySubmissionIds(
-            submissionIds,
-          );
-
-          if (result.isOk()) {
-            res.push({
-              user: users.data[i],
-              result: result.data,
-            });
-          }
         }
       }
 
-      return OperationResult.ok(res);
+      return OperationResult.ok({
+        total: users.data['total'],
+        results: res,
+      });
     }
 
-    return OperationResult.error(
-      new Error(`${users.message}, ${assignments.message}`),
-    );
+    return OperationResult.error(new Error(`${users.message}`));
   }
 
   async getAssignmentResultInCourse(

@@ -464,21 +464,40 @@ export class UserCourseService extends BaseService<
 
   async findStudentByCourseId(
     courseId: string,
-    name: string,
-    userName: string,
-    email: string,
+    search: string,
     limit: number,
     offset: number,
   ): Promise<OperationResult<any>> {
+    const total = await this.usercourseRepository.count({
+      where: {
+        courseId: courseId,
+        role: SubRole.STUDENT,
+        user: [
+          {
+            name: Like(`%${search}%`),
+          },
+          {
+            email: Like(`%${search}%`),
+          },
+          {
+            userId: Like(`%${search}%`),
+          },
+        ],
+      },
+    });
     const usercourses = await this.usercourseRepository.find({
       where: {
         courseId: courseId,
         role: SubRole.STUDENT,
         user: [
           {
-            name: Like(`%${name}%`),
-            userId: Like(`%${userName}%`),
-            email: Like(`%${email}%`),
+            name: Like(`%${search}%`),
+          },
+          {
+            email: Like(`%${search}%`),
+          },
+          {
+            userId: Like(`%${search}%`),
           },
         ],
       },
@@ -501,6 +520,9 @@ export class UserCourseService extends BaseService<
       users.push(usercourses[i].user);
     }
 
-    return OperationResult.ok(users);
+    return OperationResult.ok({
+      total: total,
+      users: users,
+    });
   }
 }

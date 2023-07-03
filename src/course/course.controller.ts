@@ -265,7 +265,7 @@ export class CourseController implements OnModuleInit {
   //   return this.courseService.upsertCourses(courses);
   // }
 
-  @SubRoles(SubRole.TEACHER)
+  @SubRoles(SubRole.TEACHER, SubRole.ADMIN)
   @Get('/:courseId/result')
   async getResultInCourse(@Param('courseId') courseId: string, @Request() req) {
     const result = await this.courseService.getAvgResultInCourse(courseId);
@@ -278,35 +278,28 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
-  @SubRoles(SubRole.TEACHER)
+  @SubRoles(SubRole.TEACHER, SubRole.ADMIN)
   @Get('/:courseId/user-result')
   async getResult(
     @Param('courseId') courseId: string,
     @Request() req,
-    @Query('name', new DefaultValuePipe('')) name: string,
-    @Query('userName', new DefaultValuePipe('')) userName: string,
-    @Query('email', new DefaultValuePipe('')) email: string,
+    @Query('search', new DefaultValuePipe('')) search: string,
     @Query('limit', new DefaultValuePipe(null)) limit: number,
     @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const result = await this.courseService.getAvgUserResultInCourse(
       courseId,
-      name,
-      userName,
-      email,
+      search,
       limit,
       offset,
     );
     if (result.isOk()) {
-      return OperationResult.ok({
-        results: result.data,
-        role: req.headers['role'],
-      });
+      return OperationResult.ok(result.data);
     }
     return result;
   }
 
-  @SubRoles(SubRole.TEACHER)
+  @SubRoles(SubRole.TEACHER, SubRole.ADMIN)
   @Get('/:courseId/:userId/assignment-result')
   async getAssignmentResult(
     @Param('courseId') courseId: string,

@@ -14,6 +14,7 @@ import nodemailer from 'nodemailer';
 import { templateHtml } from 'src/config/templateHtml';
 import { JwtService } from '@nestjs/jwt';
 import { templatePasswordHtml } from 'src/config/templatePasswordHtml';
+import { SubmissionReqDto } from 'src/submission/req/submission-req.dto';
 
 @Injectable()
 export class UserService extends BaseService<UserReqDto, UserResDto> {
@@ -326,6 +327,86 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       .catch((err) => {
         return OperationResult.error(err);
       });
+  }
+
+  async findUserHasSubmission(search: string, limit: number, offset: number) {
+    const total = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.submissions', 'submission')
+      .where(
+        `(user.name LIKE '%${search}%' or user.email LIKE '%${search}%' or user.userId LIKE '%${search}%' ) and submission.id is not null`,
+      )
+      .getCount();
+
+    const users = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.submissions', 'submission')
+      .where(
+        `(user.name LIKE '%${search}%' or user.email LIKE '%${search}%' or user.userId LIKE '%${search}%' ) and submission.id is not null`,
+      )
+      .skip((offset - 1) * limit)
+      .take(limit)
+      .getMany()
+      .then((users) => {
+        return OperationResult.ok(users);
+      })
+
+      .catch((e) => {
+        return OperationResult.error(new Error(e));
+      });
+    if (users.isOk()) {
+      return OperationResult.ok({
+        total: total,
+        users: users.data,
+      });
+    }
+    return OperationResult.error(new Error(users.message));
+  }
+
+  async findUserHasSubmissionByCourseId(
+    courseId: string,
+    search: string,
+    limit: number,
+    offset: number,
+  ) {
+    const total = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.userCourses', 'userCourses')
+      .leftJoinAndSelect('user.submissions', 'submission')
+      .where(
+        `(user.name LIKE '%${search}%' or user.email LIKE '%${search}%' or user.userId LIKE '%${search}%' ) and submission.id is not null and userCourses.courseId = '${courseId}'`,
+      )
+      .getCount()
+      .then()
+      .catch((e) => {
+        console.log(e);
+      });
+
+    const users = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.submissions', 'submission')
+      .leftJoinAndSelect('user.userCourses', 'userCourses')
+      .where(
+        `(user.name LIKE '%${search}%' or user.email LIKE '%${search}%' or user.userId LIKE '%${search}%' ) and submission.id is not null and userCourses.courseId = '${courseId}'`,
+      )
+      .skip((offset - 1) * limit)
+      .take(limit)
+      .getMany()
+      .then((users) => {
+        return OperationResult.ok(users);
+      })
+
+      .catch((e) => {
+        console.log(e);
+        return OperationResult.error(new Error(e));
+      });
+    if (users.isOk()) {
+      return OperationResult.ok({
+        total: total,
+        users: users.data,
+      });
+    }
+    return OperationResult.error(new Error(users.message));
   }
 
   async upsertUsers(users: User[]) {
