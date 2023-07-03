@@ -39,6 +39,7 @@ import { MoodleModule } from './moodle/moodle.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ResultModule } from './result/project.module';
 import { ResultReqDto } from './result/req/result-req.dto';
+import { FacultyModule } from './faculty/faculty.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { ResultReqDto } from './result/req/result-req.dto';
     SubmissionMoodleModule,
     AssignmentMoodleModule,
     MoodleModule,
+    FacultyModule,
     {
       ...ClientsModule.register([
         {

@@ -13,17 +13,17 @@ export class ResultReqDto extends BaseEntity {
   @ApiProperty()
   @IsNumber()
   @Column('int', { name: 'total', width: 200 })
-  total: number;
+  violations: number;
 
   @ApiProperty()
   @IsNumber()
   @Column('int', { name: 'codeSmell', width: 200 })
-  codeSmell: number;
+  code_smells: number;
 
   @ApiProperty()
   @IsNumber()
   @Column('int', { name: 'bug' })
-  bug: number;
+  bugs: number;
 
   @ApiProperty()
   @IsNumber()
@@ -33,32 +33,32 @@ export class ResultReqDto extends BaseEntity {
   @ApiProperty()
   @IsNumber()
   @Column('int', { name: 'blocker', width: 200 })
-  blocker: number;
+  blocker_violations: number;
 
   @ApiProperty()
   @IsNumber()
   @Column('int', { name: 'critical', width: 200 })
-  critical: number;
+  critical_violations: number;
 
   @ApiProperty()
   @IsNumber()
   @Column('int', { name: 'major', width: 200 })
-  major: number;
+  major_violations: number;
 
   @ApiProperty()
   @IsNumber()
   @Column('int', { name: 'minor', width: 200 })
-  minor: number;
+  minor_violations: number;
 
   @ApiProperty()
   @IsNumber()
   @Column('int', { name: 'info', width: 200 })
-  info: number;
+  info_violations: number;
 
   @ApiProperty()
   @IsNumber()
   @Column('float', { name: 'duplicatedLinesDensity' })
-  duplicatedLinesDensity: number;
+  duplicated_lines_density: number;
 
   @ApiProperty()
   @IsNumber()
@@ -68,17 +68,17 @@ export class ResultReqDto extends BaseEntity {
   @ApiProperty()
   @IsNumber()
   @Column('float', { name: 'reliabilityRating' })
-  reliabilityRating: number;
+  reliability_rating: number;
 
   @ApiProperty()
   @IsNumber()
   @Column('float', { name: 'securityRating' })
-  securityRating: number;
+  security_rating: number;
 
   @ApiProperty()
   @IsNumber()
   @Column('float', { name: 'sqaleRating' })
-  sqaleRating: number;
+  sqale_rating: number;
 
   @ApiProperty()
   @IsNumber()

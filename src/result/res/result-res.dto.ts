@@ -9,15 +9,15 @@ export class ResultResDto extends BaseDto {
 
   @ApiProperty()
   @Expose()
-  total: number;
+  violations: number;
 
   @ApiProperty()
   @Expose()
-  codeSmell: number;
+  code_smells: number;
 
   @ApiProperty()
   @Expose()
-  bug: number;
+  bugs: number;
 
   @ApiProperty()
   @Expose()
@@ -25,27 +25,27 @@ export class ResultResDto extends BaseDto {
 
   @ApiProperty()
   @Expose()
-  blocker: number;
+  blocker_violations: number;
 
   @ApiProperty()
   @Expose()
-  critical: number;
+  critical_violations: number;
 
   @ApiProperty()
   @Expose()
-  major: number;
+  major_violations: number;
 
   @ApiProperty()
   @Expose()
-  minor: number;
+  minor_violations: number;
 
   @ApiProperty()
   @Expose()
-  info: number;
+  info_violations: number;
 
   @ApiProperty()
   @Expose()
-  duplicatedLinesDensity: number;
+  duplicated_lines_density: number;
 
   @ApiProperty()
   @Expose()
@@ -53,15 +53,15 @@ export class ResultResDto extends BaseDto {
 
   @ApiProperty()
   @Expose()
-  reliabilityRating: number;
+  reliability_rating: number;
 
   @ApiProperty()
   @Expose()
-  securityRating: number;
+  security_rating: number;
 
   @ApiProperty()
   @Expose()
-  sqaleRating: number;
+  sqale_rating: number;
 
   @ApiProperty()
   @Expose()

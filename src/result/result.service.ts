@@ -19,18 +19,18 @@ export class ResultService extends BaseService<ResultReqDto, ResultResDto> {
   async getAvgResultsBySubmissionIds(submissionIds: string[]) {
     return this.resultRepository
       .createQueryBuilder('result')
-      .select('ROUND(AVG(result.total), 0)', 'total')
-      .addSelect('ROUND(AVG(result.codeSmell), 0)', 'codeSmell')
-      .addSelect('ROUND(AVG(result.bug), 0)', 'bug')
+      .select('ROUND(AVG(result.total), 0)', 'violations')
+      .addSelect('ROUND(AVG(result.codeSmell), 0)', 'code_smells')
+      .addSelect('ROUND(AVG(result.bug), 0)', 'bugs')
       .addSelect('ROUND(AVG(result.vulnerabilities), 0)', 'vulnerabilities')
-      .addSelect('ROUND(AVG(result.blocker), 0)', 'blocker')
-      .addSelect('ROUND(AVG(result.critical), 0)', 'critical')
-      .addSelect('ROUND(AVG(result.major), 0)', 'major')
-      .addSelect('ROUND(AVG(result.info), 0)', 'info')
-      .addSelect('ROUND(AVG(result.minor), 0)', 'minor')
+      .addSelect('ROUND(AVG(result.blocker), 0)', 'blocker_violations')
+      .addSelect('ROUND(AVG(result.critical), 0)', 'critical_violations')
+      .addSelect('ROUND(AVG(result.major), 0)', 'major_violations')
+      .addSelect('ROUND(AVG(result.minor), 0)', 'minor_violations')
+      .addSelect('ROUND(AVG(result.info), 0)', 'info_violations')
       .addSelect(
         'ROUND(AVG(duplicatedLinesDensity), 2)',
-        'duplicatedLinesDensity',
+        'duplicated_lines_density',
       )
       .addSelect('ROUND(AVG(coverage), 2)', 'coverage')
 

@@ -430,14 +430,16 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
     name: string,
     userName: string,
     email: string,
+    limit: number,
+    offset: number,
   ): Promise<OperationResult<any>> {
     const users = await this.userCourseService.findStudentByCourseId(
       courseId,
       name,
       userName,
       email,
-      null,
-      null,
+      limit,
+      offset,
     );
     const assignments = await this.assignmentService.findAssignmentsByCourseId(
       courseId,

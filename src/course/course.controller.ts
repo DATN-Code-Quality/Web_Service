@@ -286,12 +286,16 @@ export class CourseController implements OnModuleInit {
     @Query('name', new DefaultValuePipe('')) name: string,
     @Query('userName', new DefaultValuePipe('')) userName: string,
     @Query('email', new DefaultValuePipe('')) email: string,
+    @Query('limit', new DefaultValuePipe(null)) limit: number,
+    @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
     const result = await this.courseService.getAvgUserResultInCourse(
       courseId,
       name,
       userName,
       email,
+      limit,
+      offset,
     );
     if (result.isOk()) {
       return OperationResult.ok({
