@@ -468,6 +468,23 @@ export class UserCourseService extends BaseService<
     limit: number,
     offset: number,
   ): Promise<OperationResult<any>> {
+    const total = await this.usercourseRepository.count({
+      where: {
+        courseId: courseId,
+        role: SubRole.STUDENT,
+        user: [
+          {
+            name: Like(`%${search}%`),
+          },
+          {
+            email: Like(`%${search}%`),
+          },
+          {
+            userId: Like(`%${search}%`),
+          },
+        ],
+      },
+    });
     const usercourses = await this.usercourseRepository.find({
       where: {
         courseId: courseId,
@@ -503,6 +520,9 @@ export class UserCourseService extends BaseService<
       users.push(usercourses[i].user);
     }
 
-    return OperationResult.ok(users);
+    return OperationResult.ok({
+      total: total,
+      users: users,
+    });
   }
 }

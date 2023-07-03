@@ -8,6 +8,7 @@ import { SubmissionResDto } from './res/submission-res.dto';
 import { OperationResult } from 'src/common/operation-result';
 import { Role, SubRole } from 'src/auth/auth.const';
 import { UserResDto } from 'src/user/res/user-res.dto';
+import { UserReqDto } from 'src/user/req/user-req.dto';
 
 @Injectable()
 export class SubmissionService extends BaseService<
@@ -36,6 +37,52 @@ export class SubmissionService extends BaseService<
       .find({
         where: {
           assignmentId: assignmentId,
+        },
+        order: {
+          updatedAt: 'DESC',
+        },
+        relations: {
+          user: true,
+        },
+        skip: offset,
+        take: limit,
+      })
+      .then((submissions) => {
+        for (let i = 0; i < submissions.length; i++) {
+          submissions[i].user = plainToInstance(
+            UserResDto,
+            submissions[i].user,
+            {
+              excludeExtraneousValues: true,
+            },
+          );
+        }
+        return OperationResult.ok({
+          total: total,
+          submissions: submissions,
+          role: SubRole.TEACHER,
+        });
+      })
+      .catch((err) => {
+        return OperationResult.error(err);
+      });
+  }
+
+  async findSubmissionsByUserId(
+    userId: string,
+    limit: number,
+    offset: number,
+  ): Promise<OperationResult<any>> {
+    const total = await this.submissionRepository.count({
+      where: {
+        userId: userId,
+      },
+    });
+
+    return await this.submissionRepository
+      .find({
+        where: {
+          userId: userId,
         },
         order: {
           updatedAt: 'DESC',

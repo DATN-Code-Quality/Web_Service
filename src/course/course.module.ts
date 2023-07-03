@@ -22,6 +22,7 @@ import { ResultModule } from 'src/result/project.module';
     forwardRef(() => UserCourseModule),
     UserModule,
     ResultModule,
+    UserModule,
   ],
   controllers: [CourseController],
   providers: [
