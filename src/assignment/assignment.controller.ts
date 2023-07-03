@@ -36,6 +36,7 @@ import { UserReqDto } from 'src/user/req/user-req.dto';
 import { GSubmissionService } from 'src/gRPc/services/submission';
 import { SubmissionService } from 'src/submission/submission.service';
 import { SUBMISSION_STATUS } from 'src/submission/req/submission-req.dto';
+import { ResultService } from 'src/result/result.service';
 
 @ApiTags('Assignment')
 @Controller('/api/assignment')
@@ -46,6 +47,8 @@ export class AssignmentController implements OnModuleInit {
   constructor(
     private readonly assignmentService: AssignmentService,
     private readonly submissionService: SubmissionService,
+    private readonly resultService: ResultService,
+
     @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
   ) {}
 
@@ -351,7 +354,7 @@ export class AssignmentController implements OnModuleInit {
       for (let i = 0; i < submissions.data.submissions.length; i++) {
         const resultItem = {};
         resultItem['submission'] = {
-          submissionId: submissions.data.submissions[i].status,
+          submissionId: submissions.data.submissions[i].id,
           userId: submissions.data.submissions[i].user.id,
           userName: submissions.data.submissions[i].user.name,
           userMoodleId: submissions.data.submissions[i].user.userId,
@@ -362,21 +365,28 @@ export class AssignmentController implements OnModuleInit {
           submissions.data.submissions[i].status == SUBMISSION_STATUS.PASS ||
           submissions.data.submissions[i].status == SUBMISSION_STATUS.FAIL
         ) {
-          const results = await firstValueFrom(
-            await this.gSonarqubeService.getResultsBySubmissionId({
-              submissionId: submissions.data.submissions[i].id,
-              page: null,
-              pageSize: null,
-            }),
-          );
+          // const results = await firstValueFrom(
+          //   await this.gSonarqubeService.getResultsBySubmissionId({
+          //     submissionId: submissions.data.submissions[i].id,
+          //     page: null,
+          //     pageSize: null,
+          //   }),
+          // );
 
-          if (results.error == 0) {
-            const metricItem = {};
-            results.data.measures.forEach((measure) => {
-              metricItem[`${measure.metric}`] =
-                measure['history'][measure['history'].length - 1]['value'];
-            });
-            resultItem['result'] = metricItem;
+          // if (results.error == 0) {
+          //   const metricItem = {};
+          //   results.data.measures.forEach((measure) => {
+          //     metricItem[`${measure.metric}`] =
+          //       measure['history'][measure['history'].length - 1]['value'];
+          //   });
+          //   resultItem['result'] = metricItem;
+          // }
+
+          const result = await this.resultService.getResultBySubmissionId(
+            submissions.data.submissions[i].id,
+          );
+          if (result.isOk()) {
+            resultItem['result'] = result.data;
           }
         }
         data.push(resultItem);

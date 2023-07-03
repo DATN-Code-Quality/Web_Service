@@ -17,6 +17,7 @@ import { CourseReqDto } from 'src/course/req/course-req.dto';
 import { CourseService } from 'src/course/course.service';
 import { USER_STATUS } from 'src/user/req/user-req.dto';
 import { UserService } from 'src/user/user.service';
+import e from 'express';
 
 @Injectable()
 export class UserCourseService extends BaseService<
@@ -459,5 +460,47 @@ export class UserCourseService extends BaseService<
       .catch((e) => {
         return OperationResult.error(e);
       });
+  }
+
+  async findStudentByCourseId(
+    courseId: string,
+    name: string,
+    userName: string,
+    email: string,
+    limit: number,
+    offset: number,
+  ): Promise<OperationResult<any>> {
+    const usercourses = await this.usercourseRepository.find({
+      where: {
+        courseId: courseId,
+        role: SubRole.STUDENT,
+        user: [
+          {
+            name: Like(`%${name}%`),
+            userId: Like(`%${userName}%`),
+            email: Like(`%${email}%`),
+          },
+        ],
+      },
+      relations: {
+        user: true,
+      },
+      skip: offset,
+      take: limit,
+    });
+
+    const users = [] as UserResDto[];
+
+    for (let i = 0; i < usercourses.length; i++) {
+      usercourses[i].user = plainToInstance(UserResDto, usercourses[i].user, {
+        excludeExtraneousValues: true,
+      });
+
+      usercourses[i].user.role = usercourses[i].role;
+
+      users.push(usercourses[i].user);
+    }
+
+    return OperationResult.ok(users);
   }
 }

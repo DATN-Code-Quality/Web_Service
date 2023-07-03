@@ -37,6 +37,9 @@ import { LoggerModule } from './logger/logger.module';
 import { MoodleMiddleware } from './middleware/moodle.middleware';
 import { MoodleModule } from './moodle/moodle.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ResultModule } from './result/project.module';
+import { ResultReqDto } from './result/req/result-req.dto';
+import { FacultyModule } from './faculty/faculty.module';
 
 @Module({
   imports: [
@@ -56,6 +59,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
         AssignmentReqDto,
         SubmissionReqDto,
         ProjectReqDto,
+        ResultReqDto,
       ],
 
       logging: false,
@@ -72,12 +76,13 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     AssignmentModule,
     SubmissionModule,
     ProjectModule,
-    // ResultModule,
+    ResultModule,
     UserMoodleModule,
     CourseMoodleModule,
     SubmissionMoodleModule,
     AssignmentMoodleModule,
     MoodleModule,
+    FacultyModule,
     {
       ...ClientsModule.register([
         {
@@ -150,6 +155,10 @@ export class AppModule implements NestModule {
         },
         {
           path: '/api/sonarqube/component/:courseId/:assignmentId/:submissionId',
+          method: RequestMethod.GET,
+        },
+        {
+          path: '/api/result/:courseId/:assignmentId/:submissionId',
           method: RequestMethod.GET,
         },
       );

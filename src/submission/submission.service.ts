@@ -251,4 +251,54 @@ export class SubmissionService extends BaseService<
       );
     }
   }
+
+  async getSubmissionsByAssignmentIds(
+    assignmentIds: string[],
+  ): Promise<OperationResult<SubmissionResDto[]>> {
+    return this.submissionRepository
+      .createQueryBuilder('submission')
+      .where(
+        'submission.assignmentId IN (:...assignmentIds) and submission.deletedAt is null',
+        {
+          assignmentIds: assignmentIds,
+        },
+      )
+      .getMany()
+      .then((submissions) => {
+        return OperationResult.ok(
+          plainToInstance(SubmissionResDto, submissions, {
+            excludeExtraneousValues: true,
+          }),
+        );
+      })
+      .catch((e) => {
+        return OperationResult.error(new Error(e));
+      });
+  }
+
+  async getSubmissionsByAssignmentIdsAndUserId(
+    assignmentIds: string[],
+    userId: string,
+  ): Promise<OperationResult<SubmissionResDto[]>> {
+    return this.submissionRepository
+      .createQueryBuilder('submission')
+      .where(
+        'submission.assignmentId IN (:...assignmentIds) and submission.userId = :userId and submission.deletedAt is null',
+        {
+          assignmentIds: assignmentIds,
+          userId: userId,
+        },
+      )
+      .getMany()
+      .then((submissions) => {
+        return OperationResult.ok(
+          plainToInstance(SubmissionResDto, submissions, {
+            excludeExtraneousValues: true,
+          }),
+        );
+      })
+      .catch((e) => {
+        return OperationResult.error(new Error(e));
+      });
+  }
 }
