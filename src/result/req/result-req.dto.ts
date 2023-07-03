@@ -64,4 +64,24 @@ export class ResultReqDto extends BaseEntity {
   @IsNumber()
   @Column('float', { name: 'coverage' })
   coverage: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @Column('float', { name: 'reliabilityRating' })
+  reliabilityRating: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @Column('float', { name: 'securityRating' })
+  securityRating: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @Column('float', { name: 'sqaleRating' })
+  sqaleRating: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @Column('int', { name: 'ncloc' })
+  ncloc: number;
 }

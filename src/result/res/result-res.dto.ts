@@ -50,4 +50,20 @@ export class ResultResDto extends BaseDto {
   @ApiProperty()
   @Expose()
   coverage: number;
+
+  @ApiProperty()
+  @Expose()
+  reliabilityRating: number;
+
+  @ApiProperty()
+  @Expose()
+  securityRating: number;
+
+  @ApiProperty()
+  @Expose()
+  sqaleRating: number;
+
+  @ApiProperty()
+  @Expose()
+  ncloc: number;
 }
