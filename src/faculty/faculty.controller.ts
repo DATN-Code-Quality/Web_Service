@@ -40,11 +40,13 @@ export class FacultyController {
     @Query('limit', new DefaultValuePipe(null)) limit: number,
     @Query('offset', new DefaultValuePipe(null)) offset: number,
   ) {
-    const result = await this.facultyService.getUserStatistic(
-      search,
-      limit,
-      offset,
-    );
+    return await this.facultyService.getUserStatistic(search, limit, offset);
+  }
+
+  @Roles(Role.ADMIN)
+  @Get('/:userId/detailed-result')
+  async getDetailResult(@Param('userId') userId: string) {
+    const result = await this.facultyService.getResultbyUserId(userId);
     return result;
   }
 }

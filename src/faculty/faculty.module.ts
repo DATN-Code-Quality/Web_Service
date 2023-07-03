@@ -9,8 +9,17 @@ import { ResultModule } from 'src/result/project.module';
 import { UserModule } from 'src/user/user.module';
 import { SubmissionModule } from 'src/submission/submission.module';
 
+import { UserCourseModule } from 'src/user-course/user-course.module';
+import { AssignmentModule } from 'src/assignment/assignment.module';
+
 @Module({
-  imports: [ResultModule, UserModule, SubmissionModule],
+  imports: [
+    ResultModule,
+    UserModule,
+    UserCourseModule,
+    AssignmentModule,
+    SubmissionModule,
+  ],
   controllers: [FacultyController],
   providers: [
     FacultyService,
