@@ -464,9 +464,7 @@ export class UserCourseService extends BaseService<
 
   async findStudentByCourseId(
     courseId: string,
-    name: string,
-    userName: string,
-    email: string,
+    search: string,
     limit: number,
     offset: number,
   ): Promise<OperationResult<any>> {
@@ -476,9 +474,13 @@ export class UserCourseService extends BaseService<
         role: SubRole.STUDENT,
         user: [
           {
-            name: Like(`%${name}%`),
-            userId: Like(`%${userName}%`),
-            email: Like(`%${email}%`),
+            name: Like(`%${search}%`),
+          },
+          {
+            email: Like(`%${search}%`),
+          },
+          {
+            userId: Like(`%${search}%`),
           },
         ],
       },

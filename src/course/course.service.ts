@@ -427,17 +427,13 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
 
   async getAvgUserResultInCourse(
     courseId: string,
-    name: string,
-    userName: string,
-    email: string,
+    search: string,
     limit: number,
     offset: number,
   ): Promise<OperationResult<any>> {
     const users = await this.userCourseService.findStudentByCourseId(
       courseId,
-      name,
-      userName,
-      email,
+      search,
       limit,
       offset,
     );
@@ -462,7 +458,7 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
             users.data[i].id,
           );
 
-        if (submissions.isOk()) {
+        if (submissions.isOk() && submissions.data.length > 0) {
           const submissionIds = submissions.data.map((submission) => {
             return submission.id;
           });
