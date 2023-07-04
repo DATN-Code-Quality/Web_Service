@@ -344,7 +344,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       .where(
         `(user.name LIKE '%${search}%' or user.email LIKE '%${search}%' or user.userId LIKE '%${search}%' ) and submission.id is not null`,
       )
-      .skip((offset - 1) * limit)
+      .skip(offset)
       .take(limit)
       .getMany()
       .then((users) => {
@@ -389,7 +389,7 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
       .where(
         `(user.name LIKE '%${search}%' or user.email LIKE '%${search}%' or user.userId LIKE '%${search}%' ) and submission.id is not null and userCourses.courseId = '${courseId}'`,
       )
-      .skip((offset - 1) * limit)
+      .skip(offset)
       .take(limit)
       .getMany()
       .then((users) => {
