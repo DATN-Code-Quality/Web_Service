@@ -83,6 +83,8 @@ export class FacultyService {
       assignments = await this.assigmentService.findAssignmentsByCourseIds(
         courses.map((course) => course.id),
       );
+    } else {
+      return OperationResult.error(new Error(courseData.message));
     }
 
     let results = [];
@@ -110,6 +112,8 @@ export class FacultyService {
           submissionIds.push(foundSubmission.id);
           mapSubmission.set(foundSubmission.id, assignment);
         }
+      } else {
+        return OperationResult.error(new Error(submission.message));
       }
     }
 
@@ -124,6 +128,6 @@ export class FacultyService {
       }));
     }
 
-    return { assignments, results, courses };
+    return OperationResult.ok({ results, courses });
   }
 }
