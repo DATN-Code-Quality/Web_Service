@@ -1,16 +1,13 @@
-import { DefaultValuePipe, Injectable, Query, Request } from '@nestjs/common';
-import { BaseService } from 'src/common/base.service';
-import { OperationResult } from 'src/common/operation-result';
-import { Repository } from 'typeorm';
-import { plainToInstance } from 'class-transformer';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UserService } from 'src/user/user.service';
+import {
+  Injectable
+} from '@nestjs/common';
 import { AssignmentService } from 'src/assignment/assignment.service';
-import { Role, SubRole } from 'src/auth/auth.const';
-import { ResultResDto } from 'src/result/res/result-res.dto';
+import { SubRole } from 'src/auth/auth.const';
+import { OperationResult } from 'src/common/operation-result';
 import { ResultService } from 'src/result/result.service';
 import { SubmissionService } from 'src/submission/submission.service';
 import { UserCourseService } from 'src/user-course/user-course.service';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class FacultyService {
@@ -101,16 +98,18 @@ export class FacultyService {
           userId,
         );
 
-      if (submission.isOk() && submission.data.submissions.length > 0) {
-        const submissionList = submission.data.submissions;
+      if (submission.isOk()) {
+        if (submission.data.submissions.length > 0) {
+          const submissionList = submission.data.submissions;
 
-        const foundSubmission = submissionList.find((submission) => {
-          return submission.userId === userId;
-        });
+          const foundSubmission = submissionList.find((submission) => {
+            return submission.userId === userId;
+          });
 
-        if (foundSubmission) {
-          submissionIds.push(foundSubmission.id);
-          mapSubmission.set(foundSubmission.id, assignment);
+          if (foundSubmission) {
+            submissionIds.push(foundSubmission.id);
+            mapSubmission.set(foundSubmission.id, assignment);
+          }
         }
       } else {
         return OperationResult.error(new Error(submission.message));
