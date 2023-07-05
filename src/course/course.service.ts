@@ -532,4 +532,37 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
 
     return OperationResult.error(new Error(`${assignments.message}`));
   }
+
+  async getTopIssue(courseId: string, isDesc: boolean, limit: number) {
+    const assignments = await this.assignmentService.findAssignmentsByCourseId(
+      courseId,
+      '',
+      null,
+      null,
+    );
+
+    if (!assignments.isOk()) {
+      return OperationResult.error(new Error(assignments.message));
+    }
+
+    const assignmentIds = assignments.data.assignments.map((assignment) => {
+      return assignment.id;
+    });
+
+    const submissions =
+      await this.submissionService.getSubmissionsByAssignmentIds(assignmentIds);
+
+    if (submissions.isOk()) {
+      if (submissions.data.length > 0) {
+        const submissionIds = submissions.data.map((submission) => {
+          return submission.id;
+        });
+        return this.resultService.getTopIssue(submissionIds, isDesc, limit);
+      } else {
+        return OperationResult.ok([]);
+      }
+    }
+
+    return OperationResult.error(new Error(submissions.message));
+  }
 }
