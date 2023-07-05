@@ -323,9 +323,9 @@ export class CourseController implements OnModuleInit {
   @Get(':courseId/top-issue')
   async getTopIssue(
     @Param('courseId') courseId: string,
-    @Query('isDesc', new DefaultValuePipe(true)) isDesc: boolean,
+    @Query('language', new DefaultValuePipe(null)) language: string,
     @Query('limit', new DefaultValuePipe(10)) limit: number,
   ) {
-    return await this.courseService.getTopIssue(courseId, isDesc, limit);
+    return await this.courseService.getTopIssue(courseId, language, limit);
   }
 }

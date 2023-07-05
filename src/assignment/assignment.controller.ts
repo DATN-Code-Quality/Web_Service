@@ -404,12 +404,12 @@ export class AssignmentController implements OnModuleInit {
   async getTopIssue(
     @Param('courseId') courseId: string,
     @Param('assignmentId') assignmentId: string,
-    @Query('isDesc', new DefaultValuePipe(true)) isDesc: boolean,
+    @Query('language', new DefaultValuePipe(true)) language: string,
     @Query('limit', new DefaultValuePipe(10)) limit: number,
   ) {
     return await this.assignmentService.getTopIssue(
       assignmentId,
-      isDesc,
+      language,
       limit,
     );
   }

@@ -533,7 +533,7 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
     return OperationResult.error(new Error(`${assignments.message}`));
   }
 
-  async getTopIssue(courseId: string, isDesc: boolean, limit: number) {
+  async getTopIssue(courseId: string, language: string, limit: number) {
     const assignments = await this.assignmentService.findAssignmentsByCourseId(
       courseId,
       '',
@@ -557,7 +557,7 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
         const submissionIds = submissions.data.map((submission) => {
           return submission.id;
         });
-        return this.resultService.getTopIssue(submissionIds, isDesc, limit);
+        return this.resultService.getTopIssue(submissionIds, language, limit);
       } else {
         return OperationResult.ok([]);
       }

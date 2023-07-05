@@ -10,6 +10,60 @@ import { GSonarqubeService } from 'src/gRPc/services/sonarqube';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 
+export const RULEMAP = new Map<string, string[]>([
+  ['c', ['c', 'common-c']],
+  ['cpp', ['common-cpp', 'cpp']],
+  ['cs', ['common-cs', 'csharpsquid', 'roslyn.sonaranalyzer.security.cs']],
+  ['objc', ['common-objc', 'objc']],
+  [
+    'py',
+    [
+      'common-py',
+      'external_bandit',
+      'external_flake8',
+      'external_mypy',
+      'external_pylint',
+      'python',
+      'pythonbugs',
+      'pythonsecurity',
+    ],
+  ],
+  ['js', ['common-js', 'external_eslint_repo', 'javascript', 'jssecurity']],
+  ['ts', ['common-ts', 'external_tslint_repo', 'tssecurity', 'typescript']],
+  ['css', ['css', 'external_stylelint']],
+  ['xml', ['xml']],
+  ['go', ['common-go', 'external_golint', 'external_govet', 'go']],
+  [
+    'java',
+    [
+      'common-java',
+      'external_checkstyle',
+      'external_fbcontrib',
+      'external_findsecbugs',
+      'external_pmd',
+      'external_spotbugs',
+      'java',
+      'javabugs',
+      'javasecurity',
+    ],
+  ],
+  [
+    'kotlin',
+    [
+      'common-kotlin',
+      'external_android-lint',
+      'external_detekt',
+      'external_ktlint',
+      'kotlin',
+    ],
+  ],
+  [
+    'php',
+    ['common-php', 'external_phpstan', 'external_psalm', 'php', 'phpsecurity'],
+  ],
+  ['ruby', ['common-ruby', 'external_rubocop', 'ruby']],
+]);
+
 @Injectable()
 export class ResultService extends BaseService<ResultReqDto, ResultResDto> {
   private clientService: GSonarqubeService;
@@ -129,7 +183,7 @@ export class ResultService extends BaseService<ResultReqDto, ResultResDto> {
     });
   }
 
-  async getTopIssue(submissionIds: string[], isDesc: boolean, limit: number) {
+  async getTopIssue(submissionIds: string[], language: string, limit: number) {
     const ruleMap = new Map<string, number>([]);
     let sortedNumDesc: Map<string, number>;
     const result = [];
@@ -147,35 +201,68 @@ export class ResultService extends BaseService<ResultReqDto, ResultResDto> {
         });
       });
     }
+    sortedNumDesc = new Map([...ruleMap].sort((a, b) => b[1] - a[1]));
 
-    if (isDesc) {
-      sortedNumDesc = new Map([...ruleMap].sort((a, b) => b[1] - a[1]));
-    } else {
-      sortedNumDesc = new Map([...ruleMap].sort((a, b) => a[1] - b[1]));
-    }
-
+    const [firstKey] = sortedNumDesc.keys();
+    const maxLang = this.getByValue(RULEMAP, firstKey.split(':')[0]);
+    const lang = language && RULEMAP.has(language) ? language : maxLang;
     let len = limit > sortedNumDesc.size ? sortedNumDesc.size : limit;
+
     for (let [key, value] of sortedNumDesc) {
-      // console.log(key, value);
+      if (RULEMAP.get(lang).indexOf(key.split(':')[0]) != -1) {
+        const rule = await firstValueFrom(
+          await this.clientService.getRuleDetailByKey({
+            key: key,
+          }),
+        );
 
-      const rule = await firstValueFrom(
-        await this.clientService.getRuleDetailByKey({
-          key: key,
-        }),
-      );
+        if (rule.error == 0) {
+          result.push({
+            rule: rule.data,
+            count: value,
+          });
+        } else {
+          return OperationResult.error(new Error(rule.message));
+        }
 
-      if (rule.error == 0) {
-        result.push({
-          rule: rule.data,
-          count: value,
-        });
-      }
-
-      len--;
-      if (len <= 0) {
-        break;
+        len--;
+        if (len <= 0) {
+          break;
+        }
       }
     }
-    return OperationResult.ok(result);
+
+    return OperationResult.ok({
+      issues: {
+        language: lang,
+        rules: result,
+      },
+      languages: this.getLanguage(sortedNumDesc),
+    });
+  }
+
+  getByValue(map: Map<string, string[]>, searchValue: string): string {
+    for (let [key, value] of map.entries()) {
+      if (value.indexOf(searchValue) != -1) {
+        return key;
+      }
+    }
+    return null;
+  }
+
+  getLanguage(map: Map<string, any>): String[] {
+    const keySet = new Set<string>();
+    for (let [key, value] of map) {
+      keySet.add(key.split(':')[0]);
+    }
+    const langSet = new Set<string>();
+    keySet.forEach((key) => {
+      const lang = this.getByValue(RULEMAP, key);
+      if (lang) {
+        langSet.add(lang);
+      }
+    });
+
+    return Array.from(langSet.values());
   }
 }
