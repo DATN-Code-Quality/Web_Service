@@ -266,7 +266,7 @@ export class AssignmentController implements OnModuleInit {
     return result;
   }
 
-  @SubRoles(SubRole.TEACHER)
+  @SubRoles(SubRole.TEACHER, SubRole.ADMIN)
   @Get(':courseId/:assignmentId/report')
   async getReport(
     @Param('courseId') courseId: string,
@@ -334,7 +334,7 @@ export class AssignmentController implements OnModuleInit {
   //   return this.assignmentService.upsertAssignments(assignments);
   // }
 
-  @SubRoles(SubRole.TEACHER)
+  @SubRoles(SubRole.TEACHER, SubRole.ADMIN)
   @Get(':courseId/:assignmentId/export')
   async exportResult(
     @Param('courseId') courseId: string,
@@ -399,7 +399,7 @@ export class AssignmentController implements OnModuleInit {
     });
   }
 
-  @SubRoles(SubRole.STUDENT, SubRole.TEACHER)
+  @SubRoles(SubRole.STUDENT, SubRole.TEACHER, SubRole.ADMIN)
   @Get(':courseId/:assignmentId/top-issue')
   async getTopIssue(
     @Param('courseId') courseId: string,

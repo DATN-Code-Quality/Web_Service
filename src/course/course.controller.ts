@@ -246,7 +246,7 @@ export class CourseController implements OnModuleInit {
     return result;
   }
 
-  @SubRoles(SubRole.TEACHER)
+  @SubRoles(SubRole.TEACHER, SubRole.ADMIN)
   @Get('/:courseId/report')
   async getReport(@Param('courseId') courseId: string, @Request() req) {
     const result = await this.courseService.getReport(courseId);
