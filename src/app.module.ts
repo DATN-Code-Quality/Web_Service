@@ -67,7 +67,7 @@ import { FacultyModule } from './faculty/faculty.module';
     }),
 
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, process.env.STATIC_SERVICE_LOCAL),
+      rootPath: join(__dirname, process.env.STATIC_SERVICE_DEPLOY),
     }),
     UserModule,
     CategoryModule,
