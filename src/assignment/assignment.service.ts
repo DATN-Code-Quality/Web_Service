@@ -9,6 +9,7 @@ import { plainToInstance } from 'class-transformer';
 import { UserCourseService } from 'src/user-course/user-course.service';
 import { SubmissionService } from 'src/submission/submission.service';
 import { SUBMISSION_STATUS } from 'src/submission/req/submission-req.dto';
+import { ResultService } from 'src/result/result.service';
 
 @Injectable()
 export class AssignmentService extends BaseService<
@@ -21,6 +22,7 @@ export class AssignmentService extends BaseService<
     private readonly submissionService: SubmissionService,
     @Inject(forwardRef(() => UserCourseService))
     private readonly usercourseService: UserCourseService,
+    private readonly resultService: ResultService,
   ) {
     super(assignmentRepository);
   }
@@ -188,4 +190,26 @@ export class AssignmentService extends BaseService<
   //     submission: scanResult,
   //   });
   // }
+
+  async getTopIssue(assignmentId: string, isDesc: boolean, limit: number) {
+    const submissions =
+      await this.submissionService.findSubmissionsByAssigmentId(
+        assignmentId,
+        null,
+        null,
+      );
+
+    if (submissions.isOk()) {
+      if (submissions.data.total > 0) {
+        const submissionIds = submissions.data.submissions.map((submission) => {
+          return submission.id;
+        });
+        return this.resultService.getTopIssue(submissionIds, isDesc, limit);
+      } else {
+        return OperationResult.ok([]);
+      }
+    }
+
+    return OperationResult.error(new Error(submissions.message));
+  }
 }

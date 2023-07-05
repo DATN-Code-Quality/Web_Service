@@ -84,4 +84,8 @@ export class ResultReqDto extends BaseEntity {
   @IsNumber()
   @Column('int', { name: 'ncloc' })
   ncloc: number;
+
+  @ApiProperty()
+  @Column('varchar', { name: 'rules', length: 10000 })
+  rules: string;
 }

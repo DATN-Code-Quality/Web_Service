@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { BaseService } from 'src/common/base.service';
 import { OperationResult } from 'src/common/operation-result';
 import { In, Repository } from 'typeorm';
@@ -6,12 +6,23 @@ import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ResultReqDto } from './req/result-req.dto';
 import { ResultResDto } from './res/result-res.dto';
+import { GSonarqubeService } from 'src/gRPc/services/sonarqube';
+import { ClientGrpc } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class ResultService extends BaseService<ResultReqDto, ResultResDto> {
+  private clientService: GSonarqubeService;
+
+  onModuleInit() {
+    this.clientService =
+      this.client.getService<GSonarqubeService>('GSonarqubeService');
+  }
+
   constructor(
     @InjectRepository(ResultReqDto)
     private readonly resultRepository: Repository<ResultReqDto>,
+    @Inject('THIRD_PARTY_SERVICE') private readonly client: ClientGrpc,
   ) {
     super(resultRepository);
   }
@@ -116,5 +127,55 @@ export class ResultService extends BaseService<ResultReqDto, ResultResDto> {
         submissionId: In(submissionIds),
       },
     });
+  }
+
+  async getTopIssue(submissionIds: string[], isDesc: boolean, limit: number) {
+    const ruleMap = new Map<string, number>([]);
+    let sortedNumDesc: Map<string, number>;
+    const result = [];
+    const results = await this.getResultsBySubmissionIds(submissionIds);
+    if (results.length > 0) {
+      results.forEach((result) => {
+        const ruleStrs = result.rules.slice(1, -1).split(', ');
+        ruleStrs.forEach((rule) => {
+          const item = rule.split('=');
+          if (ruleMap.has(item[0])) {
+            ruleMap.set(item[0], ruleMap.get(item[0]) + Number(item[1]));
+          } else {
+            ruleMap.set(item[0], Number(item[1]));
+          }
+        });
+      });
+    }
+
+    if (isDesc) {
+      sortedNumDesc = new Map([...ruleMap].sort((a, b) => b[1] - a[1]));
+    } else {
+      sortedNumDesc = new Map([...ruleMap].sort((a, b) => a[1] - b[1]));
+    }
+
+    let len = limit > sortedNumDesc.size ? sortedNumDesc.size : limit;
+    for (let [key, value] of sortedNumDesc) {
+      // console.log(key, value);
+
+      const rule = await firstValueFrom(
+        await this.clientService.getRuleDetailByKey({
+          key: key,
+        }),
+      );
+
+      if (rule.error == 0) {
+        result.push({
+          rule: rule.data,
+          count: value,
+        });
+      }
+
+      len--;
+      if (len <= 0) {
+        break;
+      }
+    }
+    return OperationResult.ok(result);
   }
 }

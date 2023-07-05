@@ -318,4 +318,14 @@ export class CourseController implements OnModuleInit {
     }
     return result;
   }
+
+  @SubRoles(SubRole.TEACHER, SubRole.ADMIN)
+  @Get(':courseId/top-issue')
+  async getTopIssue(
+    @Param('courseId') courseId: string,
+    @Query('isDesc', new DefaultValuePipe(true)) isDesc: boolean,
+    @Query('limit', new DefaultValuePipe(10)) limit: number,
+  ) {
+    return await this.courseService.getTopIssue(courseId, isDesc, limit);
+  }
 }

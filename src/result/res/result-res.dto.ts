@@ -66,4 +66,8 @@ export class ResultResDto extends BaseDto {
   @ApiProperty()
   @Expose()
   ncloc: number;
+
+  @ApiProperty()
+  @Expose()
+  rules: string;
 }
