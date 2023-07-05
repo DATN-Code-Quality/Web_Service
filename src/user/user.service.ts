@@ -372,9 +372,10 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     const total = await this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.userCourses', 'userCourses')
+      .leftJoin('assignment', 'assignment')
       .leftJoinAndSelect('user.submissions', 'submission')
       .where(
-        `(user.name LIKE '%${search}%' or user.email LIKE '%${search}%' or user.userId LIKE '%${search}%' ) and submission.id is not null and userCourses.courseId = '${courseId}'`,
+        `(user.name LIKE '%${search}%' or user.email LIKE '%${search}%' or user.userId LIKE '%${search}%' ) and submission.id is not null and userCourses.courseId = '${courseId}' and assignment.courseId = '${courseId}' and submission.assignmentId = assignment.id `,
       )
       .getCount()
       .then()
@@ -385,9 +386,10 @@ export class UserService extends BaseService<UserReqDto, UserResDto> {
     const users = await this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.submissions', 'submission')
+      .leftJoin('assignment', 'assignment')
       .leftJoinAndSelect('user.userCourses', 'userCourses')
       .where(
-        `(user.name LIKE '%${search}%' or user.email LIKE '%${search}%' or user.userId LIKE '%${search}%' ) and submission.id is not null and userCourses.courseId = '${courseId}'`,
+        `(user.name LIKE '%${search}%' or user.email LIKE '%${search}%' or user.userId LIKE '%${search}%' ) and submission.id is not null and userCourses.courseId = '${courseId}' and assignment.courseId = '${courseId}' and submission.assignmentId = assignment.id `,
       )
       .skip(offset)
       .take(limit)

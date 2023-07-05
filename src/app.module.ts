@@ -37,9 +37,9 @@ import { LoggerModule } from './logger/logger.module';
 import { MoodleMiddleware } from './middleware/moodle.middleware';
 import { MoodleModule } from './moodle/moodle.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { ResultModule } from './result/project.module';
 import { ResultReqDto } from './result/req/result-req.dto';
 import { FacultyModule } from './faculty/faculty.module';
+import { ResultModule } from './result/result.module';
 
 @Module({
   imports: [

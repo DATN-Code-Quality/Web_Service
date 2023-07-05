@@ -9,7 +9,7 @@ import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { SubRolesGuard } from 'src/auth/guard/sub-roles.guard';
 import { UserCourseModule } from 'src/user-course/user-course.module';
 import { SubmissionModule } from 'src/submission/submission.module';
-import { ResultModule } from 'src/result/project.module';
+import { ResultModule } from 'src/result/result.module';
 
 @Module({
   imports: [

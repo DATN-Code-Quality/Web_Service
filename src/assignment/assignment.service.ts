@@ -191,7 +191,7 @@ export class AssignmentService extends BaseService<
   //   });
   // }
 
-  async getTopIssue(assignmentId: string, isDesc: boolean, limit: number) {
+  async getTopIssue(assignmentId: string, language: string, limit: number) {
     const submissions =
       await this.submissionService.findSubmissionsByAssigmentId(
         assignmentId,
@@ -204,7 +204,7 @@ export class AssignmentService extends BaseService<
         const submissionIds = submissions.data.submissions.map((submission) => {
           return submission.id;
         });
-        return this.resultService.getTopIssue(submissionIds, isDesc, limit);
+        return this.resultService.getTopIssue(submissionIds, language, limit);
       } else {
         return OperationResult.ok([]);
       }
