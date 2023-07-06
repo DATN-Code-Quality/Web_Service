@@ -348,4 +348,25 @@ export class SubmissionService extends BaseService<
         return OperationResult.error(new Error(e));
       });
   }
+
+  async updateStatus(
+    submissionIds: string[],
+    status: SUBMISSION_STATUS,
+  ): Promise<OperationResult<string>> {
+    return this.submissionRepository
+      .createQueryBuilder()
+      .update(SubmissionReqDto)
+      .set({ status: status })
+      .where(
+        'submission.id IN (:...submissionIds) and submission.deletedAt is null',
+        { submissionIds: submissionIds },
+      )
+      .execute()
+      .then(() => {
+        return OperationResult.ok('Update status successfully');
+      })
+      .catch((e) => {
+        return OperationResult.error(new Error(e.message));
+      });
+  }
 }

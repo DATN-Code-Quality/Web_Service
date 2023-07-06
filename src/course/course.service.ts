@@ -545,6 +545,18 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
       return OperationResult.error(new Error(assignments.message));
     }
 
+    if (assignments.data.assignments.length <= 0) {
+      {
+        return OperationResult.ok({
+          issue: {
+            language: null,
+            rules: [],
+          },
+          languages: [],
+        });
+      }
+    }
+
     const assignmentIds = assignments.data.assignments.map((assignment) => {
       return assignment.id;
     });
@@ -559,7 +571,13 @@ export class CourseService extends BaseService<CourseReqDto, CourseResDto> {
         });
         return this.resultService.getTopIssue(submissionIds, language, limit);
       } else {
-        return OperationResult.ok([]);
+        return OperationResult.ok({
+          issue: {
+            language: null,
+            rules: [],
+          },
+          languages: [],
+        });
       }
     }
 

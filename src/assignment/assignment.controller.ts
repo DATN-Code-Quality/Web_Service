@@ -81,18 +81,16 @@ export class AssignmentController implements OnModuleInit {
 
     if (result.isOk()) {
       for (let i = 0; i < result.data.length; i++) {
-        const response = await firstValueFrom(
-          this.gSonarqubeService.createQualityGate({
-            assignmentId: result.data[i].id,
-            conditions: createCondition(JSON.parse(result.data[i].config)),
-          }),
-        );
-
+        // const response = await firstValueFrom(
+        //   this.gSonarqubeService.createQualityGate({
+        //     assignmentId: result.data[i].id,
+        //     conditions: createCondition(JSON.parse(result.data[i].config)),
+        //   }),
+        // );
         // if (response.error === 0) {
         //   await this.assignmentService.update(result.data[i].id, {
         //     config: response.data,
         //   } as AssignmentResDto);
-
         //   result.data[i].config = response.data;
         // }
       }
@@ -145,37 +143,57 @@ export class AssignmentController implements OnModuleInit {
 
     const conditions = createCondition(assignment.configObject);
     if (result.isOk()) {
-      const response = await firstValueFrom(
-        this.gSonarqubeService.createQualityGate({
-          assignmentId: result.data.id,
-          conditions: conditions, //createCondition(assignment.configObject),
-        }),
+      // const response = await firstValueFrom(
+      //   this.gSonarqubeService.createQualityGate({
+      //     assignmentId: result.data.id,
+      //     conditions: conditions, //createCondition(assignment.configObject),
+      //   }),
+      // );
+
+      // if (response.error === 0) {
+      //   const savedAssignment: AssignmentCronjobRequest = {
+      //     id: assignment.id,
+      //     assignmentMoodleId: assignment.assignmentMoodleId as any,
+      //     dueDate: new Date(assignment.dueDate).getTime() as any,
+      //   };
+
+      //   Logger.debug('Data: ' + JSON.stringify(savedAssignment));
+
+      //   firstValueFrom(
+      //     this.gAssignmentService
+      //       .addAssignmentCronjob({
+      //         assignments: [savedAssignment],
+      //       })
+      //       .pipe(),
+      //   );
+
+      //   return OperationResult.ok({
+      //     assignment: result.data,
+      //     role: req.headers['role'],
+      //   });
+      // } else {
+      //   return OperationResult.error(new Error(response.message));
+      // }
+      const savedAssignment: AssignmentCronjobRequest = {
+        id: assignment.id,
+        assignmentMoodleId: assignment.assignmentMoodleId as any,
+        dueDate: new Date(assignment.dueDate).getTime() as any,
+      };
+
+      Logger.debug('Data: ' + JSON.stringify(savedAssignment));
+
+      firstValueFrom(
+        this.gAssignmentService
+          .addAssignmentCronjob({
+            assignments: [savedAssignment],
+          })
+          .pipe(),
       );
 
-      if (response.error === 0) {
-        const savedAssignment: AssignmentCronjobRequest = {
-          id: assignment.id,
-          assignmentMoodleId: assignment.assignmentMoodleId as any,
-          dueDate: new Date(assignment.dueDate).getTime() as any,
-        };
-
-        Logger.debug('Data: ' + JSON.stringify(savedAssignment));
-
-        firstValueFrom(
-          this.gAssignmentService
-            .addAssignmentCronjob({
-              assignments: [savedAssignment],
-            })
-            .pipe(),
-        );
-
-        return OperationResult.ok({
-          assignment: result.data,
-          role: req.headers['role'],
-        });
-      } else {
-        return OperationResult.error(new Error(response.message));
-      }
+      return OperationResult.ok({
+        assignment: result.data,
+        role: req.headers['role'],
+      });
     }
 
     // const result = await firstValueFrom(
@@ -303,29 +321,36 @@ export class AssignmentController implements OnModuleInit {
     //parse config thành 1 list các điều kiện
     const conditions = createCondition(data['configObject']);
 
-    const result = await firstValueFrom(
-      this.gSonarqubeService.updateConditions({
-        assignmentId: assignmentId,
-        conditions: conditions,
-      }),
+    const assignment = await this.assignmentService.update(
+      assignmentId,
+      payload as any,
     );
 
-    if (result.error === 0) {
-      //Lưu payload vào db
-      const assignment = await this.assignmentService.update(
-        assignmentId,
-        payload as any,
-      );
-      if (assignment.isOk()) {
-        return OperationResult.ok({
-          assignment: result.data,
-          role: req.headers['role'],
-        });
-      }
-      return assignment;
-    } else {
-      return OperationResult.error(new Error(result.message));
+    if (assignment.isOk()) {
+      const result = this.assignmentService
+        .updateStatusOfSubmissions(data['configObject'], assignmentId)
+        .then();
+
+      return OperationResult.ok({
+        assignment: 'Update successfully',
+        role: req.headers['role'],
+      });
     }
+    return assignment;
+
+    // const result = await firstValueFrom(
+    //   this.gSonarqubeService.updateConditions({
+    //     assignmentId: assignmentId,
+    //     conditions: conditions,
+    //   }),
+    // );
+
+    // if (result.i === 0) {
+    //   //Lưu payload vào db
+
+    // } else {
+    //   return OperationResult.error(new Error(result.message));
+    // }
   }
 
   // @SubRoles(SubRole.TEACHER)
