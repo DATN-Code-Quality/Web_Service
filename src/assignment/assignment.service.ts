@@ -206,7 +206,13 @@ export class AssignmentService extends BaseService<
         });
         return this.resultService.getTopIssue(submissionIds, language, limit);
       } else {
-        return OperationResult.ok([]);
+        return OperationResult.ok({
+          issue: {
+            language: null,
+            rules: [],
+          },
+          languages: [],
+        });
       }
     }
 
