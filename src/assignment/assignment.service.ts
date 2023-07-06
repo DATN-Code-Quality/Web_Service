@@ -1,6 +1,6 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { BaseService } from 'src/common/base.service';
-import { AssignmentReqDto } from './req/assignment-req.dto';
+import { AssignmentReqDto, ConfigObject } from './req/assignment-req.dto';
 import { AssignmentResDto } from './res/assignment-res.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Like, Repository } from 'typeorm';
@@ -217,5 +217,126 @@ export class AssignmentService extends BaseService<
     }
 
     return OperationResult.error(new Error(submissions.message));
+  }
+
+  async updateStatusOfSubmissions(config: ConfigObject, assignmentId: string) {
+    const passIds = [];
+    const failIds = [];
+
+    const submissions =
+      await this.submissionService.findSubmissionsByAssigmentId(
+        assignmentId,
+        null,
+        null,
+      );
+
+    if (submissions.isOk) {
+      if (submissions.data.submissions.length > 0) {
+        for (let i = 0; i < submissions.data.submissions.length; i++) {
+          if (
+            submissions.data.submissions[i].status != SUBMISSION_STATUS.PASS &&
+            submissions.data.submissions[i].status != SUBMISSION_STATUS.FAIL
+          ) {
+            continue;
+          }
+
+          const result = await this.resultService.getResultBySubmissionId(
+            submissions.data.submissions[i].id,
+          );
+
+          if (
+            config.code_smells &&
+            config.code_smells < result.data['code_smells']
+          ) {
+            failIds.push(submissions.data.submissions[i].id);
+            continue;
+          }
+          if (config.bugs && config.bugs < result.data['bugs']) {
+            failIds.push(submissions.data.submissions[i].id);
+            continue;
+          }
+          if (
+            config.vulnerabilities &&
+            config.vulnerabilities < result.data['vulnerabilities']
+          ) {
+            failIds.push(submissions.data.submissions[i].id);
+            continue;
+          }
+
+          if (
+            config.violations &&
+            config.violations < result.data['violations']
+          ) {
+            failIds.push(submissions.data.submissions[i].id);
+            continue;
+          }
+          if (
+            config.blocker_violations &&
+            config.blocker_violations < result.data['blocker_violations']
+          ) {
+            failIds.push(submissions.data.submissions[i].id);
+            continue;
+          }
+          if (
+            config.critical_violations &&
+            config.critical_violations < result.data['critical_violations']
+          ) {
+            failIds.push(submissions.data.submissions[i].id);
+            continue;
+          }
+          if (
+            config.major_violations &&
+            config.major_violations < result.data['major_violations']
+          ) {
+            failIds.push(submissions.data.submissions[i].id);
+            continue;
+          }
+          if (
+            config.minor_violations &&
+            config.minor_violations < result.data['minor_violations']
+          ) {
+            failIds.push(submissions.data.submissions[i].id);
+            continue;
+          }
+          if (
+            config.info_violations &&
+            config.info_violations < result.data['info_violations']
+          ) {
+            failIds.push(submissions.data.submissions[i].id);
+            continue;
+          }
+          if (
+            config.duplicated_lines_density &&
+            config.duplicated_lines_density <
+              result.data['duplicated_lines_density']
+          ) {
+            failIds.push(submissions.data.submissions[i].id);
+            continue;
+          }
+          if (config.coverage && config.coverage > result.data['coverage']) {
+            failIds.push(submissions.data.submissions[i].id);
+            continue;
+          }
+
+          passIds.push(submissions.data.submissions[i].id);
+        }
+
+        if (passIds.length > 0) {
+          this.submissionService
+            .updateStatus(passIds, SUBMISSION_STATUS.PASS)
+            .then();
+        }
+
+        if (failIds.length > 0) {
+          this.submissionService
+            .updateStatus(failIds, SUBMISSION_STATUS.FAIL)
+            .then();
+        }
+      }
+
+      return OperationResult.ok('Update success');
+    } else {
+      return OperationResult.error(new Error(submissions.message));
+    }
   }
 }
